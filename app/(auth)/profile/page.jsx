@@ -16,9 +16,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { updateProfile } from "@/lib/api"
 
+const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
+
+// Updated schema to match your data structure
 const profileFormSchema = z.object({
   email: z
     .string()
@@ -32,21 +34,30 @@ const profileFormSchema = z.object({
   role: z.enum(["student", "tutor", "admin", "user"], {
     required_error: "Please select a role.",
   }),
-  phone: z.string().optional(),
-  gender: z.string(),
+  phone_number: z.string().optional(),
+  gender: z.string().optional(),
+  address_id: z.number().optional(),
   address: z.object({
+    id: z.number().optional(),
     street: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
     zip: z.string().optional(),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    formatted: z.string().optional(),
-  }),
+    country: z.string().optional(),
+    country_code: z.string().optional(),
+    lat: z.number().nullable().optional(),
+    lon: z.number().nullable().optional(),
+    address_line_1: z.string().nullable().optional(),
+    address_line_2: z.string().nullable().optional(),
+    formatted: z.string().optional(), // This will be computed from other fields
+  }).optional(),
   bio: z.string().optional(),
-  experience: z.coerce.number().min(0).optional(),
+  years_of_experience: z.coerce.number().min(0).optional(),
   hobbies: z.string().optional(),
-  status: z.enum(["active", "inactive", "ban"]),
+  status: z.enum(["active", "inactive", "ban"]).optional(),
+  coin_balance: z.number().optional(),
+  rating: z.number().optional(),
+  profile_img: z.string().optional(),
 })
 
 export default function ProfilePage() {
@@ -54,18 +65,36 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isGettingLocation, setIsGettingLocation] = useState(false)
-  
-  // Address autocomplete states
+
   const [addressSuggestions, setAddressSuggestions] = useState([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false)
   const [addressSearchValue, setAddressSearchValue] = useState("")
-  
-  const { profile, loading } = useUser()
+
+  const { profile, loading, uploadAvatarToSupabase } = useUser()
   const debounceRef = useRef(null)
 
-  // Geoapify API key - add this to your .env.local file
-  const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
+  const form = useForm({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: profile,
+    mode: "onChange",
+  })
+
+  useEffect(() => {
+    if (profile) {
+      const formattedAddress = profile.address
+        ? `${profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
+        : ""
+
+      form.reset()
+      if (formattedAddress) {
+        setAddressSearchValue("")
+      }
+      if (profile.profile_img) {
+        setAvatar(profile.profile_img)
+      }
+    }
+  }, [profile, form])
 
   if (loading) {
     return (
@@ -75,27 +104,6 @@ export default function ProfilePage() {
     )
   }
 
-  const form = useForm({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      ...profile,
-      address: {
-        ...profile?.address,
-        formatted: profile?.address?.formatted || ""
-      }
-    },
-    mode: "onChange",
-  })
-
-  // Initialize address search value from form
-  useEffect(() => {
-    const formattedAddress = form.getValues('address.formatted')
-    if (formattedAddress && !addressSearchValue) {
-      setAddressSearchValue(formattedAddress)
-    }
-  }, [form, addressSearchValue])
-
-  // Function to get current location
   const getCurrentLocation = useCallback(() => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -122,8 +130,7 @@ export default function ProfilePage() {
     })
   }, [])
 
-  // Function to reverse geocode coordinates using Geoapify
-  const reverseGeocode = useCallback(async (latitude, longitude) => {
+  const reverseGeocode = async (latitude, longitude) => {
     if (!GEOAPIFY_API_KEY) {
       throw new Error('Geoapify API key is not configured')
     }
@@ -138,7 +145,7 @@ export default function ProfilePage() {
       }
 
       const data = await response.json()
-      
+
       if (data.features && data.features.length > 0) {
         const feature = data.features[0]
         const props = feature.properties
@@ -148,9 +155,10 @@ export default function ProfilePage() {
           state: props.state || props.region || '',
           zip: props.postcode || '',
           country: props.country || '',
+          country_code: props.country_code || '',
           formatted: props.formatted || '',
-          latitude,
-          longitude
+          lat: latitude,
+          lon: longitude
         }
       } else {
         throw new Error('No address found for the given coordinates')
@@ -159,10 +167,9 @@ export default function ProfilePage() {
       console.error('Reverse geocoding error:', error)
       throw error
     }
-  }, [GEOAPIFY_API_KEY])
+  }
 
-  // Function to search addresses using Geoapify Autocomplete
-  const searchAddresses = useCallback(async (query) => {
+  const searchAddresses = async (query) => {
     if (!GEOAPIFY_API_KEY || !query || query.length < 3) {
       return []
     }
@@ -177,7 +184,7 @@ export default function ProfilePage() {
       }
 
       const data = await response.json()
-      
+
       if (data.features) {
         return data.features.map(feature => ({
           id: feature.properties.place_id,
@@ -187,19 +194,18 @@ export default function ProfilePage() {
           state: feature.properties.state || feature.properties.region || '',
           zip: feature.properties.postcode || '',
           country: feature.properties.country || '',
-          latitude: feature.geometry.coordinates[1],
-          longitude: feature.geometry.coordinates[0]
+          country_code: feature.properties.country_code || '',
+          lat: feature.geometry.coordinates[1],
+          lon: feature.geometry.coordinates[0]
         }))
       }
-      
+
       return []
     } catch (error) {
-      console.error('Address search error:', error)
       return []
     }
-  }, [GEOAPIFY_API_KEY])
+  }
 
-  // Debounced address search
   const debouncedAddressSearch = useCallback((query) => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
@@ -221,64 +227,59 @@ export default function ProfilePage() {
         setAddressSuggestions([])
       }
     }, 300)
-  }, [searchAddresses])
+  }, [])
 
-  // Handle address search input change
   const handleAddressSearchChange = useCallback((value) => {
     setAddressSearchValue(value)
     setShowAddressSuggestions(true)
     debouncedAddressSearch(value)
   }, [debouncedAddressSearch])
 
-  // Handle address selection
   const handleAddressSelect = useCallback((selectedAddress) => {
-    // Update form fields
+    // Update form fields using the correct nested structure
     form.setValue('address.formatted', selectedAddress.formatted)
-    form.setValue('address.street', selectedAddress.street)
+    form.setValue('address.street', selectedAddress.street || selectedAddress.formatted)
     form.setValue('address.city', selectedAddress.city)
     form.setValue('address.state', selectedAddress.state)
     form.setValue('address.zip', selectedAddress.zip)
-    form.setValue('address.latitude', selectedAddress.latitude)
-    form.setValue('address.longitude', selectedAddress.longitude)
-    
-    // Update search value and hide suggestions
+    form.setValue('address.country', selectedAddress.country)
+    form.setValue('address.country_code', selectedAddress.country_code)
+    form.setValue('address.lat', selectedAddress.lat)
+    form.setValue('address.lon', selectedAddress.lon)
+
     setAddressSearchValue(selectedAddress.formatted)
     setShowAddressSuggestions(false)
     setAddressSuggestions([])
-    
+
     toast.success('Address selected successfully!')
   }, [form])
 
-  // Function to handle getting current location and updating address
   const handleGetCurrentLocation = useCallback(async () => {
     setIsGettingLocation(true)
-    
+
     try {
-      // Get current coordinates
       const coordinates = await getCurrentLocation()
-      
-      // Reverse geocode to get address
       const addressInfo = await reverseGeocode(coordinates.latitude, coordinates.longitude)
-      
-      // Update form fields
+
       form.setValue('address.formatted', addressInfo.formatted)
-      form.setValue('address.street', addressInfo.street)
+      form.setValue('address.street', addressInfo.street || addressInfo.formatted)
       form.setValue('address.city', addressInfo.city)
       form.setValue('address.state', addressInfo.state)
       form.setValue('address.zip', addressInfo.zip)
-      form.setValue('address.latitude', addressInfo.latitude)
-      form.setValue('address.longitude', addressInfo.longitude)
-      
-      // Update search value
+      form.setValue('address.country', addressInfo.country)
+      form.setValue('address.country_code', addressInfo.country_code)
+      form.setValue('address.lat', addressInfo.lat)
+      form.setValue('address.lon', addressInfo.lon)
+
       setAddressSearchValue(addressInfo.formatted)
-      
+
       toast.success('Address updated successfully using your current location!')
-      
+
     } catch (error) {
       console.error('Location error:', error)
-      
+
       let errorMessage = 'Failed to get your location. '
-      
+
       if (error.code === 1) {
         errorMessage += 'Please allow location access and try again.'
       } else if (error.code === 2) {
@@ -288,54 +289,78 @@ export default function ProfilePage() {
       } else {
         errorMessage += error.message || 'Please try again.'
       }
-      
+
       toast.error(errorMessage)
     } finally {
       setIsGettingLocation(false)
     }
   }, [getCurrentLocation, reverseGeocode, form])
 
-  // Clear address search
   const clearAddressSearch = useCallback(() => {
     setAddressSearchValue("")
     setAddressSuggestions([])
     setShowAddressSuggestions(false)
-    
+
     // Clear form fields
     form.setValue('address.formatted', '')
     form.setValue('address.street', '')
     form.setValue('address.city', '')
     form.setValue('address.state', '')
     form.setValue('address.zip', '')
-    form.setValue('address.latitude', undefined)
-    form.setValue('address.longitude', undefined)
+    form.setValue('address.country', '')
+    form.setValue('address.country_code', '')
+    form.setValue('address.lat', null)
+    form.setValue('address.lon', null)
   }, [form])
 
-  function onSubmit(data) {
-    setIsSaving(true)
-
-    setTimeout(() => {
-      console.log(data)
-      setIsSaving(false)
-      toast("Profile has been saved successfully")
-    }, 1000)
-  }
-
-  function handleAvatarChange(event) {
+  async function handleAvatarChange(event) {
     const file = event.target.files?.[0]
     if (!file) return
 
-    setIsUploading(true)
+    if (!file.type.startsWith('image/')) {
+      toast.error("Invalid file type")
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large, Image must be less than 5MB")
+      return
+    }
 
-    // Simulate upload delay
-    setTimeout(() => {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setAvatar(e.target?.result)
-        setIsUploading(false)
+    setIsUploading(true)
+    try {
+      const uploadedUrl = await uploadAvatarToSupabase(file, profile.email)
+      if (uploadedUrl) {
+        setAvatar(uploadedUrl)
+        form.setValue('profile_img', uploadedUrl)
+        toast.success("Avatar updated successfully!")
       }
-      reader.readAsDataURL(file)
-    }, 1000)
+    } catch (error) {
+      console.error("Error handling avatar:", error)
+      toast.error("Failed to process image")
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  async function onSubmit(data) {
+    setIsSaving(true)
+    console.log('Form data being submitted:', data)
+
+    try {
+      const result = await updateProfile(data, profile.email)
+
+      if (result.error) {
+        throw new Error(result.error)
+      }
+
+      toast.success("Profile updated successfully!")
+
+    } catch (error) {
+      console.error("Error saving profile:", error)
+      toast.error("Failed to update profile")
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -345,17 +370,17 @@ export default function ProfilePage() {
         <p className="text-muted-foreground">Manage your account settings and profile information</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Personal Information Column */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-              <CardDescription>Update your personal details and contact information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Personal Information Column */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Personal Information</CardTitle>
+                  <CardDescription>Update your personal details and contact information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="relative">
                       <Avatar className="h-24 w-24">
@@ -366,7 +391,12 @@ export default function ProfilePage() {
                         ) : (
                           <>
                             <AvatarImage src={avatar || ""} alt="Profile" />
-                            <AvatarFallback>JS</AvatarFallback>
+                            <AvatarFallback className="bg-black text-white">
+                              {profile?.name
+                                ?.split(" ")
+                                .map((n) => n[0])
+                                .join("") || "U"}
+                            </AvatarFallback>
                           </>
                         )}
                       </Avatar>
@@ -386,12 +416,16 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <Star className="h-4 w-4 fill-muted text-muted" />
-                      <span className="ml-1 text-sm font-medium">4.0</span>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${star <= Math.floor(form.watch('rating') || 0)
+                              ? 'fill-yellow-400 text-yellow-400'
+                              : 'fill-muted text-muted'
+                            }`}
+                        />
+                      ))}
+                      <span className="ml-1 text-sm font-medium">{form.watch('rating')?.toFixed(1) || '0.0'}</span>
                     </div>
                   </div>
 
@@ -430,7 +464,7 @@ export default function ProfilePage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a role" />
@@ -450,7 +484,7 @@ export default function ProfilePage() {
 
                   <FormField
                     control={form.control}
-                    name="phone"
+                    name="phone_number"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Phone Number</FormLabel>
@@ -475,39 +509,34 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>View your account status and balance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">{}</p>
-                <div className="flex items-center space-x-2">
-                  <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center">
-                    <span className="text-xs font-bold text-yellow-900">$</span>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Account Information</CardTitle>
+                  <CardDescription>View your account status and balance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center">
+                        <span className="text-xs font-bold text-yellow-900">$</span>
+                      </div>
+                      <p className="text-2xl font-bold">{form.watch('coin_balance')}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Last updated: May 30, 2025</p>
                   </div>
-                  <p name="coin_balance" className="text-2xl font-bold">{form.getValues().coin_balance}</p>
-                </div>
-                <p className="text-xs text-muted-foreground">Last updated: May 28, 2025</p>
-              </div>
 
-              <Separator />
+                  <Separator />
 
-              <Form {...form}>
-                <form className="space-y-6">
                   <FormField
                     control={form.control}
                     name="status"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Account Status</FormLabel>
-                        <Select defaultValue={field.value} disabled>
+                        <Select value={field.value} onValueChange={field.onChange} disabled>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select status" />
@@ -523,22 +552,18 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* Profile Details Column */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Details</CardTitle>
-              <CardDescription>Share information about yourself with the community</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form className="space-y-6">
+            {/* Profile Details Column */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Details</CardTitle>
+                  <CardDescription>Share information about yourself with the community</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   <FormField
                     control={form.control}
                     name="bio"
@@ -556,12 +581,12 @@ export default function ProfilePage() {
 
                   <FormField
                     control={form.control}
-                    name="experience"
+                    name="years_of_experience"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Years of Experience</FormLabel>
                         <FormControl>
-                          <Input type="number" min="0" {...field} />
+                          <Input type="number" min="0" step="0.1" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -585,105 +610,94 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Address Information</CardTitle>
-                  <CardDescription>Update your address details</CardDescription>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGetCurrentLocation}
-                  disabled={isGettingLocation}
-                  className="flex items-center gap-2"
-                >
-                  {isGettingLocation ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Locate className="h-4 w-4" />
-                  )}
-                  {isGettingLocation ? 'Getting Location...' : 'Use Current Location'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Form {...form}>
-                <form className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Address Information</CardTitle>
+                      <CardDescription>Update your address details</CardDescription>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleGetCurrentLocation}
+                      disabled={isGettingLocation}
+                      className="flex items-center gap-2"
+                    >
+                      {isGettingLocation ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Locate className="h-4 w-4" />
+                      )}
+                      {isGettingLocation ? 'Getting Location...' : 'Use Current Location'}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
                   {/* Address Search with Autocomplete */}
                   <div className="space-y-2">
                     <FormLabel>Search Address</FormLabel>
-                    <Popover open={showAddressSuggestions} onOpenChange={setShowAddressSuggestions}>
-                      <PopoverTrigger asChild>
-                        <div className="relative">
-                          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Start typing an address..."
-                            value={addressSearchValue}
-                            onChange={(e) => handleAddressSearchChange(e.target.value)}
-                            onFocus={() => setShowAddressSuggestions(true)}
-                            className="pl-10 pr-10"
-                          />
-                          {addressSearchValue && (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={clearAddressSearch}
-                              className="absolute right-1 top-1 h-8 w-8 p-0"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0" align="start">
-                        <Command>
-                          <CommandList>
-                            {isLoadingSuggestions ? (
-                              <div className="flex items-center justify-center p-4">
-                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                <span className="text-sm text-muted-foreground">Searching addresses...</span>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Start typing an address..."
+                        value={addressSearchValue}
+                        onChange={(e) => handleAddressSearchChange(e.target.value)}
+                        onClick={() => setShowAddressSuggestions(true)}
+                        className="pl-10 pr-10"
+                      />
+                      {addressSearchValue && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearAddressSearch}
+                          className="absolute right-1 top-1 h-8 w-8 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+
+                    {showAddressSuggestions && addressSearchValue.length >= 3 && (
+                      <div className="relative w-full mt-1 z-10 border rounded-md shadow-md bg-background">
+                        {isLoadingSuggestions ? (
+                          <div className="flex items-center justify-center p-4">
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            <span className="text-sm text-muted-foreground">Searching address...</span>
+                          </div>
+                        ) : addressSuggestions.length > 0 ? (
+                          <div className="max-h-60 overflow-auto">
+                            {addressSuggestions.map((suggestion) => (
+                              <div
+                                key={suggestion.id}
+                                className="flex items-start p-2 cursor-pointer hover:bg-accent"
+                                onClick={() => handleAddressSelect(suggestion)}
+                              >
+                                <MapPin className="mr-2 h-4 w-4 mt-0.5" />
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{suggestion.formatted}</span>
+                                  {suggestion.city && suggestion.state && (
+                                    <span className="text-xs text-muted-foreground">
+                                      {suggestion.city}, {suggestion.state}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            ) : addressSuggestions.length > 0 ? (
-                              <CommandGroup>
-                                {addressSuggestions.map((suggestion) => (
-                                  <CommandItem
-                                    key={suggestion.id}
-                                    value={suggestion.formatted}
-                                    onSelect={() => handleAddressSelect(suggestion)}
-                                    className="cursor-pointer"
-                                  >
-                                    <MapPin className="mr-2 h-4 w-4" />
-                                    <div className="flex flex-col">
-                                      <span className="font-medium">{suggestion.formatted}</span>
-                                      {suggestion.city && suggestion.state && (
-                                        <span className="text-xs text-muted-foreground">
-                                          {suggestion.city}, {suggestion.state}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            ) : addressSearchValue.length >= 3 ? (
-                              <CommandEmpty>No addresses found.</CommandEmpty>
-                            ) : (
-                              <div className="p-4 text-sm text-muted-foreground text-center">
-                                Type at least 3 characters to search
-                              </div>
-                            )}
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-4 text-sm text-muted-foreground text-center">
+                            No address found
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <p className="text-sm text-muted-foreground">
                       Search and select your address from suggestions, or fill in manually below.
                     </p>
@@ -749,7 +763,7 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  {/* Hidden fields for coordinates and formatted address */}
+                  {/* Hidden fields for coordinates and other address data */}
                   <FormField
                     control={form.control}
                     name="address.formatted"
@@ -764,11 +778,11 @@ export default function ProfilePage() {
 
                   <FormField
                     control={form.control}
-                    name="address.latitude"
+                    name="address.lat"
                     render={({ field }) => (
                       <FormItem className="hidden">
                         <FormControl>
-                          <Input type="hidden" {...field} />
+                          <Input type="hidden" {...field} value={field.value || ""} />
                         </FormControl>
                       </FormItem>
                     )}
@@ -776,28 +790,27 @@ export default function ProfilePage() {
 
                   <FormField
                     control={form.control}
-                    name="address.longitude"
+                    name="address.lon"
                     render={({ field }) => (
                       <FormItem className="hidden">
                         <FormControl>
-                          <Input type="hidden" {...field} />
+                          <Input type="hidden" {...field} value={field.value || ""} />
                         </FormControl>
                       </FormItem>
                     )}
                   />
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
 
-      <div className="mt-8 flex justify-end">
-        <Button type="submit" size="lg" onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
-          {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
-        </Button>
-      </div>
-    </div>
-  )
+          <div className="mt-8 flex justify-end">
+            <Button type="submit" size="lg" onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>)
 }

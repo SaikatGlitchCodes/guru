@@ -93,9 +93,9 @@ export default function Navbar() {
           {loading && !previousProfile ? (
             <Skeleton className="h-10 w-96 rounded-full bg-gray-500" />
           ) : (
-            <Avatar className="h-10 w-10 ring-2 ring-teal-100">
+            <Avatar className="h-10 w-10 ring-2 ring-gray-100">
               <AvatarImage src={""} alt={userName} />
-              <AvatarFallback className="bg-teal-500 text-white">
+              <AvatarFallback className="bg-black text-white">
                 {userName
                   .split(" ")
                   .map((n) => n[0])

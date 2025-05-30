@@ -19,11 +19,10 @@ export function UserProvider({ children }) {
         setUser(session.user)
         const { data: response } = await supabase
           .from('users')
-          .select('*')
+          .select(`*, address:addresses (*), subjects (*)`)
           .eq('email', session.user.email)
           .single();
 
-        console.log("Fetched profile:", response)
         if (response) {
           setProfile(response)
         } else {
@@ -54,12 +53,10 @@ export function UserProvider({ children }) {
           setUser(session.user)
           const { data: response } = await supabase
             .from('users')
-            .select('*')
+            .select(`*, address:addresses (*), subjects (*)`)
             .eq('email', session.user.email)
             .single();
 
-        console.log("fetched profile")
-        
           if (response) {
             setProfile(response)
           } else {
@@ -86,6 +83,44 @@ export function UserProvider({ children }) {
     setProfile(null)
   }
 
+  const uploadAvatarToSupabase = async (file, userEmail) => {
+    if (!file || !userEmail) return { error: 'Missing file or email' }
+
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${userEmail}_${Date.now()}.${fileExt}`
+    const filePath = `avatars/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('profile')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      })
+
+    if (uploadError) {
+      console.error('Upload failed:', uploadError)
+      return { error: uploadError.message }
+    }
+
+    const { data: { publicUrl } } = supabase
+      .storage
+      .from('profile')
+      .getPublicUrl(filePath)
+
+    // Optionally: update user profile with the avatar URL
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ profile_img: publicUrl })
+      .eq('email', userEmail)
+
+    if (updateError) {
+      console.error('Error updating user profile:', updateError)
+      return { error: updateError.message }
+    }
+
+    return { publicUrl }
+  }
+
   return (
     <UserContext.Provider
       value={{
@@ -93,7 +128,8 @@ export function UserProvider({ children }) {
         profile,
         loading,
         signOut,
-        refreshUserData
+        refreshUserData,
+        uploadAvatarToSupabase
       }}
     >
       {children}
