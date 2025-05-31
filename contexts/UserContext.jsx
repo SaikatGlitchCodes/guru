@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { getProfile } from "@/lib/api"
 
 const UserContext = createContext(null)
 
@@ -17,11 +18,7 @@ export function UserProvider({ children }) {
 
       if (session?.user) {
         setUser(session.user)
-        const { data: response } = await supabase
-          .from('users')
-          .select(`*, address:addresses (*), subjects (*)`)
-          .eq('email', session.user.email)
-          .single();
+        const { data: response } = await getProfile(session.user.email)
 
         if (response) {
           setProfile(response)
@@ -51,11 +48,7 @@ export function UserProvider({ children }) {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user)
-          const { data: response } = await supabase
-            .from('users')
-            .select(`*, address:addresses (*), subjects (*)`)
-            .eq('email', session.user.email)
-            .single();
+          const response = await getProfile(session.user.email)
 
           if (response) {
             setProfile(response)

@@ -419,13 +419,13 @@ export default function ProfilePage() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`h-4 w-4 ${star <= Math.floor(form.watch('rating') || 0)
+                          className={`h-4 w-4 ${star <= Math.floor(form.getValues().rating || 0)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'fill-muted text-muted'
                             }`}
                         />
                       ))}
-                      <span className="ml-1 text-sm font-medium">{form.watch('rating')?.toFixed(1) || '0.0'}</span>
+                      <span className="ml-1 text-sm font-medium">{Number(form.watch('rating'))?.toFixed(1) || '0.0'}</span>
                     </div>
                   </div>
 
