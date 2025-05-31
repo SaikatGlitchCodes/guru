@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Filter, MapPin, Clock, Users, DollarSign } from "lucide-react"
+import { Search, Filter, MapPin, Clock, Users, DollarSign, LibraryBig, Navigation } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +15,7 @@ const ITEMS_PER_PAGE = 10
 
 export default function RequestBrowser({ initialRequests }) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubjects, setSelectedSubjects] = useState([])
+  const [selectedSubjects, setSelectedSubjects] = useState('')
   const [selectedCities, setSelectedCities] = useState([])
   const [meetingTypes, setMeetingTypes] = useState([])
   const [priceRange, setPriceRange] = useState([0, 5000])
@@ -141,7 +141,7 @@ export default function RequestBrowser({ initialRequests }) {
 
   const clearAllFilters = () => {
     setSearchQuery("")
-    setSelectedSubjects([])
+    setSelectedSubjects('')
     setSelectedCities([])
     setMeetingTypes([])
     setPriceRange([0, 5000])
@@ -186,90 +186,53 @@ export default function RequestBrowser({ initialRequests }) {
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search requests (e.g., 'Math in Kolkata')"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setCurrentPage(1)
-              }}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Mobile Filter Button */}
-        <div className="lg:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" className="w-full">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 overflow-y-auto">
-              <SheetHeader>
-                <SheetTitle>Filters</SheetTitle>
-                <SheetDescription>Refine your search results</SheetDescription>
-              </SheetHeader>
-              <FilterContent
-                allSubjects={allSubjects}
-                allCities={allCities}
-                allLanguages={allLanguages}
-                selectedSubjects={selectedSubjects}
-                selectedCities={selectedCities}
-                meetingTypes={meetingTypes}
-                priceRange={priceRange}
-                selectedLanguages={selectedLanguages}
-                onSubjectChange={handleSubjectChange}
-                onCityChange={handleCityChange}
-                onMeetingTypeChange={handleMeetingTypeChange}
-                onPriceRangeChange={setPriceRange}
-                onLanguageChange={handleLanguageChange}
-                onClearAll={clearAllFilters}
+      <div className="flex flex-col lg:flex-row gap-4" style={{ backgroundImage: 'url(/background.png)' }} >
+        <div className="flex-1 lg:p-6 p-0 rounded-lg">
+          <p className="text-gray-600 text-center">Find tutoring opportunities that match your expertise</p>
+          <div className="mt-4 flex flex-col gap-y-3 items-center gap-x-3 mx-auto justify-center">
+            <div className="relative w-64 bg-white">
+              <LibraryBig className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Subjects (e.g., 'Math', 'English')"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSelectedSubjects(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="pl-10"
               />
-            </SheetContent>
-          </Sheet>
+            </div>
+            <div className="relative w-64 bg-white">
+              <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Location (e.g., 'Menesota', 'Delhi')"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSelectedCities(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="pl-10"
+              />
+            </div>
+            <Button
+              variant="outline"
+              className="w-32 bg-black text-white"
+              onClick={() => console.log("Search clicked")}
+            >
+              <Search className="h-4 w-4 mr-2 " />
+              Search
+            </Button>
+
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            <Button variant='outline' className='py-0 font-normal'>Online</Button>
+            <Button variant='outline' className='py-0 font-normal'>Offline</Button>
+            <Button className='py-0 font-normal'>Travel</Button>
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Desktop Filters Sidebar */}
-        <div className="hidden lg:block w-80 space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Filters</h3>
-                <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-                  Clear All
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <FilterContent
-                allSubjects={allSubjects}
-                allCities={allCities}
-                allLanguages={allLanguages}
-                selectedSubjects={selectedSubjects}
-                selectedCities={selectedCities}
-                meetingTypes={meetingTypes}
-                priceRange={priceRange}
-                selectedLanguages={selectedLanguages}
-                onSubjectChange={handleSubjectChange}
-                onCityChange={handleCityChange}
-                onMeetingTypeChange={handleMeetingTypeChange}
-                onPriceRangeChange={setPriceRange}
-                onLanguageChange={handleLanguageChange}
-                onClearAll={clearAllFilters}
-              />
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Results */}
         <div className="flex-1">
           <div className="mb-4 flex items-center justify-between">

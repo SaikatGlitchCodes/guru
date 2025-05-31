@@ -151,12 +151,9 @@ export default function Navbar() {
         <div className="flex flex-col space-y-4 mt-4">
           <div className="flex items-center justify-between">
             <Logo />
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-              <X className="h-6 w-6" />
-            </Button>
           </div>
-
-          {isLoggedIn && (
+        {/* // checkhere */}
+          {false && (
             <div className="flex items-center space-x-3 p-4 bg-gray-500 rounded-lg">
               <Avatar className="h-12 w-12">
                 <AvatarImage src={ ""} alt={userName} />

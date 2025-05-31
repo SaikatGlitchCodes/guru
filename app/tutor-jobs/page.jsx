@@ -200,12 +200,7 @@ const sampleRequests = [
 export default function BrowseRequestsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Browse Student Requests</h1>
-          <p className="text-gray-600">Find tutoring opportunities that match your expertise</p>
-        </div>
-
+      <div className="container mx-auto px-4 ">
         <Suspense
           fallback={
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
