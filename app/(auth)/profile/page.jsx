@@ -56,7 +56,7 @@ const profileFormSchema = z.object({
   hobbies: z.string().optional(),
   status: z.enum(["active", "inactive", "ban"]).optional(),
   coin_balance: z.number().optional(),
-  rating: z.number().optional(),
+  rating: z.string().optional(),
   profile_img: z.string().optional(),
 })
 
@@ -344,13 +344,22 @@ export default function ProfilePage() {
 
   async function onSubmit(data) {
     setIsSaving(true)
+
+
+    const isValid = await form.trigger();
+    if (!isValid) {
+      console.error('Validation failed:', form.formState.errors);
+      toast.error("Please fix the validation errors before submitting.");
+      setIsSaving(false);
+      return;
+    }
     console.log('Form data being submitted:', data)
-
+    console.log(form.formState.errors);
     try {
-      const result = await updateProfile(data, profile.email)
-
+      const result = await updateProfile(data, profile.email);
       if (result.error) {
-        throw new Error(result.error)
+        console.error('API Error:', result.error);
+        throw new Error(result.error);
       }
 
       toast.success("Profile updated successfully!")
@@ -364,7 +373,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container py-10 mx-auto">
+    <div className="container py-10 mx-auto px-3 lg:px-0">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">User Profile</h1>
         <p className="text-muted-foreground">Manage your account settings and profile information</p>
@@ -805,7 +814,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <Button type="submit" size="lg" onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
+            <Button type="submit" size="lg" onClick={()=>onSubmit(form.getValues())} >
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>

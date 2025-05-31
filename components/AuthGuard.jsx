@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useUser } from "@/contexts/UserContext"
+import { Loader2 } from "lucide-react";
 
 const ROUTE_PERMISSIONS = {
   '/requests': { roles: ['student', 'admin'] },
@@ -28,7 +29,13 @@ export default function AuthGuard({ children }) {
 
   useEffect(() => {
     const checkAuth = () => {
-      if (loading) return
+      if (loading) {
+        return (
+          <div className="flex items-center justify-center h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        )
+      }
 
       const routeConfig = findRouteConfig(pathname)
         console.log("Checking route config for:", pathname, "->", routeConfig)
@@ -50,11 +57,11 @@ export default function AuthGuard({ children }) {
       }
 
       // Get user role
-      const userRole = profile?.role
+      const userRole = profile?.role || 'guest'
       if(!userRole){
         console.log("User profile role not found, redirecting to not-found")
         setAuthorized(false)
-        router.push("/profile")
+        router.replace("/not-found")
         return
       }
       
@@ -65,7 +72,7 @@ export default function AuthGuard({ children }) {
       } else {
         console.log(`User role ${userRole} not allowed for route ${pathname}`)
         setAuthorized(false)
-        router.push("/not-found")
+        router.replace("/not-found")
       }
     }
 
