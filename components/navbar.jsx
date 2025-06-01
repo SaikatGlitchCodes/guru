@@ -21,10 +21,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 export default function Navbar() {
   const { user, profile, loading, profileLoading, signOut } = useUser()
   const [isOpen, setIsOpen] = useState(false)
-  
+
   // Show loading state if still fetching profile data
   const isProfileLoading = !!user && profileLoading
-  
+
   // Determine login state and user info
   const isLoggedIn = !!user
   const userRole = profile?.role || "guest"
@@ -67,18 +67,53 @@ export default function Navbar() {
     </Link>
   )
 
-  const CoinBalance = () => (
-    <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-100 to-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
-      <Coins className="w-4 h-4 text-yellow-600" />
-      <span className="text-sm font-semibold text-yellow-700">
-        {isProfileLoading ? (
-          <Skeleton className="w-6 h-4 bg-yellow-100" />
-        ) : (
-          `${coinBalance} Coins`
-        )}
-      </span>
-    </div>
-  )
+  const CoinBalance = () => {
+    if( coinBalance >=1 ){
+      return (
+        <Link href="/wallet" className="flex items-center space-x-2">
+          <Coins className="h-5 w-5 text-black" />
+          <span className="text-sm text-gray-700">{coinBalance} Coins</span>
+        </Link>
+      )
+    }
+    return (<button type="button" className="button">
+      <span className="fold"></span>
+
+      <div className="points_wrapper">
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+        <i className="point"></i>
+      </div>
+
+      <span className="inner"
+      >
+        <svg
+        className="icon"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2.5"
+      >
+          <polyline
+            points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"
+          >
+            </polyline>
+            </svg>
+            
+            {coinBalance} Coins
+            </span>
+    </button>)
+  }
 
   const UserMenu = () => (
     <DropdownMenu>
@@ -132,8 +167,8 @@ export default function Navbar() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          className="cursor-pointer text-red-600" 
+        <DropdownMenuItem
+          className="cursor-pointer text-red-600"
           onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
@@ -157,7 +192,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             <Logo />
           </div>
-          
+
           {isLoggedIn && (
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
               {isProfileLoading ? (
@@ -192,7 +227,8 @@ export default function Navbar() {
           )}
 
           {isLoggedIn && (
-            <div className="flex justify-center">
+            <div className="px-4">
+              <button className="request-button mb-3 block">Request Guru</button>
               <CoinBalance />
             </div>
           )}
@@ -291,6 +327,7 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <button className="request-button">Request Guru</button>
           </nav>
 
           {/* Right side - Desktop */}

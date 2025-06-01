@@ -149,8 +149,6 @@ export default function AuthModal() {
                 ])
             .single()
 
-            console.log("Inserted user data:")
-
             if (data.session) {
                 await refreshUserData()
             }

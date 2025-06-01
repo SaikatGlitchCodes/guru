@@ -24,29 +24,18 @@ export default function AuthGuard({ children }) {
   const pathname = usePathname()
   const [authorized, setAuthorized] = useState(false)
 
-  console.log("AuthGuard initialized with user:", user, "profile:", profile, "loading:", loading)
-
-  console.log("AuthGuard rendered for path:", pathname)
-
   useEffect(() => {
-    console.log("Checking authorization for path:", pathname)
     const checkAuth = () => {
       if (loading) {
         return;
       }
 
       const routeConfig = findRouteConfig(pathname)
-      console.log("Checking route config for:", pathname, "->", routeConfig)
-
-      // If route doesn't need protection or allows guests, authorize
       if (!routeConfig || (routeConfig.roles.includes('guest') && !user)) {
         setAuthorized(true)
         return
       }
-
-      // Not logged in - redirect to login
       if (!user) {
-        console.log("User not authenticated, redirecting to login")
         setAuthorized(false)
         sessionStorage.setItem("redirectAfterLogin", pathname)
         router.push("/")
@@ -61,10 +50,8 @@ export default function AuthGuard({ children }) {
       }
 
       if (routeConfig.roles.includes(userRole)) {
-        console.log(`Access granted to ${pathname} for ${userRole}`)
         setAuthorized(true)
       } else {
-        console.log(`User role ${userRole} not allowed for route ${pathname}`)
         setAuthorized(false)
         router.replace("/not-found")
       }
@@ -89,7 +76,6 @@ export default function AuthGuard({ children }) {
   }
 
   if (loading) {
-    console.log("Loading user data, showing spinner")
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

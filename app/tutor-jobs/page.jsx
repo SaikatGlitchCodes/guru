@@ -41,7 +41,7 @@ export default function BrowseRequestsPage() {
           'description, gender_preference, created_at, get_tutors_from, i_need_someone, language, level, nature, offline_meeting, online_meeting, price_amount, price_currency, price_currency_symbol, price_option, status, travel_meeting, tutors_want, type, updated_at, subjects (*), address:addresses (*)'
         )
         .order('created_at', { ascending: false });
-      console.log('Fetched requests:', data);
+      console.log('Fetched requests:', data);  
       if (error) throw error;
       
       setRequests(data);
@@ -59,7 +59,7 @@ export default function BrowseRequestsPage() {
 
   useEffect(() => {
     console.log('Fetching requests on component mount');
-    fetchRequests(true);
+    fetchRequests();
   }, []);
 
   return (

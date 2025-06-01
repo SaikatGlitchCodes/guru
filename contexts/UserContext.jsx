@@ -47,7 +47,6 @@ export function UserProvider({ children }) {
   }
 
   useEffect(() => {
-    console.log("UserProvider mounted, refreshing user data")
     refreshUserData()
 
     // Set up auth state change listener
@@ -62,8 +61,6 @@ export function UserProvider({ children }) {
               .select('*, address : addresses(*), subjects(*)')
               .eq('email', session.user.email)
               .single()
-
-            console.log("User profile data:", response)
 
             if (response) {
               setProfile(response)

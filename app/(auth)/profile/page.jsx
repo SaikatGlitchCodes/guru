@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
-import { z } from "zod"
+import * as yup from "yup"
 import { Camera, Loader2, Star, MapPin, Locate, Search, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -20,48 +20,62 @@ import { updateProfile } from "@/lib/api"
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
 
-// Updated schema to match your data structure
-const profileFormSchema = z.object({
-  email: z
+// Convert Zod schema to Yup schema with improved error messages
+const profileFormSchema = yup.object({
+  email: yup
     .string()
-    .email({
-      message: "Please enter a valid email address.",
-    })
+    .email("Please enter a valid email address format")
     .optional(),
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  role: z.enum(["student", "tutor", "admin", "user"], {
-    required_error: "Please select a role.",
-  }),
-  phone_number: z.string({
-    required_error: "Please enter your phone number.",
+  name: yup
+    .string()
+    .min(2, "Your name must contain at least 2 characters")
+    .required("Please enter your name"),
+  role: yup
+    .string()
+    .oneOf(["student", "tutor", "admin", "user"], "Please select a valid role")
+    .required("Please select your role"),
+  phone_number: yup
+    .string()
+    .optional()
+    .transform(value => value === '' ? undefined : value),
+  gender: yup
+    .string()
+    .optional(),
+  address: yup.object({
+    id: yup.number().optional(),
+    street: yup.string().optional(),
+    city: yup.string().optional(),
+    state: yup.string().optional(),
+    zip: yup.string().optional(),
+    country: yup.string().optional(),
+    country_code: yup.string().optional(),
+    lat: yup.number().nullable().optional(),
+    lon: yup.number().nullable().optional(),
+    address_line_1: yup.string().nullable().optional(),
+    address_line_2: yup.string().nullable().optional(),
+    formatted: yup.string().optional(),
   }).optional(),
-  gender: z.string().optional(),
-  address: z.object({
-    id: z.number().optional(),
-    street: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    zip: z.string().optional(),
-    country: z.string().optional(),
-    country_code: z.string().optional(),
-    lat: z.number().nullable().optional(),
-    lon: z.number().nullable().optional(),
-    address_line_1: z.string().nullable().optional(),
-    address_line_2: z.string().nullable().optional(),
-    formatted: z.string().optional(), // This will be computed from other fields
-  }).optional(),
-  bio: z.string({
-    required_error: "Please provide a short bio about yourself. This helps others get to know you better.",
-  }).optional(),
-  years_of_experience: z.coerce.number().min(0).optional(),
-  hobbies: z.string({
-    required_error: "We would love to know about your hobbies and interests.",
-  }).optional(),
-  status: z.enum(["active", "inactive", "ban"]).optional(),
-  coin_balance: z.number().optional(),
-})
+  bio: yup
+    .string()
+    .optional()
+    .transform(value => value === '' ? undefined : value),
+  years_of_experience: yup
+    .number()
+    .transform((value) => (isNaN(value) ? undefined : value))
+    .min(0, "Experience years cannot be negative")
+    .optional(),
+  hobbies: yup
+    .string()
+    .optional()
+    .transform(value => value === '' ? undefined : value),
+  status: yup
+    .string()
+    .oneOf(["active", "inactive", "ban"], "Invalid account status")
+    .optional(),
+  coin_balance: yup
+    .number()
+    .optional(),
+}).required("Please complete the form");
 
 export default function ProfilePage() {
   const [avatar, setAvatar] = useState("/placeholder.svg?height=100&width=100")
@@ -78,19 +92,18 @@ export default function ProfilePage() {
   const debounceRef = useRef(null)
 
   const form = useForm({
-    resolver: zodResolver(profileFormSchema),
+    resolver: yupResolver(profileFormSchema),
     defaultValues: profile,
     mode: "onChange",
   })
 
   useEffect(() => {
-    console.log("Profile data loaded:", profile)
     if (profile) {
       const formattedAddress = profile.address
         ? `${profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
         : ""
 
-      form.reset()
+      form.reset(profile)
       if (formattedAddress) {
         setAddressSearchValue("")
       }
@@ -349,28 +362,43 @@ export default function ProfilePage() {
   async function onSubmit(data) {
     setIsSaving(true)
 
-
     const isValid = await form.trigger();
     if (!isValid) {
-      console.error('Validation failed:', form.formState.errors);
-      toast.error("Please fix the validation errors before submitting.");
+      const errors = form.formState.errors;
+      
+      // Display a more user-friendly error summary
+      if (Object.keys(errors).length > 0) {
+        // Get the first error message to show in the toast
+        const firstErrorField = Object.keys(errors)[0];
+        const firstError = errors[firstErrorField].message;
+        
+        toast.error(`Please fix the form errors: ${firstError}`);
+        console.log('Validation errors:', errors);
+      }
+      
       setIsSaving(false);
       return;
     }
-    console.log('Form data being submitted:', data)
-    console.log(form.formState.errors);
+    
     try {
       const result = await updateProfile(data, profile.email);
       if (result.error) {
-        console.error('API Error:', result.error);
         throw new Error(result.error);
       }
 
-      toast.success("Profile updated successfully!")
+      toast.success("Your profile has been updated successfully!")
 
     } catch (error) {
-      console.error("Error saving profile:", error)
-      toast.error("Failed to update profile")
+      console.error("Error saving profile:", error);
+      
+      // More descriptive error messages
+      if (error.message.includes("network")) {
+        toast.error("Network error. Please check your internet connection and try again.");
+      } else if (error.message.includes("permission")) {
+        toast.error("You don't have permission to update this profile.");
+      } else {
+        toast.error("Failed to update your profile. Please try again later.");
+      }
     } finally {
       setIsSaving(false)
     }
