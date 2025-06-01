@@ -12,8 +12,8 @@ const ITEMS_PER_PAGE = 10
 
 export default function RequestBrowser({ initialRequests }) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubjects, setSelectedSubjects] = useState('')
-  const [selectedCities, setSelectedCities] = useState([])
+  const [selectedSubjects, setSelectedSubjects] = useState("")
+  const [selectedCities, setSelectedCities] = useState("")
   const [meetingTypes, setMeetingTypes] = useState([])
   const [priceRange, setPriceRange] = useState([0, 5000])
   const [selectedLanguages, setSelectedLanguages] = useState([])
@@ -59,15 +59,19 @@ export default function RequestBrowser({ initialRequests }) {
       }
 
       // Subject filter
-      if (selectedSubjects.length > 0) {
-        const hasMatchingSubject = request.subjects.some((subject) => selectedSubjects.includes(subject.name))
+      if (selectedSubjects) {
+        const query = selectedSubjects.toLowerCase()
+        const hasMatchingSubject = request.subjects.some((subject) => 
+          subject.name.toLowerCase().includes(query)
+        )
         if (!hasMatchingSubject) return false
       }
 
       // City filter
-      if (selectedCities.length > 0) {
-        const cityState = `${request.address.city}, ${request.address.state}`
-        if (!selectedCities.includes(cityState)) return false
+      if (selectedCities) {
+        const query = selectedCities.toLowerCase()
+        const cityState = `${request.address.city}, ${request.address.state}`.toLowerCase()
+        if (!cityState.includes(query)) return false
       }
 
       // Meeting type filter
@@ -172,7 +176,7 @@ export default function RequestBrowser({ initialRequests }) {
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4 md:py-6" style={{ backgroundImage: 'url(/background2.png)' }} >
+      <div className="flex flex-col lg:flex-row gap-4 md:py-6 rounded-b-2xl" style={{ backgroundImage: 'url(/background5.png)' }} >
         <div className="flex-1 p-6 rounded-lg">
           <p className="text-gray-600 text-center">Find tutoring opportunities that match your expertise</p>
           <div className="mt-4 flex md:flex-row flex-col gap-y-3 items-center gap-x-3 mx-auto justify-center">
@@ -180,7 +184,7 @@ export default function RequestBrowser({ initialRequests }) {
               <LibraryBig className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Subjects (e.g., 'Math', 'English')"
-                value={searchQuery}
+                value={selectedSubjects}
                 onChange={(e) => {
                   setSelectedSubjects(e.target.value)
                   setCurrentPage(1)
@@ -188,11 +192,11 @@ export default function RequestBrowser({ initialRequests }) {
                 className="pl-10 bg-white"
               />
             </div>
-            <div className="relative w-64 ">
+            <div className="relative w-64">
               <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Location (e.g., 'Menesota', 'Delhi')"
-                value={searchQuery}
+                placeholder="Location (e.g., 'Minnesota', 'Delhi')"
+                value={selectedCities}
                 onChange={(e) => {
                   setSelectedCities(e.target.value)
                   setCurrentPage(1)
@@ -240,13 +244,13 @@ export default function RequestBrowser({ initialRequests }) {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6">
-                {paginatedRequests.map((request) => (
-                  <Card key={request.id} className="shadow-none border-0 hover:shadow-lg transition-shadow duration-200">
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                {paginatedRequests.map((request, index) => (
+                  <Card key={index} className="shadow-none border-0 hover:shadow-lg transition-shadow duration-200">
                     <CardContent className="px-6">
                       {/* Header */}
                       <div className="mb-4">
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2 line-clamp-2">
+                        <h3 className="text-[23px] font-normal text-gray-700 mb-2 line-clamp-2">
                           Need {request.subjects.map((s) => s.name).join(", ")} Help in {request.address.city} –{" "}
                           {request.price_currency_symbol}
                           {request.price_amount} {request.price_option}

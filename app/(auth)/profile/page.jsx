@@ -34,9 +34,10 @@ const profileFormSchema = z.object({
   role: z.enum(["student", "tutor", "admin", "user"], {
     required_error: "Please select a role.",
   }),
-  phone_number: z.string().optional(),
+  phone_number: z.string({
+    required_error: "Please enter your phone number.",
+  }).optional(),
   gender: z.string().optional(),
-  address_id: z.number().optional(),
   address: z.object({
     id: z.number().optional(),
     street: z.string().optional(),
@@ -51,13 +52,15 @@ const profileFormSchema = z.object({
     address_line_2: z.string().nullable().optional(),
     formatted: z.string().optional(), // This will be computed from other fields
   }).optional(),
-  bio: z.string().optional(),
+  bio: z.string({
+    required_error: "Please provide a short bio about yourself. This helps others get to know you better.",
+  }).optional(),
   years_of_experience: z.coerce.number().min(0).optional(),
-  hobbies: z.string().optional(),
+  hobbies: z.string({
+    required_error: "We would love to know about your hobbies and interests.",
+  }).optional(),
   status: z.enum(["active", "inactive", "ban"]).optional(),
   coin_balance: z.number().optional(),
-  rating: z.string().optional(),
-  profile_img: z.string().optional(),
 })
 
 export default function ProfilePage() {
@@ -81,6 +84,7 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
+    console.log("Profile data loaded:", profile)
     if (profile) {
       const formattedAddress = profile.address
         ? `${profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()

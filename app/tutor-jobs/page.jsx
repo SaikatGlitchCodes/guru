@@ -58,6 +58,7 @@ export default function BrowseRequestsPage() {
   };
 
   useEffect(() => {
+    console.log('Fetching requests on component mount');
     fetchRequests(true);
   }, []);
 

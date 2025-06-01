@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, User, LogOut, Settings, Coins } from "lucide-react"
+import { Menu, X, User, LogOut, Settings, Coins, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -19,23 +19,17 @@ import { useUser } from "@/contexts/UserContext"
 import { Skeleton } from "@/components/ui/skeleton"
 
 export default function Navbar() {
-  const { user, profile, loading, signOut } = useUser()
+  const { user, profile, loading, profileLoading, signOut } = useUser()
   const [isOpen, setIsOpen] = useState(false)
-  const [previousProfile, setPreviousProfile] = useState(null)
   
-  // Keep track of previous profile to prevent flashing during navigation
-  useEffect(() => {
-    if (profile && !loading) {
-      setPreviousProfile(profile)
-    }
-  }, [profile, loading])
+  // Show loading state if still fetching profile data
+  const isProfileLoading = !!user && profileLoading
   
-  // Use previous profile during loading if available
-  const activeProfile = loading && previousProfile ? previousProfile : profile
-  const isLoggedIn = loading ? !!previousProfile : !!user
-  const userRole = activeProfile?.role || "guest"
-  const userName = activeProfile?.name || "User"
-  const coinBalance = activeProfile?.coin_balance || 0
+  // Determine login state and user info
+  const isLoggedIn = !!user
+  const userRole = profile?.role || "guest"
+  const userName = profile?.name || user?.email?.split('@')[0] || "User"
+  const coinBalance = profile?.coin_balance || 0
 
   const getNavigationLinks = () => {
     switch (userRole) {
@@ -69,7 +63,7 @@ export default function Navbar() {
 
   const Logo = () => (
     <Link href="/" className="flex items-center space-x-2">
-      <img className=" w-28" src="/logo.png" alt="MentorHub Logo"  />
+      <img className="w-28" src="/logo.png" alt="MentorHub Logo" />
     </Link>
   )
 
@@ -77,7 +71,7 @@ export default function Navbar() {
     <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-100 to-yellow-50 px-3 py-1.5 rounded-full border border-yellow-200">
       <Coins className="w-4 h-4 text-yellow-600" />
       <span className="text-sm font-semibold text-yellow-700">
-        {loading && !previousProfile ? (
+        {isProfileLoading ? (
           <Skeleton className="w-6 h-4 bg-yellow-100" />
         ) : (
           `${coinBalance} Coins`
@@ -90,11 +84,13 @@ export default function Navbar() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          {loading && !previousProfile ? (
-            <Skeleton className="h-10 w-96 rounded-full bg-gray-500" />
+          {isProfileLoading ? (
+            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+            </div>
           ) : (
             <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-              <AvatarImage src={""} alt={userName} />
+              <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
               <AvatarFallback className="bg-black text-white">
                 {userName
                   .split(" ")
@@ -108,9 +104,17 @@ export default function Navbar() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
-            <p className="font-medium">{userName}</p>
+            {isProfileLoading ? (
+              <Skeleton className="h-4 w-32" />
+            ) : (
+              <p className="font-medium">{userName}</p>
+            )}
             <p className="w-[200px] truncate text-sm text-muted-foreground">
-              {userRole === "student" ? "Student" : "Tutor"}
+              {isProfileLoading ? (
+                <Skeleton className="h-3 w-20" />
+              ) : (
+                userRole === "student" ? "Student" : "Tutor"
+              )}
             </p>
           </div>
         </div>
@@ -139,6 +143,7 @@ export default function Navbar() {
     </DropdownMenu>
   )
 
+  // Mobile menu components and other functions remain unchanged...
   const MobileMenu = () => (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -152,21 +157,36 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             <Logo />
           </div>
-        {/* // checkhere */}
-          {false && (
-            <div className="flex items-center space-x-3 p-4 bg-gray-500 rounded-lg">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={ ""} alt={userName} />
-                <AvatarFallback className="bg-black text-white">
-                  {userName
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
+          
+          {isLoggedIn && (
+            <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
+              {isProfileLoading ? (
+                <Skeleton className="h-12 w-12 rounded-full" />
+              ) : (
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
+                  <AvatarFallback className="bg-black text-white">
+                    {userName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
+                  </AvatarFallback>
+                </Avatar>
+              )}
               <div>
-                <p className="font-medium">{userName}</p>
-                <p className="text-sm text-gray-600">{userRole === "student" ? "Student" : " Tutor"}</p>
+                {isProfileLoading ? (
+                  <>
+                    <Skeleton className="h-4 w-24 mb-2" />
+                    <Skeleton className="h-3 w-16" />
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium">{userName}</p>
+                    <p className="text-sm text-gray-600">
+                      {userRole === "student" ? "Student" : "Tutor"}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -232,11 +252,10 @@ export default function Navbar() {
   const handleLogout = async () => {
     console.log("Logging out user:", user?.email)
     await signOut()
-    setPreviousProfile(null) // Clear previous profile data on logout
   }
 
-  // Show a simplified navbar during first load with no previous state
-  if (loading && !previousProfile) {
+  // Show a simplified navbar during loading
+  if (loading && !user) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -251,6 +270,7 @@ export default function Navbar() {
     )
   }
 
+  // Rest of the component remains unchanged
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">

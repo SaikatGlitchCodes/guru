@@ -2,14 +2,13 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { getProfile } from "@/lib/api"
 
 const UserContext = createContext(null)
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   const refreshUserData = async () => {
     setLoading(true)
@@ -18,14 +17,21 @@ export function UserProvider({ children }) {
 
       if (session?.user) {
         setUser(session.user)
-        const { data: response } = await getProfile(session.user.email)
 
-        if (response) {
-          setProfile(response)
-        } else {
-          // If no profile found, you might want to create one
-          // await createUserProfile({ email: session.user.email, name: session.user.user_metadata.full_name })
-          setProfile(null)
+        try {
+          const { data: response } = await supabase
+            .from('users')
+            .select('*, address : addresses(*), subjects(*)')
+            .eq('email', session.user.email)
+            .single()
+
+          if (response) {
+            setProfile(response)
+          } else {
+            setProfile(null)
+          }
+        } catch (profileError) {
+          console.error("Error fetching profile:", profileError)
         }
       } else {
         setUser(null)
@@ -41,6 +47,7 @@ export function UserProvider({ children }) {
   }
 
   useEffect(() => {
+    console.log("UserProvider mounted, refreshing user data")
     refreshUserData()
 
     // Set up auth state change listener
@@ -48,23 +55,27 @@ export function UserProvider({ children }) {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user)
-          const response = await getProfile(session.user.email)
 
-          if (response) {
-            setProfile(response)
-          } else {
-            // If no profile found, you might want to create one
-            // await createUserProfile({ email: session.user.email, name: session.user.user_metadata.full_name })
-            setProfile(null)
+          try {
+            const { data: response } = await supabase
+              .from('users')
+              .select('*, address : addresses(*), subjects(*)')
+              .eq('email', session.user.email)
+              .single()
+
+            console.log("User profile data:", response)
+
+            if (response) {
+              setProfile(response)
+            } else {
+              setProfile(null)
+            }
+          } catch (error) {
+            console.error("Error fetching profile in auth change:", error)
           }
-        } else {
-          setUser(null)
-          setProfile(null)
         }
-        setLoading(false)
       }
     )
-
     return () => {
       subscription?.unsubscribe()
     }
@@ -100,16 +111,19 @@ export function UserProvider({ children }) {
       .from('profile')
       .getPublicUrl(filePath)
 
-    // Optionally: update user profile with the avatar URL
+    // Update user profile with the avatar URL
     const { error: updateError } = await supabase
       .from('users')
-      .update({ profile_img: publicUrl })
+      .update({ avatar_url: publicUrl }) // Changed from profile_img to avatar_url
       .eq('email', userEmail)
 
     if (updateError) {
       console.error('Error updating user profile:', updateError)
       return { error: updateError.message }
     }
+
+    // Update the local profile state to reflect the change
+    setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
 
     return { publicUrl }
   }
