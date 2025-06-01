@@ -1,15 +1,12 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Search, Filter, MapPin, Clock, Users, DollarSign, LibraryBig, Navigation } from "lucide-react"
+import { Search, MapPin, Clock, Users, DollarSign, LibraryBig, Navigation, Wifi } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const ITEMS_PER_PAGE = 10
 
@@ -22,7 +19,6 @@ export default function RequestBrowser({ initialRequests }) {
   const [selectedLanguages, setSelectedLanguages] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
 
-  // Extract unique values for filters
   const allSubjects = useMemo(() => {
     const subjects = new Set()
     initialRequests.forEach((req) => {
@@ -47,7 +43,6 @@ export default function RequestBrowser({ initialRequests }) {
     return Array.from(languages).sort()
   }, [initialRequests])
 
-  // Filter requests based on current filters
   const filteredRequests = useMemo(() => {
     return initialRequests.filter((request) => {
       // Search query filter
@@ -99,7 +94,6 @@ export default function RequestBrowser({ initialRequests }) {
     })
   }, [initialRequests, searchQuery, selectedSubjects, selectedCities, meetingTypes, priceRange, selectedLanguages])
 
-  // Pagination
   const totalPages = Math.ceil(filteredRequests.length / ITEMS_PER_PAGE)
   const paginatedRequests = filteredRequests.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
@@ -175,22 +169,14 @@ export default function RequestBrowser({ initialRequests }) {
     }
   }
 
-  const getMeetingOptions = (request) => {
-    const options = []
-    if (request.online_meeting) options.push("Online")
-    if (request.offline_meeting) options.push("Offline")
-    if (request.travel_meeting) options.push("Travel")
-    return options
-  }
-
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4" style={{ backgroundImage: 'url(/background.png)' }} >
-        <div className="flex-1 lg:p-6 p-0 rounded-lg">
+      <div className="flex flex-col lg:flex-row gap-4 md:py-6" style={{ backgroundImage: 'url(/background2.png)' }} >
+        <div className="flex-1 p-6 rounded-lg">
           <p className="text-gray-600 text-center">Find tutoring opportunities that match your expertise</p>
-          <div className="mt-4 flex flex-col gap-y-3 items-center gap-x-3 mx-auto justify-center">
-            <div className="relative w-64 bg-white">
+          <div className="mt-4 flex md:flex-row flex-col gap-y-3 items-center gap-x-3 mx-auto justify-center">
+            <div className="relative w-64">
               <LibraryBig className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Subjects (e.g., 'Math', 'English')"
@@ -199,10 +185,10 @@ export default function RequestBrowser({ initialRequests }) {
                   setSelectedSubjects(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="pl-10"
+                className="pl-10 bg-white"
               />
             </div>
-            <div className="relative w-64 bg-white">
+            <div className="relative w-64 ">
               <Navigation className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Location (e.g., 'Menesota', 'Delhi')"
@@ -211,7 +197,7 @@ export default function RequestBrowser({ initialRequests }) {
                   setSelectedCities(e.target.value)
                   setCurrentPage(1)
                 }}
-                className="pl-10"
+                className="pl-10 bg-white"
               />
             </div>
             <Button
@@ -232,14 +218,10 @@ export default function RequestBrowser({ initialRequests }) {
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-6 container mx-auto px-4 xl:px-16">
         {/* Results */}
         <div className="flex-1">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-gray-600">
-              {filteredRequests.length} request{filteredRequests.length !== 1 ? "s" : ""} found
-            </p>
-          </div>
+          
 
           {filteredRequests.length === 0 ? (
             <Card className="text-center py-12">
@@ -258,55 +240,73 @@ export default function RequestBrowser({ initialRequests }) {
             </Card>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-6">
                 {paginatedRequests.map((request) => (
-                  <Card key={request.id} className="hover:shadow-lg transition-shadow duration-200">
-                    <CardContent className="p-6">
+                  <Card key={request.id} className="shadow-none border-0 hover:shadow-lg transition-shadow duration-200">
+                    <CardContent className="px-6">
                       {/* Header */}
                       <div className="mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2 line-clamp-2">
                           Need {request.subjects.map((s) => s.name).join(", ")} Help in {request.address.city} –{" "}
                           {request.price_currency_symbol}
                           {request.price_amount} {request.price_option}
                         </h3>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          <Badge className={getTypeColor(request.type)}>
-                            {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-                          </Badge>
-                          <Badge className={getUrgencyColor(request.i_need_someone)}>
-                            <Clock className="h-3 w-3 mr-1" />
-                            {request.i_need_someone}
-                          </Badge>
+                        {/* Subject */}
+                        <div className="mb-4 flex gap-x-3 items-center">
+                          <div className="flex flex-wrap gap-1">
+                            {request.subjects.map((subject, index) => (
+                              <Badge key={index} variant="outline" className="text-md font-normal">
+                                {subject.name}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap gap-1 ms-3">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {request.online_meeting ? <Wifi className="h-5 w-5" /> : <Wifi className="h-5 w-5 text-gray-300" />}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Student is available Online</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {request.offline_meeting ? <MapPin className="h-5 w-5" /> : <MapPin className="h-5 w-5 text-gray-300" />}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Student is available Offline</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {request.travel_meeting ? <Navigation className="h-5 w-5" /> : <Navigation className="h-5 w-5 text-gray-300" />}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Student can travel</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            
+                            
+                          </div>
                         </div>
                       </div>
 
                       {/* Description */}
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-3">{request.description}</p>
+                      <p className="text-gray-600 mb-4 line-clamp-3">{request.description}</p>
 
-                      {/* Subjects */}
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {request.subjects.map((subject, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {subject.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Meeting Options */}
-                      <div className="mb-4">
-                        <div className="flex flex-wrap gap-1">
-                          {getMeetingOptions(request).map((option, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {option}
-                            </Badge>
-                          ))}
-                        </div>
+                      {/* extra details badge */}
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        <Badge className={getTypeColor(request.type)}>
+                          {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
+                        </Badge>
+                        <Badge className={getUrgencyColor(request.i_need_someone)}>
+                          <Clock className="h-3 w-3 mr-1" />
+                          {request.i_need_someone}
+                        </Badge>
                       </div>
 
                       {/* Details */}
-                      <div className="space-y-2 text-sm text-gray-600">
+                      <div className="space-y-2 text-sm text-gray-600 flex flex-wrap gap-x-8 mt-2">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4" />
                           <span>
@@ -329,7 +329,7 @@ export default function RequestBrowser({ initialRequests }) {
                       </div>
 
                       {/* Languages */}
-                      <div className="mt-4 pt-4 border-t">
+                      {/* <div className="mt-4 pt-4 border-t">
                         <div className="flex flex-wrap gap-1">
                           {request.language.map((lang, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
@@ -337,12 +337,12 @@ export default function RequestBrowser({ initialRequests }) {
                             </Badge>
                           ))}
                         </div>
-                      </div>
+                      </div> */}
 
                       {/* Action Button */}
-                      <div className="mt-4">
+                      {/* <div className="mt-4">
                         <Button className="w-full">Apply for Request</Button>
-                      </div>
+                      </div> */}
                     </CardContent>
                   </Card>
                 ))}
@@ -386,117 +386,6 @@ export default function RequestBrowser({ initialRequests }) {
               )}
             </>
           )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function FilterContent({
-  allSubjects,
-  allCities,
-  allLanguages,
-  selectedSubjects,
-  selectedCities,
-  meetingTypes,
-  priceRange,
-  selectedLanguages,
-  onSubjectChange,
-  onCityChange,
-  onMeetingTypeChange,
-  onPriceRangeChange,
-  onLanguageChange,
-}) {
-  return (
-    <div className="space-y-6">
-      {/* Subjects */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">Subjects</Label>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {allSubjects.map((subject) => (
-            <div key={subject} className="flex items-center space-x-2">
-              <Checkbox
-                id={`subject-${subject}`}
-                checked={selectedSubjects.includes(subject)}
-                onCheckedChange={(checked) => onSubjectChange(subject, checked)}
-              />
-              <Label htmlFor={`subject-${subject}`} className="text-sm">
-                {subject}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Cities */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">Location</Label>
-        <div className="space-y-2 max-h-40 overflow-y-auto">
-          {allCities.map((city) => (
-            <div key={city} className="flex items-center space-x-2">
-              <Checkbox
-                id={`city-${city}`}
-                checked={selectedCities.includes(city)}
-                onCheckedChange={(checked) => onCityChange(city, checked)}
-              />
-              <Label htmlFor={`city-${city}`} className="text-sm">
-                {city}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Meeting Types */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">Meeting Type</Label>
-        <div className="space-y-2">
-          {["online", "offline", "travel"].map((type) => (
-            <div key={type} className="flex items-center space-x-2">
-              <Checkbox
-                id={`meeting-${type}`}
-                checked={meetingTypes.includes(type)}
-                onCheckedChange={(checked) => onMeetingTypeChange(type, checked)}
-              />
-              <Label htmlFor={`meeting-${type}`} className="text-sm capitalize">
-                {type}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Price Range */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">
-          Price Range: ₹{priceRange[0]} - ₹{priceRange[1]}
-        </Label>
-        <Slider
-          value={priceRange}
-          onValueChange={onPriceRangeChange}
-          max={5000}
-          min={0}
-          step={100}
-          className="w-full"
-        />
-      </div>
-
-      {/* Languages */}
-      <div>
-        <Label className="text-sm font-medium mb-3 block">Languages</Label>
-        <div className="space-y-2 max-h-32 overflow-y-auto">
-          {allLanguages.map((language) => (
-            <div key={language} className="flex items-center space-x-2">
-              <Checkbox
-                id={`language-${language}`}
-                checked={selectedLanguages.includes(language)}
-                onCheckedChange={(checked) => onLanguageChange(language, checked)}
-              />
-              <Label htmlFor={`language-${language}`} className="text-sm">
-                {language}
-              </Label>
-            </div>
-          ))}
         </div>
       </div>
     </div>

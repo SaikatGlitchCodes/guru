@@ -1,206 +1,87 @@
-import { Suspense } from "react"
+"use client"
+import { Suspense, useEffect, useState } from "react"
 import RequestBrowser from "./components/request-browser"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { RefreshCcw, AlertCircle } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-const sampleRequests = [
-  {
-    id: 1,
-    type: "tutoring",
-    level: "Beginner",
-    tutors_want: "1",
-    gender_preference: "Any",
-    description:
-      "Need help with calculus and algebra. Struggling with derivatives and basic algebraic equations. Looking for patient tutor who can explain concepts clearly.",
-    nature: "Regular",
-    online_meeting: true,
-    offline_meeting: false,
-    travel_meeting: false,
-    price_amount: "100.00",
-    price_currency_symbol: "₹",
-    price_option: "fixed",
-    i_need_someone: "urgent",
-    language: [
-      { label: "English", value: "en" },
-      { label: "Hindi", value: "hi" },
-    ],
-    subjects: [{ name: "Mathematics" }],
-    address: {
-      city: "Kolkata",
-      state: "West Bengal",
-    },
-  },
-  {
-    id: 2,
-    type: "assignment",
-    level: "Intermediate",
-    tutors_want: "1",
-    gender_preference: "Female",
-    description:
-      "Need assistance with organic chemistry assignment. Topics include reaction mechanisms and stereochemistry.",
-    nature: "One-time",
-    online_meeting: true,
-    offline_meeting: true,
-    travel_meeting: false,
-    price_amount: "500.00",
-    price_currency_symbol: "₹",
-    price_option: "fixed",
-    i_need_someone: "within a week",
-    language: [{ label: "English", value: "en" }],
-    subjects: [{ name: "Chemistry" }],
-    address: {
-      city: "Mumbai",
-      state: "Maharashtra",
-    },
-  },
-  {
-    id: 3,
-    type: "job support",
-    level: "Advanced",
-    tutors_want: "1",
-    gender_preference: "Any",
-    description:
-      "Looking for React.js and Node.js mentor for ongoing project support. Need help with best practices and code reviews.",
-    nature: "Regular",
-    online_meeting: true,
-    offline_meeting: false,
-    travel_meeting: false,
-    price_amount: "2000.00",
-    price_currency_symbol: "₹",
-    price_option: "hourly",
-    i_need_someone: "flexible",
-    language: [{ label: "English", value: "en" }],
-    subjects: [{ name: "Computer Science" }, { name: "Programming" }],
-    address: {
-      city: "Bangalore",
-      state: "Karnataka",
-    },
-  },
-  {
-    id: 4,
-    type: "tutoring",
-    level: "Beginner",
-    tutors_want: "1",
-    gender_preference: "Any",
-    description: "Physics concepts for class 12 board exams. Need help with mechanics, thermodynamics, and optics.",
-    nature: "Regular",
-    online_meeting: false,
-    offline_meeting: true,
-    travel_meeting: true,
-    price_amount: "800.00",
-    price_currency_symbol: "₹",
-    price_option: "fixed",
-    i_need_someone: "urgent",
-    language: [
-      { label: "Hindi", value: "hi" },
-      { label: "English", value: "en" },
-    ],
-    subjects: [{ name: "Physics" }],
-    address: {
-      city: "Delhi",
-      state: "Delhi",
-    },
-  },
-  {
-    id: 5,
-    type: "tutoring",
-    level: "Intermediate",
-    tutors_want: "1",
-    gender_preference: "Male",
-    description: "Spanish language learning for conversational fluency. Focus on grammar and pronunciation.",
-    nature: "Regular",
-    online_meeting: true,
-    offline_meeting: true,
-    travel_meeting: false,
-    price_amount: "600.00",
-    price_currency_symbol: "₹",
-    price_option: "hourly",
-    i_need_someone: "within a week",
-    language: [
-      { label: "English", value: "en" },
-      { label: "Spanish", value: "es" },
-    ],
-    subjects: [{ name: "Spanish" }, { name: "Languages" }],
-    address: {
-      city: "Pune",
-      state: "Maharashtra",
-    },
-  },
-  {
-    id: 6,
-    type: "assignment",
-    level: "Advanced",
-    tutors_want: "1",
-    gender_preference: "Any",
-    description:
-      "Data structures and algorithms assignment help. Need assistance with graph algorithms and dynamic programming.",
-    nature: "One-time",
-    online_meeting: true,
-    offline_meeting: false,
-    travel_meeting: false,
-    price_amount: "1500.00",
-    price_currency_symbol: "₹",
-    price_option: "fixed",
-    i_need_someone: "urgent",
-    language: [{ label: "English", value: "en" }],
-    subjects: [{ name: "Computer Science" }, { name: "Programming" }],
-    address: {
-      city: "Hyderabad",
-      state: "Telangana",
-    },
-  },
-  {
-    id: 7,
-    type: "tutoring",
-    level: "Beginner",
-    tutors_want: "1",
-    gender_preference: "Female",
-    description: "English literature analysis and essay writing. Preparing for university entrance exams.",
-    nature: "Regular",
-    online_meeting: true,
-    offline_meeting: true,
-    travel_meeting: false,
-    price_amount: "400.00",
-    price_currency_symbol: "₹",
-    price_option: "hourly",
-    i_need_someone: "flexible",
-    language: [{ label: "English", value: "en" }],
-    subjects: [{ name: "English" }, { name: "Literature" }],
-    address: {
-      city: "Chennai",
-      state: "Tamil Nadu",
-    },
-  },
-  {
-    id: 8,
-    type: "job support",
-    level: "Intermediate",
-    tutors_want: "1",
-    gender_preference: "Any",
-    description: "Digital marketing strategy and SEO optimization. Need guidance for e-commerce business.",
-    nature: "Regular",
-    online_meeting: true,
-    offline_meeting: false,
-    travel_meeting: false,
-    price_amount: "1200.00",
-    price_currency_symbol: "₹",
-    price_option: "hourly",
-    i_need_someone: "within a week",
-    language: [
-      { label: "English", value: "en" },
-      { label: "Hindi", value: "hi" },
-    ],
-    subjects: [{ name: "Marketing" }, { name: "Business" }],
-    address: {
-      city: "Kolkata",
-      state: "West Bengal",
-    },
-  },
-]
+// Cache duration in milliseconds (e.g., 5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export default function BrowseRequestsPage() {
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchRequests = async (skipCache = false) => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Check cache first unless skipCache is true
+      if (!skipCache) {
+        const cachedData = localStorage.getItem('requestsCache');
+        if (cachedData) {
+          const { data, timestamp } = JSON.parse(cachedData);
+          const isCacheValid = Date.now() - timestamp < CACHE_DURATION;
+          
+          if (isCacheValid) {
+            setRequests(data);
+            setIsLoading(false);
+            return;
+          }
+        }
+      }
+      
+      const { data, error } = await supabase
+        .from('requests')
+        .select(
+          'description, gender_preference, created_at, get_tutors_from, i_need_someone, language, level, nature, offline_meeting, online_meeting, price_amount, price_currency, price_currency_symbol, price_option, status, travel_meeting, tutors_want, type, updated_at, subjects (*), address:addresses (*)'
+        )
+        .order('created_at', { ascending: false });
+      console.log('Fetched requests:', data);
+      if (error) throw error;
+      
+      setRequests(data);
+      localStorage.setItem('requestsCache', JSON.stringify({
+        data,
+        timestamp: Date.now()
+      }));
+    } catch (err) {
+      console.error('Error fetching requests:', err);
+      setError('Failed to load requests. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRequests(true);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 ">
+    <div className="min-h-screen pb-15 bg-gray-50">
+      <div className="container mx-auto">
+          {/* <Button 
+            onClick={() => fetchRequests(true)} 
+            variant="outline" 
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            {isLoading ? 'Loading...' : 'Refresh'}
+          </Button> */}
+        
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         <Suspense
           fallback={
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -220,7 +101,7 @@ export default function BrowseRequestsPage() {
             </div>
           }
         >
-          <RequestBrowser initialRequests={sampleRequests} />
+          <RequestBrowser initialRequests={requests} />
         </Suspense>
       </div>
     </div>
