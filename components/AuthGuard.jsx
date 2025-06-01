@@ -37,8 +37,7 @@ export default function AuthGuard({ children }) {
       }
       if (!user) {
         setAuthorized(false)
-        sessionStorage.setItem("redirectAfterLogin", pathname)
-        router.push("/")
+        router.forward()
         return
       }
 

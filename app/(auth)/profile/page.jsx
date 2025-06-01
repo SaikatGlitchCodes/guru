@@ -20,7 +20,6 @@ import { updateProfile } from "@/lib/api"
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
 
-// Convert Zod schema to Yup schema with improved error messages
 const profileFormSchema = yup.object({
   email: yup
     .string()
@@ -87,7 +86,6 @@ export default function ProfilePage() {
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false)
   const [addressSearchValue, setAddressSearchValue] = useState("")
-
   const { profile, loading, uploadAvatarToSupabase } = useUser()
   const debounceRef = useRef(null)
 
@@ -100,7 +98,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       const formattedAddress = profile.address
-        ? `${profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
+        ? `${addressSearchValue || profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
         : ""
 
       form.reset(profile)
@@ -255,7 +253,7 @@ export default function ProfilePage() {
   const handleAddressSelect = useCallback((selectedAddress) => {
     // Update form fields using the correct nested structure
     form.setValue('address.formatted', selectedAddress.formatted)
-    form.setValue('address.street', selectedAddress.street || selectedAddress.formatted)
+    form.setValue('address.street', addressSearchValue || selectedAddress.street || selectedAddress.formatted)
     form.setValue('address.city', selectedAddress.city)
     form.setValue('address.state', selectedAddress.state)
     form.setValue('address.zip', selectedAddress.zip)
@@ -279,7 +277,7 @@ export default function ProfilePage() {
       const addressInfo = await reverseGeocode(coordinates.latitude, coordinates.longitude)
 
       form.setValue('address.formatted', addressInfo.formatted)
-      form.setValue('address.street', addressInfo.street || addressInfo.formatted)
+      form.setValue('address.street', addressSearchValue || addressInfo.formatted)
       form.setValue('address.city', addressInfo.city)
       form.setValue('address.state', addressInfo.state)
       form.setValue('address.zip', addressInfo.zip)
@@ -317,17 +315,6 @@ export default function ProfilePage() {
     setAddressSearchValue("")
     setAddressSuggestions([])
     setShowAddressSuggestions(false)
-
-    // Clear form fields
-    form.setValue('address.formatted', '')
-    form.setValue('address.street', '')
-    form.setValue('address.city', '')
-    form.setValue('address.state', '')
-    form.setValue('address.zip', '')
-    form.setValue('address.country', '')
-    form.setValue('address.country_code', '')
-    form.setValue('address.lat', null)
-    form.setValue('address.lon', null)
   }, [form])
 
   async function handleAvatarChange(event) {

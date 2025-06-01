@@ -228,7 +228,11 @@ export default function Navbar() {
 
           {isLoggedIn && (
             <div className="px-4">
-              <button className="request-button mb-3 block">Request Guru</button>
+              <Link href="/request-tutor">
+              <button className="request-button">
+                 Request Guru
+              </button>
+            </Link>
               <CoinBalance />
             </div>
           )}
@@ -327,7 +331,11 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <button className="request-button">Request Guru</button>
+            <Link href="/request-tutor">
+              <button className="request-button">
+                 Request Guru
+              </button>
+            </Link>
           </nav>
 
           {/* Right side - Desktop */}

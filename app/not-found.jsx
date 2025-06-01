@@ -18,7 +18,7 @@ export default function NotFound() {
           Go to Home
         </Link>
         {user && (
-          <Link href="/create-request" className="px-6 py-3 bg-black text-white rounded-md hover:bg-white hover:text-black transition">
+          <Link href="/request-tutor" className="px-6 py-3 bg-black text-white rounded-md hover:bg-white hover:text-black transition">
             Create Request
           </Link>
         )}
