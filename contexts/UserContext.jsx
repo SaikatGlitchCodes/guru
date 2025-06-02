@@ -48,8 +48,7 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     refreshUserData()
-
-    // Set up auth state change listener
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
@@ -79,9 +78,16 @@ export function UserProvider({ children }) {
   }, [])
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
+    setLoading(true)
+    try {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+    } catch (error) {
+      console.error("Error signing out:", error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const uploadAvatarToSupabase = async (file, userEmail) => {
@@ -125,6 +131,30 @@ export function UserProvider({ children }) {
     return { publicUrl }
   }
 
+  async function signInWithMagicLink(email) {
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: '/',
+        },
+      })
+      console.log("Magic link sent to:", email, session)
+      if (session?.user) {
+        setUser(session.user)
+        await refreshUserData()
+      }
+    } catch (error) {
+      console.error("Error during sign-in:", error)
+      return
+    } finally {
+      setLoading(false)
+    }
+
+  }
+
   return (
     <UserContext.Provider
       value={{
@@ -132,6 +162,7 @@ export function UserProvider({ children }) {
         profile,
         loading,
         signOut,
+        signInWithMagicLink,
         refreshUserData,
         uploadAvatarToSupabase
       }}

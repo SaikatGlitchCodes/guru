@@ -11,7 +11,7 @@ const FormNavigationButton = ({
   isSubmitting,
   setIsSubmitting
 }) => {
-  const {user} = useUser();
+  const {user, signInWithMagicLink} = useUser();
 
   const handleNext = async (e) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ const FormNavigationButton = ({
           if (!user) {
             localStorage.setItem("pendingTutorRequest", JSON.stringify(form.getValues()));
             console.log("User not authenticated, storing data and redirecting...")
-            await new Promise((resolve) => setTimeout(resolve, 1500))
+            signInWithMagicLink(form.getValues().email);
           } else {
             await new Promise((resolve) => setTimeout(resolve, 1500))
             console.log("Form submitted:", form.getValues());
@@ -50,7 +50,7 @@ const FormNavigationButton = ({
         type={currentStep === REQUEST_STEPS.length - 1 ? "submit" : "button"}
         onClick={handleNext}
         className="px-14 bg-black text-white mt-5"
-      // disabled={isSubmitting}
+        disabled={isSubmitting}
       >
         {currentStep === REQUEST_STEPS.length - 1 ? 'Submit' : 'Save'}
       </Button>

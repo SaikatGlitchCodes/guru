@@ -1,7 +1,5 @@
-// components/steps/email-verification-step.tsx
 "use client"
 
-import { UseFormReturn } from "react-hook-form"
 import { Input } from "@/components/ui/input"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useUser } from "@/contexts/UserContext"
@@ -13,7 +11,7 @@ export function EmailVerificationStep({ form }) {
     <div className="space-y-4">
       <FormField
         control={form.control}
-        name="email"
+        name="user_email"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Email Address</FormLabel>

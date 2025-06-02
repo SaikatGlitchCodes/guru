@@ -42,13 +42,32 @@ export const REQUEST_STEPS = [
 export default function RequestTutorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
-  const { user, profile } = useUser()
+  const { user, profile, signInWithMagicLink } = useUser()
+  const [resendTimer, setResendTimer] = useState(60);
+  const [resendDisabled, setResendDisabled] = useState(false);
+
+  useEffect(() => {
+    if (resendDisabled) {
+      const timer = setInterval(() => {
+        setResendTimer((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(timer);
+            setResendDisabled(false);
+            return 60; // reset to 60 seconds
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer); // cleanup the interval on unmount
+    }
+  }, [resendDisabled]);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: requestTypes[0],
-      email: user?.email || "",
+      user_email: user?.email || "",
       name: profile?.name || "",
       address: {
         addressline_1: "",
@@ -92,6 +111,12 @@ export default function RequestTutorPage() {
     }
   }, [user, currentStep])
 
+  const handleResendEmail = async () => {
+    console.log("Resending magic link to:", form.getValues("email"))
+    signInWithMagicLink(form.getValues("email"))
+    setResendDisabled(true);
+  }
+
   const renderSuccessScreen = () => {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -104,6 +129,21 @@ export default function RequestTutorPage() {
         </p>
         <p className="mb-8 text-sm text-muted-foreground">A confirmation has been sent to your email address.</p>
         <Button onClick={() => (window.location.href = "/")}>Return to Home</Button>
+      </div>
+    )
+  }
+
+  const renderSuccessScreenForUnauthenticated = () => {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="mb-6 rounded-full bg-green-100 p-3">
+          <CheckCircle2 className="h-12 w-12 text-green-600" />
+        </div>
+        <h2 className="mb-2 text-2xl font-bold">We've sent a magic link to your email address. </h2>
+        <p className="mb-6 text-muted-foreground">
+          Please click on the link to complete your request. It expires in 5 minutes.
+        </p>
+        <Button onClick={handleResendEmail} disabled={resendDisabled}>{resendDisabled ? `Resend Email (${resendTimer}s)` : 'Re-Send Email'} </Button>
       </div>
     )
   }
@@ -123,13 +163,13 @@ export default function RequestTutorPage() {
                 <div className="space-y-6">
                   <div className="pb-12 border-b border-gray-900/10">
                     {REQUEST_STEPS.slice(0, currentStep + 1).map(({ title, Component }, index) => (
-                      <div className="mb-5" key={title}><Component  form={form} /></div> 
+                      <div className="mb-5" key={title}><Component form={form} /></div>
                     ))}
                   </div>
                 </div>
-                <FormNavigationButton 
-                  currentStep={currentStep} 
-                  setCurrentStep={setCurrentStep} 
+                <FormNavigationButton
+                  currentStep={currentStep}
+                  setCurrentStep={setCurrentStep}
                   form={form}
                   isSubmitting={isSubmitting}
                   setIsSubmitting={setIsSubmitting}
@@ -140,7 +180,7 @@ export default function RequestTutorPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="pt-6">{renderSuccessScreen()}</CardContent>
+          <CardContent className="pt-6">{!user ? renderSuccessScreenForUnauthenticated() : renderSuccessScreen()}</CardContent>
         </Card>
       )}
     </div>

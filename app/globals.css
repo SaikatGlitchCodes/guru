@@ -123,7 +123,7 @@
 }
 
 /* From Uiverse.io by ilkhoeri */ 
-.button {
+.coin-button {
   --h-button: 45px;
   --w-button: 120px;
   --round: 0.75rem;
@@ -145,8 +145,8 @@
   outline: none;
   padding: 8px 18px;
 }
-.button::before,
-.button::after {
+.coin-button::before,
+.coin-button::after {
   content: "";
   position: absolute;
   inset: var(--space);
@@ -154,7 +154,7 @@
   border-radius: calc(var(--round) - var(--space));
   z-index: 0;
 }
-.button::before {
+.coin-button::before {
   --space: 1px;
   background: linear-gradient(
     177.95deg,
@@ -162,7 +162,7 @@
     rgba(255, 255, 255, 0) 100%
   );
 }
-.button::after {
+.coin-button::after {
   --space: 2px;
   background: radial-gradient(
       65.28% 65.28% at 50% 100%,
@@ -171,7 +171,7 @@
     ),
     linear-gradient(0deg, #7a5af8, #7a5af8);
 }
-.button:active {
+.coin-button:active {
   transform: scale(0.95);
 }
 
@@ -204,7 +204,7 @@
   background-color: #e8e8e8;
   pointer-events: none;
 }
-.button:hover .fold {
+.coin-button:hover .fold {
   margin-top: -1rem;
   margin-right: -1rem;
 }
@@ -320,10 +320,10 @@
   transition: fill 0.1s linear;
 }
 
-.button:focus svg.icon {
+.coin-button:focus svg.icon {
   fill: white;
 }
-.button:hover svg.icon {
+.coin-button:hover svg.icon {
   fill: transparent;
   animation:
     dasharray 1s linear forwards,
