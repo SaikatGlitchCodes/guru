@@ -17,9 +17,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import AuthModal from "./auth-modal"
 import { useUser } from "@/contexts/UserContext"
 import { Skeleton } from "@/components/ui/skeleton"
+import { AlertDescription, AlertTitle } from "./ui/alert"
 
 export default function Navbar() {
-  const { user, profile, loading, profileLoading, signOut } = useUser()
+  const { user, profile, loading, profileLoading, signOut, isRequestInLocalStorage } = useUser()
   const [isOpen, setIsOpen] = useState(false)
 
   // Show loading state if still fetching profile data
@@ -312,6 +313,7 @@ export default function Navbar() {
 
   // Rest of the component remains unchanged
   return (
+    <>
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
@@ -357,5 +359,16 @@ export default function Navbar() {
         </div>
       </div>
     </header>
+    { !user && isRequestInLocalStorage && <div className="container mx-auto p-2 flex items-center gap-x-4 border-b pb-4 justify-center">
+      <div>
+        <AlertTitle>Request creation still pending we require you to login!</AlertTitle>
+        <AlertDescription>
+          Please login to continue with your request creation. If you
+          don't have an account, you can create one.
+        </AlertDescription>
+      </div>
+      <AuthModal title="Login!" />
+    </div>}
+    </>
   )
 }

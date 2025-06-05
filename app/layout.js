@@ -3,7 +3,6 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/components/AuthProvider";
-import { supabase } from "@/lib/supabaseClient";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

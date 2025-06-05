@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
+import { createRequest } from "@/lib/api"
 
 const UserContext = createContext(null)
 
@@ -9,6 +10,7 @@ export function UserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [pendingRequest, setPendingRequest] = useState(false)
 
   const refreshUserData = async () => {
     setLoading(true)
@@ -48,7 +50,7 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     refreshUserData()
-    
+    createRequestInLocalStorage()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
@@ -155,6 +157,31 @@ export function UserProvider({ children }) {
 
   }
 
+  function createRequestInLocalStorage() {
+    try {
+      const requestData = JSON.parse(localStorage.getItem("pendingTutorRequest"))
+      if (!requestData) {
+        console.warn("No pending request data found in localStorage")
+        return
+      }
+      else {
+        setPendingRequest(true)
+        if (user) {
+          createRequest(requestData).then(() => {
+            console.log("Request created successfully from localStorage data")
+            localStorage.removeItem("pendingTutorRequest")
+          }).catch((error) => {
+            console.error("Error creating request from localStorage data:", error)
+          }
+          )
+        }
+
+      }
+    } catch (error) {
+      console.error("Error storing request data in localStorage:", error)
+    }
+  }
+
   return (
     <UserContext.Provider
       value={{
@@ -164,7 +191,8 @@ export function UserProvider({ children }) {
         signOut,
         signInWithMagicLink,
         refreshUserData,
-        uploadAvatarToSupabase
+        uploadAvatarToSupabase,
+        isRequestInLocalStorage: pendingRequest
       }}
     >
       {children}

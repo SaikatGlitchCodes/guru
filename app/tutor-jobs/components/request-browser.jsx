@@ -250,7 +250,7 @@ export default function RequestBrowser({ initialRequests }) {
                     <CardContent className="px-6">
                       {/* Header */}
                       <div className="mb-4">
-                        <h3 className="text-[23px] font-normal text-gray-700 mb-2 line-clamp-2">
+                        <h3 className="text-xl font-normal text-blue-500 mb-2 line-clamp-2">
                           Need {request.subjects.map((s) => s.name).join(", ")} Help in {request.address.city} –{" "}
                           {request.price_currency_symbol}
                           {request.price_amount} {request.price_option}

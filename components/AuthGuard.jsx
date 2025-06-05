@@ -83,5 +83,7 @@ export default function AuthGuard({ children }) {
   }
 
   // Return children only when authorized
-  return authorized ? children : null
+  return authorized ? <>
+    {children}
+  </> : null
 }

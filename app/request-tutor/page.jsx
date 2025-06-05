@@ -9,12 +9,12 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
-import { EmailVerificationStep } from "@/components/steps/email-verification-step"
-import { NameAddressStep } from "@/components/steps/name-address-step"
-import { PhoneNumberStep } from "@/components/steps/phone-number-step"
-import { RequirementDescriptionStep } from "@/components/steps/requirement-description-step"
-import { SubjectMeetingStep } from "@/components/steps/subject-meeting-step"
-import { BudgetPreferencesStep } from "@/components/steps/budget-preferences-step"
+import { EmailVerificationStep } from "@/app/request-tutor/steps/email-verification-step"
+import { NameAddressStep } from "@/app/request-tutor/steps/name-address-step"
+import { PhoneNumberStep } from "@/app/request-tutor/steps/phone-number-step"
+import { RequirementDescriptionStep } from "@/app/request-tutor/steps/requirement-description-step"
+import { SubjectMeetingStep } from "@/app/request-tutor/steps/subject-meeting-step"
+import { BudgetPreferencesStep } from "@/app/request-tutor/steps/budget-preferences-step"
 import { formSchema } from "./util/request-schema"
 import { useUser } from "@/contexts/UserContext"
 import FormNavigationButton from "./submitForm"
@@ -84,7 +84,7 @@ export default function RequestTutorPage() {
         lon: "",
       },
       phone_number: profile?.phone_number || "",
-      description: "",
+      description: "I am Validation result for step here lorem ipsum",
       subject: [],
       level: levels[0],
       meeting_options: {
