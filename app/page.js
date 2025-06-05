@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Link } from "react-router-dom"
 
 // Sample data
 const popularSubjects = [
@@ -88,35 +87,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Header */}
-      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white font-bold">
-                T
-              </div>
-              <span className="text-xl font-bold text-gray-900">TutorHub</span>
-            </div>
-            <nav className="hidden md:flex items-center space-x-6">
-              <Link to="/find-tutors" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Find Tutors
-              </Link>
-              <Link to="/how-it-works" className="text-gray-600 hover:text-gray-900 transition-colors">
-                How it Works
-              </Link>
-              <Link to="/subjects" className="text-gray-600 hover:text-gray-900 transition-colors">
-                Subjects
-              </Link>
-              <Button variant="outline" size="sm">
-                Sign In
-              </Button>
-              <Button size="sm">Get Started</Button>
-            </nav>
-          </div>
-        </div>
-      </header>
-
       {/* Hero Section with Animated Background */}
       <section className="relative py-20 px-4 overflow-hidden">
         {/* Animated Background Elements */}
@@ -155,10 +125,10 @@ export default function HomePage() {
                   className="pl-12 pr-32 py-4 text-lg rounded-full border-2 border-gray-200 focus:border-primary shadow-lg"
                 />
                 <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6" asChild>
-                  <Link to="/request-tutor">
+                  <a to="/request-tutor">
                     Find Tutors
                     <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </div>
@@ -166,10 +136,10 @@ export default function HomePage() {
             {/* Quick Actions */}
             <div className="flex flex-wrap justify-center gap-4 mb-12">
               <Button variant="outline" className="rounded-full hover:scale-105 transition-transform shadow-md" asChild>
-                <Link to="/request-tutor">
+                <a to="/request-tutor">
                   <BookOpen className="mr-2 h-4 w-4" />
                   Request a Tutor
-                </Link>
+                </a>
               </Button>
               <Button variant="outline" className="rounded-full hover:scale-105 transition-transform shadow-md">
                 <Play className="mr-2 h-4 w-4" />
@@ -351,10 +321,10 @@ export default function HomePage() {
 
           <div className="text-center mt-12">
             <Button size="lg" className="rounded-full px-8 hover:scale-105 transition-transform shadow-lg" asChild>
-              <Link to="/request-tutor">
+              <a to="/request-tutor">
                 Get Started Now
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>
@@ -402,10 +372,10 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" className="rounded-full px-8 hover:scale-105 transition-transform" asChild>
-              <Link to="/request-tutor">
+              <a to="/request-tutor">
                 Find My Tutor
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
+              </a>
             </Button>
             <Button
               size="lg"
@@ -437,24 +407,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">For Students</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link to="/find-tutors" className="hover:text-white transition-colors">
+                  <a to="/find-tutors" className="hover:text-white transition-colors">
                     Find Tutors
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/subjects" className="hover:text-white transition-colors">
+                  <a to="/subjects" className="hover:text-white transition-colors">
                     Browse Subjects
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/how-it-works" className="hover:text-white transition-colors">
+                  <a to="/how-it-works" className="hover:text-white transition-colors">
                     How It Works
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/pricing" className="hover:text-white transition-colors">
+                  <a to="/pricing" className="hover:text-white transition-colors">
                     Pricing
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -462,24 +432,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link to="/help" className="hover:text-white transition-colors">
+                  <a to="/help" className="hover:text-white transition-colors">
                     Help Center
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:text-white transition-colors">
+                  <a to="/contact" className="hover:text-white transition-colors">
                     Contact Us
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/safety" className="hover:text-white transition-colors">
+                  <a to="/safety" className="hover:text-white transition-colors">
                     Safety
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/faq" className="hover:text-white transition-colors">
+                  <a to="/faq" className="hover:text-white transition-colors">
                     FAQ
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
@@ -487,24 +457,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link to="/about" className="hover:text-white transition-colors">
+                  <a to="/about" className="hover:text-white transition-colors">
                     About Us
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/careers" className="hover:text-white transition-colors">
+                  <a to="/careers" className="hover:text-white transition-colors">
                     Careers
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/blog" className="hover:text-white transition-colors">
+                  <a to="/blog" className="hover:text-white transition-colors">
                     Blog
-                  </Link>
+                  </a>
                 </li>
                 <li>
-                  <Link to="/press" className="hover:text-white transition-colors">
+                  <a to="/press" className="hover:text-white transition-colors">
                     Press
-                  </Link>
+                  </a>
                 </li>
               </ul>
             </div>
