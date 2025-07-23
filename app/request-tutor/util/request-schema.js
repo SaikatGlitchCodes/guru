@@ -16,8 +16,8 @@ export const formSchema = z.object({
     zip: z.string().optional(),
     abbreviation_STD: z.string().optional(),
     offset_STD: z.string().optional(),
-    lat: z.string().optional(),
-    lon: z.string().optional(),
+    lat: z.number().optional(),
+    lon: z.number().optional(),
   }),
   phone_number: z.string().min(10, "Please enter a valid phone number"),
   description: z.string()

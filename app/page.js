@@ -1,21 +1,23 @@
 "use client"
 
 import { useState } from "react"
-import { Search, BookOpen, Users, Star, ArrowRight, Play, MessageSquare, Calendar, Award } from "lucide-react"
+import { Search, BookOpen, Users, Star, ArrowRight, Play, MessageSquare, Calendar, Award, Sigma, Radiation, FlaskConical, Book, Computer, Fingerprint } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { supabase } from "@/lib/supabaseClient"
+import { useRouter } from "next/navigation"
 
 // Sample data
 const popularSubjects = [
-  { name: "Mathematics", icon: "📊", students: "2.3k", color: "bg-blue-50 text-blue-700 border-blue-200" },
-  { name: "Physics", icon: "⚛️", students: "1.8k", color: "bg-purple-50 text-purple-700 border-purple-200" },
-  { name: "Chemistry", icon: "🧪", students: "1.5k", color: "bg-green-50 text-green-700 border-green-200" },
-  { name: "English", icon: "📚", students: "2.1k", color: "bg-orange-50 text-orange-700 border-orange-200" },
-  { name: "Computer Science", icon: "💻", students: "1.9k", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-  { name: "Biology", icon: "🧬", students: "1.4k", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { name: "Mathematics", icon: <Sigma size="3em" className="mb-2 text-blue-400" />, students: "2.3k", color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { name: "Physics", icon: <Radiation size="3em" className="mb-2 text-purple-400" />, students: "1.8k", color: "bg-purple-50 text-purple-700 border-purple-200" },
+  { name: "Chemistry", icon: <FlaskConical size="3em" className="mb-2 text-green-400" />, students: "1.5k", color: "bg-green-50 text-green-700 border-green-200" },
+  { name: "English", icon: <Book size="3em" className="mb-2 text-orange-400" />, students: "2.1k", color: "bg-orange-50 text-orange-700 border-orange-200" },
+  { name: "Computer Science", icon: <Computer size="3em" className="mb-2 text-indigo-400" />, students: "1.9k", color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  { name: "Biology", icon: <Fingerprint size="3em" className="mb-2 text-emerald-400" />, students: "1.4k", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
 ]
 
 const featuredTutors = [
@@ -84,6 +86,10 @@ const stats = [
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
+  const searchTutor = () => {
+    router.replace(`/find-tutors?query=${encodeURIComponent(searchQuery)}`)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -96,7 +102,7 @@ export default function HomePage() {
           <div className="absolute top-40 right-20 w-24 h-24 bg-purple-200/30 rounded-full animate-bounce delay-1000"></div>
           <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-green-200/30 rounded-full animate-pulse delay-500"></div>
           <div className="absolute bottom-20 right-1/3 w-28 h-28 bg-orange-200/30 rounded-full animate-bounce delay-700"></div>
-          
+
           {/* Gradient overlays */}
           <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-300/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-300/20 to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
@@ -124,12 +130,10 @@ export default function HomePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 pr-32 py-4 text-lg rounded-full border-2 border-gray-200 focus:border-primary shadow-lg"
                 />
-                <Button className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6" asChild>
-                  <a to="/request-tutor">
-                    Find Tutors
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </a>
-                </Button>
+                <button onClick={searchTutor} className="bg-black text-white absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6 py-2 flex items-center" asChild>
+                  Find Tutors
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </button>
               </div>
             </div>
 
@@ -189,8 +193,8 @@ export default function HomePage() {
                 key={index}
                 className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/30 hover:-translate-y-2 bg-white/80 backdrop-blur-sm"
               >
-                <CardContent className="p-6 text-center">
-                  <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300">{subject.icon}</div>
+                <CardContent className="p-6 text-center flex flex-col items-center">
+                  {subject.icon}
                   <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-primary transition-colors">
                     {subject.name}
                   </h3>

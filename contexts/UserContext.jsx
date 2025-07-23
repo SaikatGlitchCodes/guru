@@ -12,6 +12,10 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(false)
   const [pendingRequest, setPendingRequest] = useState(false)
 
+  if( user && pendingRequest === false) {
+    createRequestInLocalStorage()
+  }
+
   const refreshUserData = async () => {
     setLoading(true)
     try {
@@ -50,7 +54,7 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     refreshUserData()
-    createRequestInLocalStorage()
+   
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
@@ -166,6 +170,7 @@ export function UserProvider({ children }) {
       }
       else {
         setPendingRequest(true)
+        console.log("Pending request data found in localStorage:", requestData, "user:", user)
         if (user) {
           createRequest(requestData).then(() => {
             console.log("Request created successfully from localStorage data")

@@ -69,7 +69,7 @@ export default function Navbar() {
   )
 
   const CoinBalance = () => {
-    if( coinBalance >= 1 ){
+    if (coinBalance >= 1) {
       return (
         <Link href="/wallet" className="flex items-center space-x-2">
           <Coins className="h-5 w-5 text-black" />
@@ -96,23 +96,23 @@ export default function Navbar() {
       <span className="inner"
       >
         <svg
-        className="icon"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2.5"
-      >
+          className="icon"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2.5"
+        >
           <polyline
             points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"
           >
-            </polyline>
-            </svg>
-            
-            {coinBalance} Coins
-            </span>
+          </polyline>
+        </svg>
+
+        {coinBalance} Coins
+      </span>
     </button>)
   }
 
@@ -227,16 +227,16 @@ export default function Navbar() {
             </div>
           )}
 
-          {isLoggedIn && (
+          {
             <div className="px-4">
               <Link href="/request-tutor">
-              <button className="request-button">
-                 Request Guru
-              </button>
-            </Link>
+                <button className="request-button">
+                  Request Guru
+                </button>
+              </Link>
               <CoinBalance />
             </div>
-          )}
+          }
 
           <nav className="flex flex-col space-y-2">
             {navigationLinks.map((link) => (
@@ -314,61 +314,61 @@ export default function Navbar() {
   // Rest of the component remains unchanged
   return (
     <>
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Logo />
-          </div>
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center">
+              <Logo />
+            </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
-            {navigationLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-gray-700 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-teal-50"
-              >
-                {link.label}
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
+              {navigationLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-gray-700 hover:text-teal-600 px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-teal-50"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link href="/request-tutor">
+                <button className="request-button">
+                  Request Guru
+                </button>
               </Link>
-            ))}
-            <Link href="/request-tutor">
-              <button className="request-button">
-                 Request Guru
-              </button>
-            </Link>
-          </nav>
+            </nav>
 
-          {/* Right side - Desktop */}
-          <div className="hidden md:flex items-center space-x-4">
-            {isLoggedIn ? (
-              <>
-                <CoinBalance />
-                <UserMenu />
-              </>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <AuthModal />
-              </div>
-            )}
+            {/* Right side - Desktop */}
+            <div className="hidden md:flex items-center space-x-4">
+              {isLoggedIn ? (
+                <>
+                  <CoinBalance />
+                  <UserMenu />
+                </>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <AuthModal />
+                </div>
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <MobileMenu />
           </div>
-
-          {/* Mobile menu button */}
-          <MobileMenu />
         </div>
-      </div>
-    </header>
-    { !user && isRequestInLocalStorage && <div className="container mx-auto p-2 flex items-center gap-x-4 border-b pb-4 justify-center">
-      <div>
-        <AlertTitle>Request creation still pending we require you to login!</AlertTitle>
-        <AlertDescription>
-          Please login to continue with your request creation. If you
-          don't have an account, you can create one.
-        </AlertDescription>
-      </div>
-      <AuthModal title="Login!" />
-    </div>}
+      </header>
+      {(isRequestInLocalStorage) && <div className="container mx-auto p-2 flex items-center gap-x-4 border-b pb-4 justify-center">
+        <div>
+          <AlertTitle>Request creation still pending we require you to login!</AlertTitle>
+          <AlertDescription>
+            Please login to continue with your request creation. If you
+            don't have an account, you can create one.
+          </AlertDescription>
+        </div>
+        <AuthModal title="Login!" />
+      </div>}
     </>
   )
 }

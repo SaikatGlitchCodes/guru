@@ -16,6 +16,8 @@ const ROUTE_PERMISSIONS = {
   '/': { roles: ['student', 'tutor', 'admin', 'guest'] },
   '/tutor-jobs': { roles: ['student', 'tutor', 'admin', 'guest'] },
   '/become-tutor': { roles: ['student', 'tutor', 'admin', 'guest'] },
+  '/request-tutor': { roles: ['student', 'admin', 'guest'] },
+  
 };
 
 export default function AuthGuard({ children }) {

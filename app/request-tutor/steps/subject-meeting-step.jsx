@@ -83,7 +83,7 @@ export function SubjectMeetingStep({ form }) {
                 placeholder='Search subjects...'
                 allowCreateWhileLoading
                 options={subjects}
-                noOptionsMessage={() => error ? 'Error loading subjects' : 'No Categories Found'}
+                noOptionsMessage={(error) => error ? 'Error loading subjects' : 'No Categories Found'}
                 isLoading={loading}
                 onChange={(selectedOptions) => {
                   const subjectIds = selectedOptions.map(option => option.id);

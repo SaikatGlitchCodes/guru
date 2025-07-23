@@ -1,4 +1,3 @@
-// page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -53,13 +52,13 @@ export default function RequestTutorPage() {
           if (prevTime <= 1) {
             clearInterval(timer);
             setResendDisabled(false);
-            return 60; // reset to 60 seconds
+            return 60;
           }
           return prevTime - 1;
         });
       }, 1000);
 
-      return () => clearInterval(timer); // cleanup the interval on unmount
+      return () => clearInterval(timer);
     }
   }, [resendDisabled]);
 
@@ -70,21 +69,21 @@ export default function RequestTutorPage() {
       user_email: user?.email || "",
       name: profile?.name || "",
       address: {
-        addressline_1: "",
-        addressline_2: "",
-        country: "",
-        country_code: "",
+        addressline_1: profile?.address?.addressline_1 || "",
+        addressline_2: profile?.address?.addressline_2 || "",
+        country: profile?.address?.country || "",
+        country_code: profile?.address?.country_code || "",
         street: profile?.address?.street || "",
-        city: "",
-        state: "",
-        zip: "",
-        abbreviation_STD: "",
-        offset_STD: "",
-        lat: "",
-        lon: "",
+        city: profile?.address?.city || "",
+        state: profile?.address?.state || "",
+        zip: profile?.address?.zip || "",
+        abbreviation_STD: profile?.address?.abbreviation_STD || "",
+        offset_STD: profile?.address?.offset_STD || "",
+        lat: profile?.address?.lat || 0,
+        lon: profile?.address?.lon || 0,
       },
       phone_number: profile?.phone_number || "",
-      description: "I am Validation result for step here lorem ipsum",
+      description: "",
       subject: [],
       level: levels[0],
       meeting_options: {
@@ -108,7 +107,16 @@ export default function RequestTutorPage() {
   useEffect(() => {
     if (user && currentStep === 0) {
       setCurrentStep(1)
+    } 
+    if (user && currentStep === 1 && profile.address) {
+      setCurrentStep(2)
     }
+    if (user && currentStep === 2 && profile.phone_number) {
+      setCurrentStep(3)
+    }
+    setTimeout(() => {
+            window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+          }, 50);
   }, [user, currentStep])
 
   const handleResendEmail = async () => {
