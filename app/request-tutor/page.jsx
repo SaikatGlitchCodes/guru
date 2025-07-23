@@ -1,7 +1,10 @@
 // page.tsx
 "use client"
 
+"use client"
 import { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { CheckCircle2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -42,6 +45,7 @@ export const REQUEST_STEPS = [
 export default function RequestTutorPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
+  const searchParams = useSearchParams()
   const { user, profile, signInWithMagicLink } = useUser()
   const [resendTimer, setResendTimer] = useState(60);
   const [resendDisabled, setResendDisabled] = useState(false);
@@ -66,7 +70,7 @@ export default function RequestTutorPage() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: requestTypes[0],
+      type: searchParams.get('type') === 'job-support' ? 'Job Support' : requestTypes[0],
       user_email: user?.email || "",
       name: profile?.name || "",
       address: {
