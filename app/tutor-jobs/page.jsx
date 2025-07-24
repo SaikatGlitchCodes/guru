@@ -2,12 +2,10 @@
 import { Suspense, useEffect, useState } from "react"
 import RequestBrowser from "./components/request-browser"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { RefreshCcw, AlertCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
-// Cache duration in milliseconds (e.g., 5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
 export default function BrowseRequestsPage() {

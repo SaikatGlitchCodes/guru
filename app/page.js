@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { supabase } from "@/lib/supabaseClient"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 // Sample data
 const popularSubjects = [
@@ -489,7 +490,6 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
   )
 }
 

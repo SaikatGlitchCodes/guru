@@ -1,5 +1,16 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Search, Star, MapPin, Clock, BookOpen, Award, Users } from "lucide-react"
+
 // Sample tutors data (you can replace this with real data from your database)
 const sampleTutors = [
   {
@@ -93,22 +104,20 @@ const sampleTutors = [
     availability: "Available this week"
   }
 ]
-import { useState, useEffect } from "react"
+
 export default function FindTutorsPage() {
   const [tutors, setTutors] = useState(sampleTutors)
   const [filteredTutors, setFilteredTutors] = useState(sampleTutors)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("")
+  const [selectedSubject, setSelectedSubject] = useState(undefined)
+  const [selectedLocation, setSelectedLocation] = useState(undefined)
   const [priceRange, setPriceRange] = useState([0, 100])
   const [minRating, setMinRating] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState("rating")
-import { Search, MapPin, Star, Clock, DollarSign, Filter, Users, BookOpen, Award } from "lucide-react"
   // Get unique subjects and locations for filters
   const subjects = [...new Set(tutors.flatMap(tutor => tutor.subjects))].sort()
   const locations = [...new Set(tutors.map(tutor => tutor.location))].sort()
-import { Input } from "@/components/ui/input"
   // Filter tutors based on search criteria
   useEffect(() => {
     let filtered = tutors.filter(tutor => {
@@ -117,14 +126,13 @@ import { Input } from "@/components/ui/input"
         tutor.subjects.some(subject => subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
         tutor.bio.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesSubject = selectedSubject === "" || tutor.subjects.includes(selectedSubject)
-      const matchesLocation = selectedLocation === "" || tutor.location === selectedLocation
+      const matchesSubject = selectedSubject === "" || selectedSubject === undefined || tutor.subjects.includes(selectedSubject)
+      const matchesLocation = selectedLocation === "" || selectedLocation === undefined || tutor.location === selectedLocation
       const matchesPrice = tutor.hourlyRate >= priceRange[0] && tutor.hourlyRate <= priceRange[1]
       const matchesRating = tutor.rating >= minRating
       
       return matchesSearch && matchesSubject && matchesLocation && matchesPrice && matchesRating
     })
-import { Button } from "@/components/ui/button"
     // Sort tutors
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -142,31 +150,57 @@ import { Button } from "@/components/ui/button"
           return 0
       }
     })
-import { Badge } from "@/components/ui/badge"
+    
     setFilteredTutors(filtered)
   }, [tutors, searchQuery, selectedSubject, selectedLocation, priceRange, minRating, sortBy])
-import { Card, CardContent } from "@/components/ui/card"
+  
   const clearFilters = () => {
     setSearchQuery("")
-    setSelectedSubject("")
-    setSelectedLocation("")
+    setSelectedSubject(undefined)
+    setSelectedLocation(undefined)
     setPriceRange([0, 100])
     setMinRating(0)
   }
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-16">
-        <div className="container mx-auto px-4">
+      <section className="relative bg-black py-16 overflow-hidden">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-black/80 z-10"></div>
+          <div 
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `
+                linear-gradient(white 1px, transparent 1px),
+                linear-gradient(90deg, white 1px, transparent 1px)
+              `,
+              backgroundSize: '40px 40px',
+              animation: 'gridMove 20s linear infinite'
+            }}
+          ></div>
+        </div>
+        
+        <style jsx>{`
+          @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+          }
+        `}</style>
+        
+        <div className="container mx-auto px-4 relative z-20">
           <div className="text-center text-white mb-8">
-            <h1 className="text-4xl font-bold mb-4">Find Your Perfect Tutor</h1>
-            <p className="text-xl text-blue-100">Connect with expert tutors for personalized learning</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 animate-fade-in">
+              Find Your Perfect Tutor
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-delay">
+              Connect with expert tutors for personalized learning
+            </p>
           </div>
           
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-200 animate-slide-up">
               <div className="grid md:grid-cols-4 gap-4">
                 <div className="md:col-span-2">
                   <div className="relative">
@@ -175,27 +209,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
                       placeholder="Search by subject, tutor name, or keyword..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-12"
+                      className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-black"
                     />
                   </div>
                 </div>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Subject" />
+                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
+                    <SelectValue placeholder="All Subjects" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Subjects</SelectItem>
                     {subjects.map(subject => (
                       <SelectItem key={subject} value={subject}>{subject}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Location" />
+                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
+                    <SelectValue placeholder="All Locations" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Locations</SelectItem>
                     {locations.map(location => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
                     ))}
@@ -206,7 +238,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
           </div>
         </div>
       </section>
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
@@ -403,6 +434,3 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     </div>
   )
 }
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
-import { supabase } from "@/lib/supabaseClient"

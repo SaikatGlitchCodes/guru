@@ -2,7 +2,6 @@
 
 "use client"
 import { useState, useEffect } from "react"
-import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2 } from "lucide-react"
 import { useForm } from "react-hook-form"
