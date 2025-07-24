@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useUser } from "@/contexts/UserContext"
 
 
+// Add prop to control default role
 const signInSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
     password: z.string().min(1, "Password is required")
@@ -38,8 +39,8 @@ const signUpSchema = z.object({
     })
 })
 
-export default function AuthModal({openState=false, title="Sign In / Up"}) {
-    const [isOpen, setIsOpen] = useState(openState)
+export default function AuthModal({ defaultRole = "student", triggerText = "Sign In / Up" }) {
+    const [isOpen, setIsOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [signInErrors, setSignInErrors] = useState({})
@@ -177,7 +178,7 @@ export default function AuthModal({openState=false, title="Sign In / Up"}) {
             if (!open) clearErrors()
         }}>
             <DialogTrigger asChild>
-                <Button className="px-4">{title}</Button>
+                <Button className="px-4">{triggerText}</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -353,7 +354,7 @@ export default function AuthModal({openState=false, title="Sign In / Up"}) {
 
                             <div className="space-y-2">
                                 <Label>I am a</Label>
-                                <RadioGroup name="role" defaultValue="student" className="grid grid-cols-2 gap-4">
+                                <RadioGroup name="role" defaultValue={defaultRole} className="grid grid-cols-2 gap-4">
                                     <Label
                                         htmlFor="student"
                                         className="flex items-center justify-center rounded-md border-2 border-muted bg-background p-3 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white cursor-pointer"
