@@ -23,7 +23,7 @@ export default function NotFound() {
           </Link>
         )}
       </div>
-
+        <EasterEgg className="mt-8" />
     </div>
   )
 }

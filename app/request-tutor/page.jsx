@@ -10,6 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Info } from "lucide-react"
 import { EmailVerificationStep } from "@/app/request-tutor/steps/email-verification-step"
 import { NameAddressStep } from "@/app/request-tutor/steps/name-address-step"
 import { PhoneNumberStep } from "@/app/request-tutor/steps/phone-number-step"
@@ -19,6 +21,7 @@ import { BudgetPreferencesStep } from "@/app/request-tutor/steps/budget-preferen
 import { formSchema } from "./util/request-schema"
 import { useUser } from "@/contexts/UserContext"
 import FormNavigationButton from "./submitForm"
+import { FormPersistence } from "@/lib/formPersistence"
 
 const requestTypes = ["Tutoring", "Job Support", "Assignment"]
 const levels = [
@@ -47,6 +50,8 @@ export default function RequestTutorPage() {
   const { user, profile, signInWithMagicLink } = useUser()
   const [resendTimer, setResendTimer] = useState(60);
   const [resendDisabled, setResendDisabled] = useState(false);
+  const [formPersistence] = useState(() => new FormPersistence('tutorRequestForm'))
+  const [hasSavedData, setHasSavedData] = useState(false)
 
   useEffect(() => {
     if (resendDisabled) {
@@ -69,23 +74,23 @@ export default function RequestTutorPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: searchParams.get('type') === 'job-support' ? 'Job Support' : requestTypes[0],
-      user_email: user?.email || "",
-      name: profile?.name || "",
+      user_email: "",
+      name: "",
       address: {
-        addressline_1: profile?.address?.addressline_1 || "",
-        addressline_2: profile?.address?.addressline_2 || "",
-        country: profile?.address?.country || "",
-        country_code: profile?.address?.country_code || "",
-        street: profile?.address?.street || "",
-        city: profile?.address?.city || "",
-        state: profile?.address?.state || "",
-        zip: profile?.address?.zip || "",
-        abbreviation_STD: profile?.address?.abbreviation_STD || "",
-        offset_STD: profile?.address?.offset_STD || "",
-        lat: profile?.address?.lat || 0,
-        lon: profile?.address?.lon || 0,
+        addressline_1: "",
+        addressline_2: "",
+        country: "",
+        country_code: "",
+        street: "",
+        city: "",
+        state: "",
+        zip: "",
+        abbreviation_STD: "",
+        offset_STD: "",
+        lat: 0,
+        lon: 0,
       },
-      phone_number: profile?.phone_number || "",
+      phone_number: "",
       description: "",
       subject: [],
       level: levels[0],
@@ -107,20 +112,91 @@ export default function RequestTutorPage() {
     },
   })
 
+  // Load saved form data on component mount
+  useEffect(() => {
+    const savedData = formPersistence.loadFormData()
+    if (savedData) {
+      setHasSavedData(true)
+      console.log('Loading saved form data:', savedData)
+      
+      // Merge saved data with current form values
+      Object.keys(savedData).forEach(key => {
+        if (savedData[key] !== undefined && savedData[key] !== null) {
+          form.setValue(key, savedData[key])
+        }
+      })
+    }
+  }, [form, formPersistence])
+
+  // Save form data whenever it changes
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      // Only save if we have meaningful data (not just default values)
+      const hasData = value.description || 
+                     value.subject?.length > 0 || 
+                     value.price_amount > 0 ||
+                     value.language?.length > 0
+      
+      if (hasData) {
+        formPersistence.saveFormData(value)
+      }
+    })
+    
+    return () => subscription.unsubscribe()
+  }, [form, formPersistence])
+
+  // Clear saved data when form is successfully submitted
+  const clearSavedData = () => {
+    formPersistence.clearFormData()
+    setHasSavedData(false)
+  }
+
+  // Update form values when user/profile data loads
+  useEffect(() => {
+    console.log('Form update effect triggered - user:', !!user, 'profile:', !!profile)
+    if (user) {
+      console.log('Setting user email:', user.email)
+      form.setValue('user_email', user.email || "")
+    }
+    
+    if (profile) {
+      console.log('Setting profile data:', profile)
+      form.setValue('name', profile.name || "")
+      form.setValue('phone_number', profile.phone_number || "")
+      
+      if (profile.address) {
+        console.log('Setting address data:', profile.address)
+        // Map database field names to form field names
+        form.setValue('address.addressline_1', profile.address.address_line_1 || "")
+        form.setValue('address.addressline_2', profile.address.address_line_2 || "")
+        form.setValue('address.country', profile.address.country || "")
+        form.setValue('address.country_code', profile.address.country_code || "")
+        form.setValue('address.street', profile.address.street || "")
+        form.setValue('address.city', profile.address.city || "")
+        form.setValue('address.state', profile.address.state || "")
+        form.setValue('address.zip', profile.address.zip || "")
+        form.setValue('address.abbreviation_STD', profile.address.abbreviation_STD || "")
+        form.setValue('address.offset_STD', profile.address.offset_STD || "")
+        form.setValue('address.lat', profile.address.lat || 0)
+        form.setValue('address.lon', profile.address.lon || 0)
+      }
+    }
+  }, [user, profile, form])
+
   useEffect(() => {
     if (user && currentStep === 0) {
       setCurrentStep(1)
     } 
-    if (user && currentStep === 1 && profile.address) {
+    if (user && profile && currentStep === 1 && profile.address) {
       setCurrentStep(2)
     }
-    if (user && currentStep === 2 && profile.phone_number) {
+    if (user && profile && currentStep === 2 && profile.phone_number) {
       setCurrentStep(3)
     }
     setTimeout(() => {
             window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
           }, 50);
-  }, [user, currentStep])
+  }, [user, profile, currentStep])
 
   const handleResendEmail = async () => {
     console.log("Resending magic link to:", form.getValues("email"))
@@ -166,6 +242,26 @@ export default function RequestTutorPage() {
         <p className="text-muted-foreground mt-2">Fill out the form below to get matched with the perfect tutor</p>
       </div>
 
+      {hasSavedData && (
+        <Alert className="mb-6 border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            We've restored your previously saved form data. You can continue from where you left off.
+            <Button 
+              variant="link" 
+              className="p-0 h-auto ml-2 text-blue-600 underline"
+              onClick={() => {
+                formPersistence.clearFormData()
+                setHasSavedData(false)
+                window.location.reload()
+              }}
+            >
+              Start fresh instead
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!isSubmitting ? (
         <Card className="shadow-none border-0">
           <CardContent className="pt-6">
@@ -184,6 +280,7 @@ export default function RequestTutorPage() {
                   form={form}
                   isSubmitting={isSubmitting}
                   setIsSubmitting={setIsSubmitting}
+                  clearSavedData={clearSavedData}
                 />
               </form>
             </Form>

@@ -20,11 +20,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { AlertDescription, AlertTitle } from "./ui/alert"
 
 export default function Navbar() {
-  const { user, profile, loading, profileLoading, signOut, isRequestInLocalStorage } = useUser()
+  const { user, profile, loading, isRequestInLocalStorage, signOut } = useUser()
   const [isOpen, setIsOpen] = useState(false)
 
-  // Show loading state if still fetching profile data
-  const isProfileLoading = !!user && profileLoading
+  console.log("User:", user)
+  console.log("Profile:", profile)
 
   // Determine login state and user info
   const isLoggedIn = !!user
@@ -45,7 +45,6 @@ export default function Navbar() {
         return [
           { href: "/tutor-jobs", label: "Open Requests" },
           { href: "/my-students", label: "My Students" },
-          { href: "/earnings", label: "Earnings" },
           { href: "/messages", label: "Messages" },
         ]
       case "guest":
@@ -69,14 +68,6 @@ export default function Navbar() {
   )
 
   const CoinBalance = () => {
-    if (coinBalance >= 1) {
-      return (
-        <Link href="/wallet" className="flex items-center space-x-2">
-          <Coins className="h-5 w-5 text-black" />
-          <span className="text-sm text-gray-700">{coinBalance} Coins</span>
-        </Link>
-      )
-    }
     return (<button type="button" className="coin-button">
       <span className="fold"></span>
 
@@ -120,37 +111,23 @@ export default function Navbar() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          {isProfileLoading ? (
-            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
-            </div>
-          ) : (
-            <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-              <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
-              <AvatarFallback className="bg-black text-white">
-                {userName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-          )}
+          <Avatar className="h-10 w-10 ring-2 ring-gray-100">
+            <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
+            <AvatarFallback className="bg-black text-white">
+              {userName
+                .split(" ")
+                .map((n) => n[0])
+                .join("")}
+            </AvatarFallback>
+          </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
-            {isProfileLoading ? (
-              <Skeleton className="h-4 w-32" />
-            ) : (
-              <p className="font-medium">{userName}</p>
-            )}
+            <p className="font-medium">{userName}</p>
             <p className="w-[200px] truncate text-sm text-muted-foreground">
-              {isProfileLoading ? (
-                <Skeleton className="h-3 w-20" />
-              ) : (
-                userRole === "student" ? "Student" : "Tutor"
-              )}
+              {userRole === "student" ? "Student" : userRole === "tutor" ? "Tutor" : "Guest"}
             </p>
           </div>
         </div>
@@ -196,33 +173,20 @@ export default function Navbar() {
 
           {isLoggedIn && (
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
-              {isProfileLoading ? (
-                <Skeleton className="h-12 w-12 rounded-full" />
-              ) : (
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
-                  <AvatarFallback className="bg-black text-white">
-                    {userName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
+                <AvatarFallback className="bg-black text-white">
+                  {userName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
               <div>
-                {isProfileLoading ? (
-                  <>
-                    <Skeleton className="h-4 w-24 mb-2" />
-                    <Skeleton className="h-3 w-16" />
-                  </>
-                ) : (
-                  <>
-                    <p className="font-medium">{userName}</p>
-                    <p className="text-sm text-gray-600">
-                      {userRole === "student" ? "Student" : "Tutor"}
-                    </p>
-                  </>
-                )}
+                <p className="font-medium">{userName}</p>
+                <p className="text-sm text-gray-600">
+                  {userRole === "student" ? "Student" : userRole === "tutor" ? "Tutor" : "Guest"}
+                </p>
               </div>
             </div>
           )}
@@ -295,8 +259,8 @@ export default function Navbar() {
     await signOut()
   }
 
-  // Show a simplified navbar during loading
-  if (loading && !user) {
+  // Show a simplified navbar during initial load only
+  if (loading) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

@@ -2,42 +2,43 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { createRequest } from "@/lib/api"
+import { getUserProfile, uploadAvatar, createRequest } from "@/lib/supabaseAPI"
 
 const UserContext = createContext(null)
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [pendingRequest, setPendingRequest] = useState(false)
 
-  if( user && pendingRequest === false) {
-    createRequestInLocalStorage()
-  }
-
   const refreshUserData = async () => {
-    setLoading(true)
     try {
       const { data: { session } } = await supabase.auth.getSession()
-
+      
       if (session?.user) {
         setUser(session.user)
 
-        try {
-          const { data: response } = await supabase
-            .from('users')
-            .select('*, address : addresses(*), subjects(*)')
-            .eq('email', session.user.email)
-            .single()
-
-          if (response) {
-            setProfile(response)
-          } else {
-            setProfile(null)
-          }
-        } catch (profileError) {
-          console.error("Error fetching profile:", profileError)
+        // Try to fetch profile from database
+        const profileResult = await getUserProfile(session.user.email)
+        
+        if (profileResult.data) {
+          console.log('Profile loaded in refreshUserData:', profileResult.data)
+          console.log('Address data in refreshUserData:', profileResult.data.address)
+          setProfile(profileResult.data)
+        } else {
+          console.log('No profile found, creating basic profile')
+          // Create a basic profile structure if none exists
+          setProfile({
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+            role: 'student',
+            status: 'active',
+            coin_balance: 0,
+            rating: 0,
+            total_reviews: 0,
+            profile_completion_percentage: 0
+          })
         }
       } else {
         setUser(null)
@@ -61,20 +62,29 @@ export function UserProvider({ children }) {
           setUser(session.user)
 
           try {
-            const { data: response } = await supabase
-              .from('users')
-              .select('*, address : addresses(*), subjects(*)')
-              .eq('email', session.user.email)
-              .single()
-
-            if (response) {
-              setProfile(response)
+            // Use the same API function for consistency
+            const profileResult = await getUserProfile(session.user.email)
+            
+            if (profileResult.data) {
+              console.log('Profile updated from auth change:', profileResult.data)
+              console.log('Address from auth change:', profileResult.data.address)
+              setProfile(profileResult.data)
             } else {
+              console.log('No profile found in auth change')
               setProfile(null)
             }
           } catch (error) {
             console.error("Error fetching profile in auth change:", error)
+            setProfile(null)
           }
+
+          // Check for pending requests in localStorage after authentication
+          setTimeout(() => {
+            createRequestInLocalStorage()
+          }, 1000) // Small delay to ensure profile is loaded
+        } else {
+          setUser(null)
+          setProfile(null)
         }
       }
     )
@@ -97,44 +107,36 @@ export function UserProvider({ children }) {
   }
 
   const uploadAvatarToSupabase = async (file, userEmail) => {
-    if (!file || !userEmail) return { error: 'Missing file or email' }
-
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${userEmail}_${Date.now()}.${fileExt}`
-    const filePath = `avatars/${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('profile')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      })
-
-    if (uploadError) {
-      console.error('Upload failed:', uploadError)
-      return { error: uploadError.message }
+    if (!file || !userEmail) {
+      return { error: 'File and user email are required' }
     }
 
-    const { data: { publicUrl } } = supabase
-      .storage
-      .from('profile')
-      .getPublicUrl(filePath)
+    try {
+      const result = await uploadAvatar(file, userEmail)
+      
+      if (result.error) {
+        return { error: result.error.message || 'Upload failed' }
+      }
 
-    // Update user profile with the avatar URL
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({ avatar_url: publicUrl }) // Changed from profile_img to avatar_url
-      .eq('email', userEmail)
+      // Update user profile with the avatar URL
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ avatar_url: result.data })
+        .eq('email', userEmail)
 
-    if (updateError) {
-      console.error('Error updating user profile:', updateError)
-      return { error: updateError.message }
+      if (updateError) {
+        console.error('Error updating user profile:', updateError)
+        return { error: updateError.message }
+      }
+
+      // Update the local profile state
+      setProfile(prev => prev ? { ...prev, avatar_url: result.data } : prev)
+
+      return result.data
+    } catch (error) {
+      console.error('Upload error:', error)
+      return { error: error.message || 'Upload failed' }
     }
-
-    // Update the local profile state to reflect the change
-    setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
-
-    return { publicUrl }
   }
 
   async function signInWithMagicLink(email) {
@@ -158,7 +160,6 @@ export function UserProvider({ children }) {
     } finally {
       setLoading(false)
     }
-
   }
 
   function createRequestInLocalStorage() {
@@ -172,18 +173,31 @@ export function UserProvider({ children }) {
         setPendingRequest(true)
         console.log("Pending request data found in localStorage:", requestData, "user:", user)
         if (user) {
-          createRequest(requestData).then(() => {
-            console.log("Request created successfully from localStorage data")
-            localStorage.removeItem("pendingTutorRequest")
-          }).catch((error) => {
-            console.error("Error creating request from localStorage data:", error)
-          }
-          )
+          // Create the request using the API
+          createRequest(requestData)
+            .then((result) => {
+              if (result.error) {
+                console.error("Error creating request:", result.error)
+              } else {
+                console.log("Request created successfully:", result.data)
+                localStorage.removeItem("pendingTutorRequest")
+                // Also clear the form persistence data
+                try {
+                  localStorage.removeItem("tutorRequestForm")
+                } catch (e) {
+                  console.warn("Could not clear form persistence data:", e)
+                }
+                setPendingRequest(false)
+              }
+            })
+            .catch((error) => {
+              console.error("Error creating request:", error)
+              setPendingRequest(false)
+            })
         }
-
       }
     } catch (error) {
-      console.error("Error storing request data in localStorage:", error)
+      console.error("Error processing request data from localStorage:", error)
     }
   }
 
@@ -197,6 +211,7 @@ export function UserProvider({ children }) {
         signInWithMagicLink,
         refreshUserData,
         uploadAvatarToSupabase,
+        createRequestInLocalStorage,
         isRequestInLocalStorage: pendingRequest
       }}
     >

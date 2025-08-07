@@ -26,7 +26,7 @@ export function SubjectMeetingStep({ form }) {
         const response = await supabase
           .from('subjects')
           .select('id, name')
-        setSubjects((response.data || []).map(subject => ({ value: subject.id, label: subject.name, id: subject.id })))
+        setSubjects((response.data || []).map(subject => ({ value: subject.name, label: subject.name, id: subject.id })))
       } catch (error) {
         console.error('Error fetching subjects:', error)
       } finally {
@@ -56,7 +56,7 @@ export function SubjectMeetingStep({ form }) {
           console.error('Error creating subject:', error);
           return;
         }
-        const newOption = { value: data.id, label: data.name, id: data.id };
+        const newOption = { value: data.name, label: data.name, id: data.id };
         setSubjects((prev) => [...prev, newOption]);
         setSelectedSubject((prev) => [...prev, newOption]);
         form.setValue('subject', [...form.getValues('subject') || [], newOption.id]);
@@ -86,8 +86,7 @@ export function SubjectMeetingStep({ form }) {
                 noOptionsMessage={(error) => error ? 'Error loading subjects' : 'No Categories Found'}
                 isLoading={loading}
                 onChange={(selectedOptions) => {
-                  const subjectIds = selectedOptions.map(option => option.id);
-                  field.onChange(subjectIds);
+                  field.onChange(selectedOptions);
                   setSelectedSubject(selectedOptions);
                 }}
                 onCreateOption={handleCreateSubject}
