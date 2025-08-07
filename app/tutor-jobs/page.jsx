@@ -7,7 +7,6 @@ import { getOpenRequests } from "@/lib/supabaseAPI"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import NewRequestBrowser from "./components/request-browser-new"
 
 const CACHE_DURATION = 5 ;
 
