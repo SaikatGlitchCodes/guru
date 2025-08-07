@@ -1,15 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { Search, BookOpen, Users, Star, ArrowRight, Play, MessageSquare, Calendar, Award, Sigma, Radiation, FlaskConical, Book, Computer, Fingerprint } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Search, BookOpen, Users, Star, ArrowRight, Play, MessageSquare, Calendar, Award, Sigma, Radiation, FlaskConical, Book, Computer, Fingerprint, CheckCircle, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { supabase } from "@/lib/supabaseClient"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { useUser } from "@/contexts/UserContext"
 import ProfileDashboard from "@/components/ProfileDashboard"
 
@@ -103,132 +104,191 @@ export default function HomePage() {
 
   // Show regular homepage for non-authenticated users or while loading
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      {/* Hero Section with Animated Background */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Floating shapes */}
-          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-200/30 rounded-full animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 bg-purple-200/30 rounded-full animate-bounce delay-1000"></div>
-          <div className="absolute bottom-32 left-1/4 w-20 h-20 bg-green-200/30 rounded-full animate-pulse delay-500"></div>
-          <div className="absolute bottom-20 right-1/3 w-28 h-28 bg-orange-200/30 rounded-full animate-bounce delay-700"></div>
-
-          {/* Gradient overlays */}
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-blue-300/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-tl from-purple-300/20 to-transparent rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="container mx-auto text-center relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Find Your Perfect
-              <span className="text-primary block">Tutor Today</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Connect with expert tutors who understand your learning style. Get personalized help in any subject,
-              anytime, anywhere.
-            </p>
-
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  type="text"
-                  placeholder="What subject do you need help with?"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-32 py-4 text-lg rounded-full border-2 border-gray-200 focus:border-primary shadow-lg"
-                />
-                <button onClick={searchTutor} className="bg-black text-white absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6 py-2 flex items-center" asChild>
-                  Find Tutors
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="container mx-auto px-4 py-20 relative">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                  🎓 #1 Tutoring Platform
+                </Badge>
+                <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                  Find Your Perfect
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                    {" "}Tutor
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  Connect with expert tutors for personalized learning experiences. Get help with academics, 
+                  job preparation, and skill development from verified professionals.
+                </p>
+              </div>
+              
+              {/* Search Bar */}
+              <div className="max-w-2xl">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    type="text"
+                    placeholder="What subject do you need help with?"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-12 pr-32 py-4 text-lg rounded-full border-2 border-gray-200 focus:border-primary shadow-lg"
+                  />
+                  <Button
+                    onClick={searchTutor}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 rounded-full px-6 py-2 flex items-center"
+                  >
+                    Find Tutors
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/request-tutor">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 text-lg">
+                    Request a Tutor
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/find-tutors">
+                  <Button variant="outline" size="lg" className="px-8 py-6 text-lg border-2">
+                    Browse Tutors
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="flex items-center gap-8 pt-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {[1,2,3,4].map((i) => (
+                      <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 border-2 border-white" />
+                    ))}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <div className="font-semibold">10,000+ Students</div>
+                    <div>Trust our platform</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="flex">
+                    {[1,2,3,4,5].map((i) => (
+                      <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <span className="text-sm text-gray-600 ml-2">4.9/5 Rating</span>
+                </div>
               </div>
             </div>
-
-            {/* Quick Actions */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
-              <Button variant="outline" className="rounded-full hover:scale-105 transition-transform shadow-md" asChild>
-                <a to="/request-tutor">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Request a Tutor
-                </a>
-              </Button>
-              <Button variant="outline" className="rounded-full hover:scale-105 transition-transform shadow-md">
-                <Play className="mr-2 h-4 w-4" />
-                Watch Demo
-              </Button>
-              <Button variant="outline" className="rounded-full hover:scale-105 transition-transform shadow-md">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Free Consultation
-              </Button>
+            
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-3xl blur-3xl opacity-20" />
+              <div className="relative bg-white rounded-3xl shadow-2xl p-8">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Quick Stats</h3>
+                    <Badge className="bg-green-100 text-green-800">Live</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {stats.map((stat, index) => (
+                      <div key={index} className="text-center p-4 bg-blue-50 rounded-xl">
+                        <div className="text-2xl font-bold text-blue-600">{stat.number}</div>
+                        <div className="text-sm text-gray-600">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white">
+      {/* Features Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group">
-                <div className="flex justify-center mb-4">
-                  <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
-                    <stat.icon className="h-6 w-6 text-primary" />
-                  </div>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose MentorHub?</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We connect students with the best tutors through our innovative platform designed for success.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Users className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
-              </div>
-            ))}
+                <h3 className="text-xl font-semibold mb-4">Expert Tutors</h3>
+                <p className="text-gray-600">
+                  All our tutors are verified professionals with proven track records and excellent ratings.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <BookOpen className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Personalized Learning</h3>
+                <p className="text-gray-600">
+                  Get customized learning plans tailored to your specific needs and learning style.
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-4">Secure Platform</h3>
+                <p className="text-gray-600">
+                  Safe and secure environment with verified profiles and protected payments.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Popular Subjects */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Popular Subjects</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose from our most requested subjects and connect with expert tutors instantly
-            </p>
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Subjects</h2>
+            <p className="text-xl text-gray-600">Find expert tutors in these high-demand subjects</p>
           </div>
-
+          
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {popularSubjects.map((subject, index) => (
-              <Card
-                key={index}
-                className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/30 hover:-translate-y-2 bg-white/80 backdrop-blur-sm"
-              >
-                <CardContent className="p-6 text-center flex flex-col items-center">
-                  {subject.icon}
-                  <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-primary transition-colors">
-                    {subject.name}
-                  </h3>
-                  <Badge variant="secondary" className={`${subject.color} group-hover:scale-105 transition-transform`}>
-                    {subject.students} students
-                  </Badge>
-                </CardContent>
-              </Card>
+              <Link key={index} href="/find-tutors">
+                <Card className="group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/30 hover:-translate-y-2 bg-white/80 backdrop-blur-sm">
+                  <CardContent className="p-6 text-center flex flex-col items-center">
+                    {subject.icon}
+                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-primary transition-colors">
+                      {subject.name}
+                    </h3>
+                    <Badge variant="secondary" className={`${subject.color} group-hover:scale-105 transition-transform`}>
+                      {subject.students} students
+                    </Badge>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </div>
-
-          <div className="text-center mt-8">
-            <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform">
-              View All Subjects
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Featured Tutors */}
-      <section className="py-20 bg-gray-50 px-4">
-        <div className="container mx-auto">
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Meet Our Top Tutors</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -282,72 +342,54 @@ export default function HomePage() {
               </Card>
             ))}
           </div>
-
-          <div className="text-center mt-8">
-            <Button variant="outline" size="lg" className="rounded-full hover:scale-105 transition-transform">
-              View All Tutors
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Getting started is simple. Follow these easy steps to find your perfect tutor
-            </p>
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p className="text-xl text-gray-600">Get started in just 3 simple steps</p>
           </div>
-
+          
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center group">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                <Search className="h-8 w-8 text-primary" />
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold group-hover:scale-110 transition-all duration-300">
+                1
               </div>
-              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">1. Tell Us What You Need</h3>
+              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">Tell Us What You Need</h3>
               <p className="text-gray-600">
-                Share your subject, level, and learning goals. We'll match you with the perfect tutor.
+                Describe your learning goals, subject, and preferences. We'll match you with the perfect tutor.
               </p>
             </div>
-
+            
             <div className="text-center group">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                <Users className="h-8 w-8 text-primary" />
+              <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold group-hover:scale-110 transition-all duration-300">
+                2
               </div>
-              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">2. Choose Your Tutor</h3>
+              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">Connect with Tutors</h3>
               <p className="text-gray-600">
-                Browse profiles, read reviews, and select a tutor that fits your schedule and budget.
+                Review tutor profiles, read reviews, and choose the one that best fits your needs and budget.
               </p>
             </div>
-
+            
             <div className="text-center group">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                <BookOpen className="h-8 w-8 text-primary" />
+              <div className="w-20 h-20 bg-gradient-to-r from-pink-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold group-hover:scale-110 transition-all duration-300">
+                3
               </div>
-              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">3. Start Learning</h3>
+              <h3 className="text-xl font-semibold mb-4 group-hover:text-primary transition-colors">Start Learning</h3>
               <p className="text-gray-600">
-                Book your first session and begin your personalized learning journey today.
+                Begin your personalized learning journey with flexible scheduling and progress tracking.
               </p>
             </div>
-          </div>
-
-          <div className="text-center mt-12">
-            <Button size="lg" className="rounded-full px-8 hover:scale-105 transition-transform shadow-lg" asChild>
-              <a to="/request-tutor">
-                Get Started Now
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Student Testimonials */}
-      <section className="py-20 bg-gradient-to-r from-primary/5 to-blue-50 px-4">
-        <div className="container mx-auto">
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What Students Say</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -379,26 +421,28 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-primary text-white px-4">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Excel in Your Studies?</h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of students who have improved their grades and confidence with our expert tutors.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="rounded-full px-8 hover:scale-105 transition-transform" asChild>
-              <a to="/request-tutor">
-                Find My Tutor
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="rounded-full px-8 text-white border-white hover:bg-white hover:text-primary hover:scale-105 transition-all"
-            >
-              Learn More
-            </Button>
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-white mb-6">
+              Ready to Start Your Learning Journey?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8">
+              Join thousands of students who have achieved their goals with our expert tutors.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/request-tutor">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-6 text-lg">
+                  Get Started Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/become-tutor">
+                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-6 text-lg">
+                  Become a Tutor
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -422,24 +466,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">For Students</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a to="/find-tutors" className="hover:text-white transition-colors">
+                  <Link href="/find-tutors" className="hover:text-white transition-colors">
                     Find Tutors
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/subjects" className="hover:text-white transition-colors">
+                  <Link href="/subjects" className="hover:text-white transition-colors">
                     Browse Subjects
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/how-it-works" className="hover:text-white transition-colors">
+                  <Link href="/how-it-works" className="hover:text-white transition-colors">
                     How It Works
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/pricing" className="hover:text-white transition-colors">
+                  <Link href="/pricing" className="hover:text-white transition-colors">
                     Pricing
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -447,24 +491,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Support</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a to="/help" className="hover:text-white transition-colors">
+                  <Link href="/help" className="hover:text-white transition-colors">
                     Help Center
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/contact" className="hover:text-white transition-colors">
+                  <Link href="/contact" className="hover:text-white transition-colors">
                     Contact Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/safety" className="hover:text-white transition-colors">
+                  <Link href="/safety" className="hover:text-white transition-colors">
                     Safety
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/faq" className="hover:text-white transition-colors">
+                  <Link href="/faq" className="hover:text-white transition-colors">
                     FAQ
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -472,24 +516,24 @@ export default function HomePage() {
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <a to="/about" className="hover:text-white transition-colors">
+                  <Link href="/about" className="hover:text-white transition-colors">
                     About Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/careers" className="hover:text-white transition-colors">
+                  <Link href="/careers" className="hover:text-white transition-colors">
                     Careers
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/blog" className="hover:text-white transition-colors">
+                  <Link href="/blog" className="hover:text-white transition-colors">
                     Blog
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a to="/press" className="hover:text-white transition-colors">
+                  <Link href="/press" className="hover:text-white transition-colors">
                     Press
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

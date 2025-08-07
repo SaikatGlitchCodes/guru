@@ -1,6 +1,5 @@
 "use client"
 
-"use client"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2 } from "lucide-react"
@@ -74,8 +73,8 @@ export default function RequestTutorPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: searchParams.get('type') === 'job-support' ? 'Job Support' : requestTypes[0],
-      user_email: "",
-      name: "",
+      user_email: user?.email || "",
+      name: profile?.name || "",
       address: {
         addressline_1: "",
         addressline_2: "",
