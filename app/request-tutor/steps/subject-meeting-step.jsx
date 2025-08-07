@@ -1,26 +1,11 @@
 // components/steps/subject-meeting-step.tsx
-import { useState } from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import CreatableSelect from 'react-select/creatable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
+import { supabase } from "@/lib/supabaseClient";
 
-// Sample subjects
-const subjects = [
-  { value: "math", label: "Mathematics" },
-  { value: "eng", label: "English" },
-  { value: "sci", label: "Science" },
-  { value: "hist", label: "History" },
-  { value: "cs", label: "Computer Science" },
-  { value: "lang", label: "Languages" },
-  { value: "art", label: "Art" },
-  { value: "music", label: "Music" },
-]
 
 const requestTypes = ["Tutoring", "Job Support", "Assignment"]
 const levels = [
@@ -30,8 +15,58 @@ const levels = [
 ]
 
 export function SubjectMeetingStep({ form }) {
-  const [open, setOpen] = useState(false)
-  
+  const [subjects, setSubjects] = useState([])
+  const [selectedSubject, setSelectedSubject] = useState([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    const fetchSubjects = async () => {
+      try {
+        const response = await supabase
+          .from('subjects')
+          .select('id, name')
+        setSubjects((response.data || []).map(subject => ({ value: subject.name, label: subject.name, id: subject.id })))
+      } catch (error) {
+        console.error('Error fetching subjects:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSubjects()
+    setLoading(false)
+  }, [])
+
+  const handleChange = async (selectedOptions) => {
+    setSelectedSubject(selectedOptions || []);
+    const subjectIds = selectedOptions ? selectedOptions.map(option => option.id) : [];
+    console.log("Selected subject IDs:", subjectIds);
+    form.setValue('subject', subjectIds);
+  };
+
+  const handleCreateSubject = async (newSubject) => {
+    setLoading(true);
+    supabase
+      .from('subjects')
+      .insert({ name: newSubject, created_at: new Date(), updated_at: new Date() })
+      .select('id, name')
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Error creating subject:', error);
+          return;
+        }
+        const newOption = { value: data.name, label: data.name, id: data.id };
+        setSubjects((prev) => [...prev, newOption]);
+        setSelectedSubject((prev) => [...prev, newOption]);
+        form.setValue('subject', [...form.getValues('subject') || [], newOption.id]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+
   return (
     <div className="space-y-6">
       {/* Subject selection */}
@@ -41,68 +76,28 @@ export function SubjectMeetingStep({ form }) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Subjects</FormLabel>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className=" justify-between"
-                  >
-                    {field.value && field.value.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {field.value.map((subject) => (
-                          <Badge key={subject} variant="secondary">
-                            {subject}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <span>Select subjects...</span>
-                    )}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="p-0">
-                <Command>
-                  <CommandInput placeholder="Search subjects..." />
-                  <CommandList>
-                    <CommandEmpty>No subjects found.</CommandEmpty>
-                    <CommandGroup>
-                      {subjects.map((subject) => (
-                        <CommandItem
-                          key={subject.value}
-                          value={subject.value}
-                          onSelect={() => {
-                            const currentValue = field.value || [];
-                            const isSelected = currentValue.includes(subject.label);
-                            const newSubjects = isSelected
-                              ? currentValue.filter((item) => item !== subject.label)
-                              : [...currentValue, subject.label];
-                            field.onChange(newSubjects);
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              field.value?.includes(subject.label) ? "opacity-100" : "opacity-0"
-                            )}
-                          />
-                          {subject.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+            <FormControl>
+              <CreatableSelect
+                isMulti
+                isClearable
+                placeholder='Search subjects...'
+                allowCreateWhileLoading
+                options={subjects}
+                noOptionsMessage={(error) => error ? 'Error loading subjects' : 'No Categories Found'}
+                isLoading={loading}
+                onChange={(selectedOptions) => {
+                  field.onChange(selectedOptions);
+                  setSelectedSubject(selectedOptions);
+                }}
+                onCreateOption={handleCreateSubject}
+                value={selectedSubject}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-      
+
       {/* Level selection */}
       <FormField
         control={form.control}
@@ -128,7 +123,7 @@ export function SubjectMeetingStep({ form }) {
           </FormItem>
         )}
       />
-      
+
       {/* Request type */}
       <FormField
         control={form.control}
@@ -154,7 +149,7 @@ export function SubjectMeetingStep({ form }) {
           </FormItem>
         )}
       />
-      
+
       {/* Meeting options */}
       <FormField
         control={form.control}
@@ -180,7 +175,7 @@ export function SubjectMeetingStep({ form }) {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="meeting_options.Offline.state"
@@ -198,7 +193,7 @@ export function SubjectMeetingStep({ form }) {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="meeting_options.Travel.state"

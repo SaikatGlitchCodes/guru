@@ -3,7 +3,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/components/AuthProvider";
-import { supabase } from "@/lib/supabaseClient";
+import DebugAuth from "@/components/DebugAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +26,11 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased `}
       >
-        <AuthProvider>
+        <AuthProvider requireAuth={false}>
           <Navbar />
           {children}
           <Toaster />
+          <DebugAuth />
         </AuthProvider>
       </body>
     </html>

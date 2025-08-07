@@ -1,172 +1,244 @@
 "use client"
 
-// Sample tutors data (you can replace this with real data from your database)
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Search, Star, MapPin, Clock, BookOpen, Award, Users } from "lucide-react"
+import { getAllTutors } from '@/lib/supabaseAPI'
+
+// Sample tutors data (fallback if API fails)
 const sampleTutors = [
   {
     id: 1,
     name: "Sarah Johnson",
-    avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
     rating: 4.9,
-    reviews: 127,
+    total_reviews: 127,
     subjects: ["Mathematics", "Physics"],
-    experience: 5,
-    hourlyRate: 45,
+    experience_years: 5,
+    hourly_rate: 45,
     location: "New York, NY",
     bio: "Experienced math tutor with PhD in Applied Mathematics. Specializing in calculus and algebra.",
     verified: true,
-    responseTime: "< 1 hour",
-    availability: "Available now"
+    response_time: "< 1 hour",
+    availability_status: "Available now"
   },
   {
     id: 2,
     name: "Michael Chen",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
     rating: 4.8,
-    reviews: 89,
+    total_reviews: 89,
     subjects: ["Computer Science", "Programming"],
-    experience: 7,
-    hourlyRate: 60,
+    experience_years: 7,
+    hourly_rate: 60,
     location: "San Francisco, CA",
     bio: "Senior software engineer turned tutor. Expert in Python, JavaScript, and web development.",
     verified: true,
-    responseTime: "< 2 hours",
-    availability: "Available today"
+    response_time: "< 2 hours",
+    availability_status: "Available today"
   },
   {
     id: 3,
     name: "Emily Rodriguez",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
     rating: 4.9,
-    reviews: 156,
+    total_reviews: 156,
     subjects: ["English", "Literature"],
-    experience: 8,
-    hourlyRate: 40,
+    experience_years: 8,
+    hourly_rate: 40,
     location: "Austin, TX",
     bio: "English professor with expertise in creative writing and literature analysis.",
     verified: true,
-    responseTime: "< 30 min",
-    availability: "Available now"
+    response_time: "< 30 min",
+    availability_status: "Available now"
   },
   {
     id: 4,
     name: "David Kim",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
     rating: 4.7,
-    reviews: 73,
+    total_reviews: 73,
     subjects: ["Chemistry", "Biology"],
-    experience: 4,
-    hourlyRate: 35,
+    experience_years: 4,
+    hourly_rate: 35,
     location: "Boston, MA",
     bio: "Medical student with strong background in sciences. Patient and encouraging teaching style.",
     verified: true,
-    responseTime: "< 3 hours",
-    availability: "Available tomorrow"
+    response_time: "< 3 hours",
+    availability_status: "Available tomorrow"
   },
   {
     id: 5,
     name: "Lisa Thompson",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
     rating: 4.8,
-    reviews: 92,
+    total_reviews: 92,
     subjects: ["Spanish", "French"],
-    experience: 6,
-    hourlyRate: 38,
+    experience_years: 6,
+    hourly_rate: 38,
     location: "Miami, FL",
     bio: "Native Spanish speaker with certification in language teaching. Fluent in 4 languages.",
     verified: true,
-    responseTime: "< 1 hour",
-    availability: "Available now"
+    response_time: "< 1 hour",
+    availability_status: "Available now"
   },
   {
     id: 6,
     name: "Robert Wilson",
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
+    avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
     rating: 4.6,
-    reviews: 45,
+    total_reviews: 45,
     subjects: ["Business", "Economics"],
-    experience: 10,
-    hourlyRate: 55,
+    experience_years: 10,
+    hourly_rate: 55,
     location: "Chicago, IL",
     bio: "Former investment banker with MBA. Specializes in business strategy and financial analysis.",
     verified: true,
-    responseTime: "< 4 hours",
-    availability: "Available this week"
+    response_time: "< 4 hours",
+    availability_status: "Available this week"
   }
 ]
-import { useState, useEffect } from "react"
+
 export default function FindTutorsPage() {
   const [tutors, setTutors] = useState(sampleTutors)
   const [filteredTutors, setFilteredTutors] = useState(sampleTutors)
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("")
+  const [selectedSubject, setSelectedSubject] = useState("all")
+  const [selectedLocation, setSelectedLocation] = useState("all")
   const [priceRange, setPriceRange] = useState([0, 100])
   const [minRating, setMinRating] = useState(0)
-  const [showFilters, setShowFilters] = useState(false)
   const [sortBy, setSortBy] = useState("rating")
-import { Search, MapPin, Star, Clock, DollarSign, Filter, Users, BookOpen, Award } from "lucide-react"
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const allTutors = await getAllTutors()
+        if (allTutors.data && allTutors.data.length > 0) {
+          setTutors(allTutors.data)
+          setFilteredTutors(allTutors.data)
+        } else {
+          // Use sample data as fallback
+          setTutors(sampleTutors)
+          setFilteredTutors(sampleTutors)
+        }
+      } catch (error) {
+        console.error("Error fetching tutors:", error)
+        // Use sample data as fallback
+        setTutors(sampleTutors)
+        setFilteredTutors(sampleTutors)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTutors()
+  }, [])
+
   // Get unique subjects and locations for filters
-  const subjects = [...new Set(tutors.flatMap(tutor => tutor.subjects))].sort()
-  const locations = [...new Set(tutors.map(tutor => tutor.location))].sort()
-import { Input } from "@/components/ui/input"
-  // Filter tutors based on search criteria
+  const subjects = [...new Set(tutors.flatMap(tutor => tutor.subjects || []))].filter(Boolean).sort()
+  const locations = [...new Set(tutors.map(tutor => tutor.location).filter(Boolean))].sort()
+
   useEffect(() => {
     let filtered = tutors.filter(tutor => {
-      const matchesSearch = searchQuery === "" || 
+      const matchesSearch = searchQuery === "" ||
         tutor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tutor.subjects.some(subject => subject.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        tutor.bio.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      const matchesSubject = selectedSubject === "" || tutor.subjects.includes(selectedSubject)
-      const matchesLocation = selectedLocation === "" || tutor.location === selectedLocation
-      const matchesPrice = tutor.hourlyRate >= priceRange[0] && tutor.hourlyRate <= priceRange[1]
+        (tutor.subjects && tutor.subjects.some(subject => subject.toLowerCase().includes(searchQuery.toLowerCase()))) ||
+        (tutor.bio && tutor.bio.toLowerCase().includes(searchQuery.toLowerCase()))
+
+      const matchesSubject = selectedSubject === "all" || selectedSubject === undefined ||
+        (tutor.subjects && tutor.subjects.includes(selectedSubject))
+      const matchesLocation = selectedLocation === "all" || selectedLocation === undefined ||
+        tutor.location === selectedLocation
+      const matchesPrice = tutor.hourly_rate >= priceRange[0] && tutor.hourly_rate <= priceRange[1]
       const matchesRating = tutor.rating >= minRating
-      
+
       return matchesSearch && matchesSubject && matchesLocation && matchesPrice && matchesRating
     })
-import { Button } from "@/components/ui/button"
+
     // Sort tutors
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "rating":
           return b.rating - a.rating
         case "price-low":
-          return a.hourlyRate - b.hourlyRate
+          return a.hourly_rate - b.hourly_rate
         case "price-high":
-          return b.hourlyRate - a.hourlyRate
+          return b.hourly_rate - a.hourly_rate
         case "experience":
-          return b.experience - a.experience
+          return b.experience_years - a.experience_years
         case "reviews":
-          return b.reviews - a.reviews
+          return b.total_reviews - a.total_reviews
         default:
           return 0
       }
     })
-import { Badge } from "@/components/ui/badge"
+
     setFilteredTutors(filtered)
   }, [tutors, searchQuery, selectedSubject, selectedLocation, priceRange, minRating, sortBy])
-import { Card, CardContent } from "@/components/ui/card"
+
   const clearFilters = () => {
     setSearchQuery("")
-    setSelectedSubject("")
-    setSelectedLocation("")
+    setSelectedSubject("all")
+    setSelectedLocation("all")
     setPriceRange([0, 100])
     setMinRating(0)
   }
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-500">Loading tutors...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 py-16">
-        <div className="container mx-auto px-4">
+      <section className="relative bg-black py-10 overflow-hidden">
+        {/* Animated Grid Background */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-b black black z-10"></div>
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: `
+                linear-gradient(white 1px, transparent 1px),
+                linear-gradient(90deg, white 1px, transparent 1px)
+              `,
+              backgroundSize: '50px 50px',
+              animation: 'gridMove 20s linear infinite'
+            }}
+          ></div>
+        </div>
+
+        <style jsx>{`
+          @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(40px, 40px); }
+          }
+        `}</style>
+
+        <div className="container mx-auto px-4 relative z-20">
           <div className="text-center text-white mb-8">
-            <h1 className="text-4xl font-bold mb-4">Find Your Perfect Tutor</h1>
-            <p className="text-xl text-blue-100">Connect with expert tutors for personalized learning</p>
+            <h1 className="text-2xl md:text-4xl font-bold mb-4 animate-fade-in">
+              Find Your Perfect Tutor
+            </h1>
+            <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-delay">
+              Connect with expert tutors for personalized learning
+            </p>
           </div>
-          
+
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-200 animate-slide-up">
               <div className="grid md:grid-cols-4 gap-4">
                 <div className="md:col-span-2">
                   <div className="relative">
@@ -175,27 +247,27 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
                       placeholder="Search by subject, tutor name, or keyword..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-12"
+                      className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-black"
                     />
                   </div>
                 </div>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Subject" />
+                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
+                    <SelectValue placeholder="All Subjects" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Subjects</SelectItem>
+                    <SelectItem value="all">All Subjects</SelectItem>
                     {subjects.map(subject => (
                       <SelectItem key={subject} value={subject}>{subject}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Location" />
+                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
+                    <SelectValue placeholder="All Locations" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Locations</SelectItem>
+                    <SelectItem value="all">All Locations</SelectItem>
                     {locations.map(location => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
                     ))}
@@ -206,7 +278,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
           </div>
         </div>
       </section>
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
@@ -219,7 +291,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                     Clear All
                   </Button>
                 </div>
-                
+
                 <div className="space-y-6">
                   {/* Price Range */}
                   <div>
@@ -234,7 +306,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                       className="w-full"
                     />
                   </div>
-                  
+
                   {/* Minimum Rating */}
                   <div>
                     <label className="text-sm font-medium mb-3 block">Minimum Rating</label>
@@ -253,7 +325,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Availability */}
                   <div>
                     <label className="text-sm font-medium mb-3 block">Availability</label>
@@ -276,7 +348,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Tutors List */}
           <div className="lg:w-3/4">
             {/* Results Header */}
@@ -300,7 +372,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                 </SelectContent>
               </Select>
             </div>
-            
+
             {/* Tutors Grid */}
             <div className="grid gap-6">
               {filteredTutors.map(tutor => (
@@ -310,7 +382,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                       {/* Tutor Avatar and Basic Info */}
                       <div className="flex items-start gap-4">
                         <Avatar className="w-20 h-20">
-                          <AvatarImage src={tutor.avatar} alt={tutor.name} />
+                          <AvatarImage src={tutor.avatar_url} alt={tutor.name} />
                           <AvatarFallback>{tutor.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -323,12 +395,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                               </Badge>
                             )}
                           </div>
-                          
+
                           <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                               <span className="font-medium">{tutor.rating}</span>
-                              <span>({tutor.reviews} reviews)</span>
+                              <span>({tutor.total_reviews} reviews)</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
@@ -336,31 +408,31 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
-                              <span>{tutor.responseTime}</span>
+                              <span>{tutor.response_time}</span>
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-wrap gap-2 mb-3">
-                            {tutor.subjects.map(subject => (
+                            {tutor.subjects && tutor.subjects.map(subject => (
                               <Badge key={subject} variant="outline">{subject}</Badge>
                             ))}
                           </div>
-                          
+
                           <p className="text-gray-600 text-sm mb-4">{tutor.bio}</p>
-                          
+
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4 text-sm text-gray-600">
                               <div className="flex items-center gap-1">
                                 <BookOpen className="w-4 h-4" />
-                                <span>{tutor.experience} years exp.</span>
+                                <span>{tutor.experience_years} years exp.</span>
                               </div>
                               <Badge className="bg-blue-100 text-blue-800">
-                                {tutor.availability}
+                                {tutor.availability_status}
                               </Badge>
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-gray-900">
-                                ${tutor.hourlyRate}
+                                ${tutor.hourly_rate}
                                 <span className="text-sm font-normal text-gray-600">/hour</span>
                               </div>
                             </div>
@@ -368,7 +440,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-6 pt-6 border-t">
                       <Button className="flex-1">
@@ -382,7 +454,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
                 </Card>
               ))}
             </div>
-            
+
             {filteredTutors.length === 0 && (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
@@ -403,6 +475,3 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
     </div>
   )
 }
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
-import { supabase } from "@/lib/supabaseClient"

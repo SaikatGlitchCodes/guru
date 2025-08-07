@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
 import * as yup from "yup"
-import { Camera, Loader2, Star, MapPin, Locate, Search, X } from "lucide-react"
+import { Camera, Loader2, Star, MapPin, Locate, Search, X, Plus, Coins } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
-import { updateProfile } from "@/lib/api"
+import { updateProfile, createProfile, getAllSubjects, getUserSubjects, addUserSubject, removeUserSubject } from "@/lib/supabaseAPI"
+import { WalletModal } from "@/components/WalletModal"
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
 
@@ -41,7 +43,7 @@ const profileFormSchema = yup.object({
     .string()
     .optional(),
   address: yup.object({
-    id: yup.number().optional(),
+    id: yup.string().optional(),
     street: yup.string().optional(),
     city: yup.string().optional(),
     state: yup.string().optional(),
@@ -81,12 +83,20 @@ export default function ProfilePage() {
   const [isUploading, setIsUploading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
 
   const [addressSuggestions, setAddressSuggestions] = useState([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false)
   const [addressSearchValue, setAddressSearchValue] = useState("")
-  const { profile, loading, uploadAvatarToSupabase } = useUser()
+  
+  // Subjects state
+  const [allSubjects, setAllSubjects] = useState([])
+  const [userSubjects, setUserSubjects] = useState([])
+  const [selectedSubject, setSelectedSubject] = useState("")
+  const [isLoadingSubjects, setIsLoadingSubjects] = useState(false)
+  
+  const { profile, loading, uploadAvatarToSupabase, user, refreshUserData } = useUser()
   const debounceRef = useRef(null)
 
   const form = useForm({
@@ -97,24 +107,161 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (profile) {
+      console.log('Profile data received:', profile)
       const formattedAddress = profile.address
         ? `${addressSearchValue || profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
         : ""
 
-      form.reset(profile)
+      // Create a properly structured form data object
+      const formData = {
+        email: profile.email || "",
+        name: profile.name || "",
+        role: profile.role || "student",
+        phone_number: profile.phone_number || "",
+        gender: profile.gender || "",
+        bio: profile.bio || "",
+        years_of_experience: profile.years_of_experience || 0,
+        hobbies: profile.hobbies || "",
+        status: profile.status || "active",
+        address: {
+          id: profile.address?.id || null,
+          street: profile.address?.street || "",
+          city: profile.address?.city || "",
+          state: profile.address?.state || "",
+          zip: profile.address?.zip || "",
+          country: profile.address?.country || "",
+          country_code: profile.address?.country_code || "",
+          address_line_1: profile.address?.address_line_1 || "",
+          address_line_2: profile.address?.address_line_2 || "",
+          lat: profile.address?.lat || 0,
+          lon: profile.address?.lon || 0,
+          formatted: profile.address?.formatted || ""
+        }
+      }
+      
+      console.log('Resetting form with data:', formData)
+      form.reset(formData)
       if (formattedAddress) {
         setAddressSearchValue("")
       }
-      if (profile.profile_img) {
-        setAvatar(profile.profile_img)
+      if (profile.avatar_url) {
+        setAvatar(profile.avatar_url)
       }
+
+      // Load subjects
+      loadSubjects()
+      loadUserSubjects()
     }
   }, [profile, form])
+
+  // Check for payment success/failure on page load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const paymentStatus = urlParams.get('payment')
+      const coins = urlParams.get('coins')
+
+      if (paymentStatus === 'success' && coins) {
+        toast.success(`Payment successful! ${coins} coins have been added to your wallet.`)
+        // Refresh profile to get updated coin balance
+        refreshUserData()
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+      } else if (paymentStatus === 'cancelled') {
+        toast.error('Payment was cancelled.')
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+      }
+    }
+  }, [])
+
+  // Load all available subjects
+  const loadSubjects = async () => {
+    try {
+      const result = await getAllSubjects()
+      if (result.data) {
+        setAllSubjects(result.data)
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error)
+    }
+  }
+
+  // Load user's subjects
+  const loadUserSubjects = async () => {
+    if (!profile?.email) return
+    
+    try {
+      const result = await getUserSubjects(profile.email)
+      if (result.data) {
+        setUserSubjects(result.data)
+      }
+    } catch (error) {
+      console.error('Error loading user subjects:', error)
+    }
+  }
+
+  // Add subject to user
+  const handleAddSubject = async () => {
+    if (!selectedSubject || !profile?.email) return
+
+    setIsLoadingSubjects(true)
+    try {
+      const result = await addUserSubject(profile.email, selectedSubject)
+      if (result.data) {
+        setUserSubjects(prev => [...prev, result.data])
+        setSelectedSubject("")
+        toast.success("Subject added successfully!")
+      } else {
+        toast.error("Failed to add subject")
+      }
+    } catch (error) {
+      console.error('Error adding subject:', error)
+      toast.error("Failed to add subject")
+    } finally {
+      setIsLoadingSubjects(false)
+    }
+  }
+
+  // Remove subject from user
+  const handleRemoveSubject = async (subjectId) => {
+    if (!profile?.email) return
+
+    try {
+      const result = await removeUserSubject(profile.email, subjectId)
+      if (!result.error) {
+        setUserSubjects(prev => prev.filter(us => us.subject_id !== subjectId))
+        toast.success("Subject removed successfully!")
+      } else {
+        toast.error("Failed to remove subject")
+      }
+    } catch (error) {
+      console.error('Error removing subject:', error)
+      toast.error("Failed to remove subject")
+    }
+  }
+
+  // Handle successful coin purchase
+  const handleCoinPurchaseSuccess = async (coins) => {
+    await refreshUserData() // Refresh profile to get updated coin balance
+    toast.success(`${coins} coins added to your wallet!`)
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Authentication Required</h2>
+          <p className="text-muted-foreground">Please sign in to access your profile.</p>
+        </div>
       </div>
     )
   }
@@ -335,7 +482,7 @@ export default function ProfilePage() {
       const uploadedUrl = await uploadAvatarToSupabase(file, profile.email)
       if (uploadedUrl) {
         setAvatar(uploadedUrl)
-        form.setValue('profile_img', uploadedUrl)
+        form.setValue('avatar_url', uploadedUrl)
         toast.success("Avatar updated successfully!")
       }
     } catch (error) {
@@ -347,30 +494,38 @@ export default function ProfilePage() {
   }
 
   async function onSubmit(data) {
+    console.log('Form submission started with data:', data)
     setIsSaving(true)
 
-    const isValid = await form.trigger();
-    if (!isValid) {
-      const errors = form.formState.errors;
+    try {
+      // Validate the form first
+      const isValid = await form.trigger();
+      console.log('Form validation result:', isValid)
       
-      // Display a more user-friendly error summary
-      if (Object.keys(errors).length > 0) {
-        // Get the first error message to show in the toast
-        const firstErrorField = Object.keys(errors)[0];
-        const firstError = errors[firstErrorField].message;
+      if (!isValid) {
+        const errors = form.formState.errors;
+        console.log('Form validation errors:', errors)
         
-        toast.error(`Please fix the form errors: ${firstError}`);
-        console.log('Validation errors:', errors);
+        // Display a more user-friendly error summary
+        if (Object.keys(errors).length > 0) {
+          // Get the first error message to show in the toast
+          const firstErrorField = Object.keys(errors)[0];
+          const firstError = errors[firstErrorField];
+          const errorMessage = firstError?.message || 'Form validation failed';
+          
+          toast.error(`Please fix the form errors: ${errorMessage}`);
+        }
+        
+        setIsSaving(false);
+        return;
       }
       
-      setIsSaving(false);
-      return;
-    }
-    
-    try {
+      console.log('Calling updateProfile with:', data, profile.email)
       const result = await updateProfile(data, profile.email);
+      console.log('Update result:', result)
+      
       if (result.error) {
-        throw new Error(result.error);
+        throw new Error(result.error.message || result.error);
       }
 
       toast.success("Your profile has been updated successfully!")
@@ -384,7 +539,7 @@ export default function ProfilePage() {
       } else if (error.message.includes("permission")) {
         toast.error("You don't have permission to update this profile.");
       } else {
-        toast.error("Failed to update your profile. Please try again later.");
+        toast.error(`Failed to update your profile: ${error.message || 'Unknown error'}`);
       }
     } finally {
       setIsSaving(false)
@@ -400,6 +555,18 @@ export default function ProfilePage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-gray-100 p-4 rounded text-sm">
+              <p><strong>Debug Info:</strong></p>
+              <p>Profile loaded: {!!profile ? 'Yes' : 'No'}</p>
+              <p>Form is valid: {form.formState.isValid ? 'Yes' : 'No'}</p>
+              <p>Is saving: {isSaving ? 'Yes' : 'No'}</p>
+              <p>Form dirty: {form.formState.isDirty ? 'Yes' : 'No'}</p>
+              {Object.keys(form.formState.errors).length > 0 && (
+                <p style={{color: 'red'}}>Errors: {JSON.stringify(form.formState.errors)}</p>
+              )}
+            </div>
+          )}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Personal Information Column */}
             <div className="space-y-6">
@@ -547,11 +714,23 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center">
-                        <span className="text-xs font-bold text-yellow-900">$</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center">
+                          <span className="text-xs font-bold text-yellow-900">$</span>
+                        </div>
+                        <p className="text-2xl font-bold">{form.watch('coin_balance')}</p>
                       </div>
-                      <p className="text-2xl font-bold">{form.watch('coin_balance')}</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsWalletModalOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <Coins className="h-4 w-4" />
+                        Buy Coins
+                      </Button>
                     </div>
                     <p className="text-xs text-muted-foreground">Last updated: May 30, 2025</p>
                   </div>
@@ -829,16 +1008,87 @@ export default function ProfilePage() {
                   />
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Subjects</CardTitle>
+                  <CardDescription>Manage subjects you're interested in or can teach</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Add new subject */}
+                  <div className="flex gap-2">
+                    <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select a subject to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allSubjects
+                          .filter(subject => !userSubjects.some(us => us.subject_id === subject.id))
+                          .map((subject) => (
+                            <SelectItem key={subject.id} value={subject.id}>
+                              {subject.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      onClick={handleAddSubject}
+                      disabled={!selectedSubject || isLoadingSubjects}
+                      size="sm"
+                    >
+                      {isLoadingSubjects ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Display user subjects */}
+                  <div className="flex flex-wrap gap-2">
+                    {userSubjects.map((userSubject) => (
+                      <Badge
+                        key={userSubject.id}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {userSubject.subject?.name}
+                        <X
+                          className="h-3 w-3 cursor-pointer hover:text-destructive"
+                          onClick={() => handleRemoveSubject(userSubject.subject_id)}
+                        />
+                      </Badge>
+                    ))}
+                    {userSubjects.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No subjects added yet. Add subjects you're interested in or can teach.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
           <div className="mt-8 flex justify-end">
-            <Button type="submit" size="lg" onClick={()=>onSubmit(form.getValues())} >
+            <Button 
+              type="submit" 
+              size="lg" 
+              disabled={isSaving}
+              onClick={() => console.log('Save button clicked, form values:', form.getValues())}
+            >
               {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save Changes
             </Button>
           </div>
         </form>
       </Form>
+
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        onSuccess={handleCoinPurchaseSuccess}
+      />
     </div>)
 }

@@ -16,14 +16,13 @@ export const formSchema = z.object({
     zip: z.string().optional(),
     abbreviation_STD: z.string().optional(),
     offset_STD: z.string().optional(),
-    lat: z.string().optional(),
-    lon: z.string().optional(),
+    lat: z.number().optional(),
+    lon: z.number().optional(),
   }),
   phone_number: z.string().min(10, "Please enter a valid phone number"),
   description: z.string()
     .min(20, "Please describe your requirements in at least 20 characters"),
-  subject: z.array(z.string())
-    .min(1, "Please select at least one subject"),
+  subject: z.array(z.any()).min(1, "Please select at least one subject"),
   level: z.string().min(1, "Please select your level"),
   meeting_options: z.object({
     Online: z.object({ state: z.boolean() }),

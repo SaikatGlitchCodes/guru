@@ -11,18 +11,35 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useUser } from "@/contexts/UserContext"
+import { getCurrencyByCountry } from "@/lib/countryToCurrency"
 
 const languages = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "zh", label: "Chinese" },
-  { value: "ja", label: "Japanese" },
-  { value: "ar", label: "Arabic" },
-  { value: "ru", label: "Russian" },
-  { value: "pt", label: "Portuguese" },
-  { value: "hi", label: "Hindi" },
+  { value: "english", label: "English" },
+  { value: "spanish", label: "Spanish" },
+  { value: "french", label: "French" },
+  { value: "german", label: "German" },
+  { value: "chinese", label: "Chinese" },
+  { value: "japanese", label: "Japanese" },
+  { value: "arabic", label: "Arabic" },
+  { value: "russian", label: "Russian" },
+  { value: "portuguese", label: "Portuguese" },
+  { value: "hindi", label: "Hindi" },
+  { value: "bengali", label: "Bengali" },
+  { value: "urdu", label: "Urdu" },
+  { value: "turkish", label: "Turkish" },
+  { value: "korean", label: "Korean" },
+  { value: "italian", label: "Italian" },
+  { value: "tamil", label: "Tamil" },
+  { value: "telugu", label: "Telugu" },
+  { value: "marathi", label: "Marathi" },
+  { value: "gujarati", label: "Gujarati" },
+  { value: "malayalam", label: "Malayalam" },
+  { value: "punjabi", label: "Punjabi" },
+  { value: "bhojpuri", label: "Bhojpuri" },
+  { value: "swahili", label: "Swahili" },
+  { value: "vietnamese", label: "Vietnamese" },
+  { value: "thai", label: "Thai" },
 ]
 
 const currencies = [
@@ -31,6 +48,17 @@ const currencies = [
   { code: "GBP", symbol: "£", name: "British Pound" },
   { code: "JPY", symbol: "¥", name: "Japanese Yen" },
   { code: "CAD", symbol: "$", name: "Canadian Dollar" },
+  { code: "AUD", symbol: "$", name: "Australian Dollar" },
+  { code: "CHF", symbol: "Fr", name: "Swiss Franc" },
+  { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  { code: "SGD", symbol: "$", name: "Singapore Dollar" },
+  { code: "HKD", symbol: "$", name: "Hong Kong Dollar" },
+  { code: "SEK", symbol: "kr", name: "Swedish Krona" },
+  { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
+  { code: "DKK", symbol: "kr", name: "Danish Krone" },
+  { code: "PLN", symbol: "zł", name: "Polish Złoty" },
+  { code: "CZK", symbol: "Kč", name: "Czech Koruna" },
 ]
 
 const priceOptions = ["fixed/flat", "per hour", "per day", "per month", "per year"]
@@ -41,9 +69,29 @@ const iNeedSomeone = ["full time", "part time", "volunteer", "student"]
 export function BudgetPreferencesStep({ form }) {
   const [open, setOpen] = useState(false)
   const [fileNames, setFileNames] = useState([])
+  const { profile } = useUser()
   
   const selectedCurrency = form.watch("price_currency") || "USD"
   const currencySymbol = currencies.find(c => c.code === selectedCurrency)?.symbol || "$"
+
+  // Auto-set currency based on user's country
+  useEffect(() => {
+    console.log(profile?.address?.country)
+    if (profile?.address?.country) {
+      const suggestedCurrency = getCurrencyByCountry(profile.address.country)
+      const currentCurrency = form.getValues("price_currency")
+      
+      // Only auto-set if no currency has been manually selected
+      if (!currentCurrency || currentCurrency === "USD") {
+        const currency = currencies.find(c => c.code === suggestedCurrency)
+        if (currency) {
+          form.setValue("price_currency", suggestedCurrency)
+          form.setValue("price_currency_symbol", currency.symbol)
+          console.log(`Auto-set currency to ${suggestedCurrency} based on country: ${profile.address.country}`)
+        }
+      }
+    }
+  }, [profile?.address?.country, form])
 
   const handleCurrencyChange = (code) => {
     const currency = currencies.find(c => c.code === code);
@@ -319,52 +367,6 @@ export function BudgetPreferencesStep({ form }) {
             <div className="text-xs text-muted-foreground">
               Optionally specify a school or institution you'd like your tutors to be from.
             </div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* File Upload */}
-      <FormField
-        control={form.control}
-        name="upload_file"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Additional Documents (Optional)</FormLabel>
-            <FormControl>
-              <div className="rounded-md border border-dashed p-6 text-center max-w-lg">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">Drag and drop files here or click to browse</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => document.getElementById("file-upload")?.click()}
-                >
-                  Select Files
-                </Button>
-                <input
-                  id="file-upload"
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </div>
-            </FormControl>
-            {fileNames.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium">Selected Files:</p>
-                <ul className="space-y-1">
-                  {fileNames.map((name, index) => (
-                    <li key={index} className="text-sm">
-                      {name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
             <FormMessage />
           </FormItem>
         )}
