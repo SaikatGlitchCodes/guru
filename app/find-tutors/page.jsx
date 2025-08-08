@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, Star, MapPin, Clock, BookOpen, Award, Users } from "lucide-react"
-import { getAllTutors } from '@/lib/supabaseAPI'
+import { getAllTutors, startConversation } from '@/lib/supabaseAPI'
+import { useUser } from "@/contexts/UserContext"
 
 // Sample tutors data (fallback if API fails)
 const sampleTutors = [
@@ -107,6 +108,7 @@ const sampleTutors = [
 ]
 
 export default function FindTutorsPage() {
+  const { user } = useUser()
   const [tutors, setTutors] = useState(sampleTutors)
   const [filteredTutors, setFilteredTutors] = useState(sampleTutors)
   const [searchQuery, setSearchQuery] = useState("")
@@ -190,6 +192,44 @@ export default function FindTutorsPage() {
     setPriceRange([0, 100])
     setMinRating(0)
   }
+
+  const handleContactTutor = async (tutor) => {
+    if (!user?.id) {
+      // Redirect to login or show auth modal
+      alert("Please sign in to contact tutors")
+      return;
+    }
+    
+    if (!tutor.user_id && !tutor.id) {
+      alert("Unable to contact this tutor. Please try again later.")
+      return;
+    }
+
+    try {
+      // Use tutor.user_id if available, otherwise use tutor.id
+      const tutorId = tutor.user_id || tutor.id;
+      
+      // Create initial message to start conversation
+      const result = await startConversation(
+        user.id, 
+        tutorId, 
+        null, // no specific request_id for general tutor contact
+        `Hi ${tutor.name}, I'm interested in your tutoring services. I'd love to discuss my learning needs with you. Are you available for a consultation?`
+      );
+      
+      if (result.error) {
+        console.error('Error starting conversation:', result.error);
+        alert('Failed to start conversation. Please try again.');
+        return;
+      }
+      
+      // Navigate to the conversation
+      window.location.href = `/messages/${tutorId}`;
+    } catch (error) {
+      console.error('Error contacting tutor:', error);
+      alert('Failed to contact tutor. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -443,7 +483,10 @@ export default function FindTutorsPage() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-6 pt-6 border-t">
-                      <Button className="flex-1">
+                      <Button 
+                        className="flex-1"
+                        onClick={() => handleContactTutor(tutor)}
+                      >
                         Contact Tutor
                       </Button>
                       <Button variant="outline" className="flex-1">
