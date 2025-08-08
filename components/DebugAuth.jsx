@@ -17,7 +17,10 @@ export default function DebugAuth() {
       <div><strong>Route:</strong> {pathname}</div>
       <div><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</div>
       <div><strong>User:</strong> {user ? 'Yes' : 'No'}</div>
+      <div><strong>User ID:</strong> {user?.id || 'None'}</div>
+      <div><strong>User Email:</strong> {user?.email || 'None'}</div>
       <div><strong>Profile:</strong> {profile ? 'Yes' : 'No'}</div>
+      <div><strong>Profile ID:</strong> {profile?.id || 'None'}</div>
       <div><strong>Role:</strong> {profile?.role || 'None'}</div>
     </div>
   )
