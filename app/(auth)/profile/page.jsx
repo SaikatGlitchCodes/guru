@@ -43,7 +43,7 @@ const profileFormSchema = yup.object({
     .string()
     .optional(),
   address: yup.object({
-    id: yup.string().optional(),
+    id: yup.string().nullable().optional(),
     street: yup.string().optional(),
     city: yup.string().optional(),
     state: yup.string().optional(),

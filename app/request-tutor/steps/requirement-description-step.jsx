@@ -1,11 +1,10 @@
 // components/steps/requirement-description-step.tsx
-import { UseFormReturn } from "react-hook-form"
 import { Textarea } from "@/components/ui/textarea"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 
 export function RequirementDescriptionStep({ form }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4  border-t-2 pt-12">
       <div className="rounded-md bg-blue-50 p-4 dark:bg-blue-950">
         <p className="text-sm text-blue-800 dark:text-blue-300">
           <strong>Tip:</strong> The more details you provide, the better we can match you with the right tutor. Include

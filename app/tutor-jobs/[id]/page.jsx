@@ -246,7 +246,7 @@ export default function RequestDetailPage() {
                     </div>
                     <div>
                       <h1 className="text-2xl font-bold">{request?.student_name || 'Student'}</h1>
-                      <p className="text-blue-100">Looking for a tutor</p>
+                      <p className="text-blue-100">{request?.title}</p>
                       <div className="flex items-center gap-4 mt-2">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-4 h-4" />

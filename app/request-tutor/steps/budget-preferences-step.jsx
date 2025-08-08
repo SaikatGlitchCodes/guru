@@ -43,17 +43,17 @@ const languages = [
 ]
 
 const currencies = [
-  { code: "USD", symbol: "$", name: "US Dollar" },
   { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
   { code: "GBP", symbol: "£", name: "British Pound" },
   { code: "JPY", symbol: "¥", name: "Japanese Yen" },
-  { code: "CAD", symbol: "$", name: "Canadian Dollar" },
-  { code: "AUD", symbol: "$", name: "Australian Dollar" },
-  { code: "CHF", symbol: "Fr", name: "Swiss Franc" },
+  { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
+  { code: "AUD", symbol: "A$", name: "Australian Dollar" },
+  { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
   { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
   { code: "INR", symbol: "₹", name: "Indian Rupee" },
-  { code: "SGD", symbol: "$", name: "Singapore Dollar" },
-  { code: "HKD", symbol: "$", name: "Hong Kong Dollar" },
+  { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
+  { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
   { code: "SEK", symbol: "kr", name: "Swedish Krona" },
   { code: "NOK", symbol: "kr", name: "Norwegian Krone" },
   { code: "DKK", symbol: "kr", name: "Danish Krone" },
@@ -61,37 +61,28 @@ const currencies = [
   { code: "CZK", symbol: "Kč", name: "Czech Koruna" },
 ]
 
-const priceOptions = ["fixed/flat", "per hour", "per day", "per month", "per year"]
+const priceOptions = ["per hour", "fixed/flat", "per day", "per month", "per year"]
 const genderPreferences = ["None", "Prefer Male", "Prefer Female", "Only Male"]
 const tutorsWant = ["Only one", "More than one", "As many as Possible"]
-const iNeedSomeone = ["full time", "part time", "volunteer", "student"]
+const iNeedSomeone = ["freelance", "full time", "part time", "volunteer", "student"]
 
 export function BudgetPreferencesStep({ form }) {
   const [open, setOpen] = useState(false)
-  const [fileNames, setFileNames] = useState([])
   const { profile } = useUser()
-  
-  const selectedCurrency = form.watch("price_currency") || "USD"
-  const currencySymbol = currencies.find(c => c.code === selectedCurrency)?.symbol || "$"
 
-  // Auto-set currency based on user's country
+  const suggestedCurrency = getCurrencyByCountry(profile.address.country);
+  const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "$";
+
+
+  console.log('Suggested currency:', suggestedCurrency, 'currencySymbol:', suggestedSymbol)
+
+
+  // Restore currency from localStorage if form gets reset
   useEffect(() => {
-    console.log(profile?.address?.country)
-    if (profile?.address?.country) {
-      const suggestedCurrency = getCurrencyByCountry(profile.address.country)
-      const currentCurrency = form.getValues("price_currency")
-      
-      // Only auto-set if no currency has been manually selected
-      if (!currentCurrency || currentCurrency === "USD") {
-        const currency = currencies.find(c => c.code === suggestedCurrency)
-        if (currency) {
-          form.setValue("price_currency", suggestedCurrency)
-          form.setValue("price_currency_symbol", currency.symbol)
-          console.log(`Auto-set currency to ${suggestedCurrency} based on country: ${profile.address.country}`)
-        }
-      }
-    }
-  }, [profile?.address?.country, form])
+    form.setValue("price_currency", suggestedCurrency || "USD")
+    form.setValue("price_currency_symbol", suggestedSymbol || "$")
+
+  }, [])
 
   const handleCurrencyChange = (code) => {
     const currency = currencies.find(c => c.code === code);
@@ -99,24 +90,8 @@ export function BudgetPreferencesStep({ form }) {
     form.setValue("price_currency_symbol", currency?.symbol || "$");
   }
 
-  const handleFileChange = (e) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      const newFileNames = Array.from(files).map((file) => file.name)
-      setFileNames((prev) => [...prev, ...newFileNames])
-      
-      const fileMetadata = Array.from(files).map(file => ({
-        name: file.name,
-        type: file.type,
-        size: file.size,
-      }));
-      
-      form.setValue("upload_file", fileMetadata);
-    }
-  }
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 border-t-2 pt-12">
       {/* Budget, Price Unit and Currency */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <FormField
@@ -128,7 +103,7 @@ export function BudgetPreferencesStep({ form }) {
               <FormControl>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {currencySymbol}
+                    {suggestedSymbol}
                   </span>
                   <Input
                     {...field}
@@ -169,14 +144,14 @@ export function BudgetPreferencesStep({ form }) {
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="price_currency"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Currency</FormLabel>
-              <Select onValueChange={handleCurrencyChange} value={field.value || "USD"}>
+              <Select onValueChange={handleCurrencyChange} value={field.value || suggestedCurrency || "USD"}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select currency" />
@@ -320,21 +295,21 @@ export function BudgetPreferencesStep({ form }) {
                             const currentValue = field.value || [];
                             const isSelected = currentValue.some(lang => lang.value === language.value);
                             let newLanguages;
-                            
+
                             if (isSelected) {
                               newLanguages = currentValue.filter(lang => lang.value !== language.value);
                             } else {
                               newLanguages = [...currentValue, language];
                             }
-                            
+
                             field.onChange(newLanguages);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              field.value?.some(lang => lang.value === language.value) 
-                                ? "opacity-100" 
+                              field.value?.some(lang => lang.value === language.value)
+                                ? "opacity-100"
                                 : "opacity-0"
                             )}
                           />

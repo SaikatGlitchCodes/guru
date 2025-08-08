@@ -68,7 +68,7 @@ export function SubjectMeetingStep({ form }) {
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6  border-t-2 pt-12">
       {/* Subject selection */}
       <FormField
         control={form.control}
