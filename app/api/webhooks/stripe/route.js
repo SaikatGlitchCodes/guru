@@ -46,7 +46,34 @@ export async function POST(request) {
           break
         }
 
-        // Update user's coin balance
+        // Log the payment transaction
+        const { error: logError } = await supabase
+          .from('payment_transactions')
+          .upsert({
+            session_id: session.id,
+            user_email: userEmail,
+            amount: session.amount_total,
+            coins: coins,
+            status: session.payment_status === 'paid' ? 'succeeded' : 'processing',
+            payment_method: 'stripe',
+            metadata: {
+              stripe_session: {
+                id: session.id,
+                payment_intent: session.payment_intent,
+                customer: session.customer,
+                amount_total: session.amount_total,
+              }
+            },
+            created_at: new Date(session.created * 1000).toISOString(),
+          }, {
+            onConflict: 'session_id'
+          })
+
+        if (logError) {
+          console.error('Error logging payment transaction:', logError)
+        }
+
+        // Update user's coin balance (with idempotency)
         const { error } = await supabase
           .from('users')
           .update({
@@ -56,11 +83,62 @@ export async function POST(request) {
 
         if (error) {
           console.error('Error updating coin balance:', error)
+          
+          // Update transaction status to failed
+          await supabase
+            .from('payment_transactions')
+            .update({ status: 'failed' })
+            .eq('session_id', session.id)
         } else {
           console.log(`Successfully added ${coins} coins to user ${userEmail}`)
+          
+          // Ensure transaction status is succeeded
+          await supabase
+            .from('payment_transactions')
+            .update({ status: 'succeeded' })
+            .eq('session_id', session.id)
         }
       } catch (error) {
         console.error('Error processing checkout session:', error)
+        
+        // Log failed transaction
+        try {
+          await supabase
+            .from('payment_transactions')
+            .upsert({
+              session_id: session.id,
+              user_email: session.metadata.userEmail || session.customer_email,
+              amount: session.amount_total,
+              coins: parseInt(session.metadata.coins || 0),
+              status: 'failed',
+              payment_method: 'stripe',
+              metadata: { error: error.message },
+              created_at: new Date(session.created * 1000).toISOString(),
+            }, {
+              onConflict: 'session_id'
+            })
+        } catch (logError) {
+          console.error('Error logging failed transaction:', logError)
+        }
+      }
+      break
+
+    case 'checkout.session.async_payment_failed':
+      const failedSession = event.data.object
+      
+      try {
+        // Update transaction status to failed
+        await supabase
+          .from('payment_transactions')
+          .update({ 
+            status: 'failed',
+            metadata: { ...failedSession.metadata, failure_reason: 'async_payment_failed' }
+          })
+          .eq('session_id', failedSession.id)
+        
+        console.log(`Payment failed for session ${failedSession.id}`)
+      } catch (error) {
+        console.error('Error processing failed payment:', error)
       }
       break
 
@@ -71,8 +149,8 @@ export async function POST(request) {
         const coins = parseInt(paymentIntent.metadata.coins)
         
         if (coins) {
-          console.log(`Payment succeeded for ${coins} coins`)
-          // Handle direct payment intent success if needed
+          console.log(`Payment intent succeeded for ${coins} coins`)
+          // Additional handling if needed
         }
       } catch (error) {
         console.error('Error processing payment intent:', error)

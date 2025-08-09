@@ -37,13 +37,6 @@ export function SubjectMeetingStep({ form }) {
     setLoading(false)
   }, [])
 
-  const handleChange = async (selectedOptions) => {
-    setSelectedSubject(selectedOptions || []);
-    const subjectIds = selectedOptions ? selectedOptions.map(option => option.id) : [];
-    console.log("Selected subject IDs:", subjectIds);
-    form.setValue('subject', subjectIds);
-  };
-
   const handleCreateSubject = async (newSubject) => {
     setLoading(true);
     supabase
@@ -59,7 +52,7 @@ export function SubjectMeetingStep({ form }) {
         const newOption = { value: data.name, label: data.name, id: data.id };
         setSubjects((prev) => [...prev, newOption]);
         setSelectedSubject((prev) => [...prev, newOption]);
-        form.setValue('subject', [...form.getValues('subject') || [], newOption.id]);
+        form.setValue('subject', [...form.getValues('subject') || [], newOption]);
       })
       .finally(() => {
         setLoading(false);
