@@ -42,25 +42,6 @@ export default function ContactModal({
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          {/* Student Info */}
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-600" />
-              Student Information
-            </h4>
-            <div className="space-y-2">
-              <p className="text-gray-700">
-                <strong>Name:</strong> {request.student_name || 'Student Name'}
-              </p>
-              <p className="text-gray-700">
-                <strong>Request:</strong> {request.title}
-              </p>
-              <p className="text-gray-700">
-                <strong>Budget:</strong> {request.price_currency_symbol}{request.price_amount} per {request.price_option || 'hour'}
-              </p>
-            </div>
-          </div>
-
           {/* Quick Action Buttons */}
           {request.contactInfoAvailable && (
             <div className="grid grid-cols-2 gap-3 mb-4">

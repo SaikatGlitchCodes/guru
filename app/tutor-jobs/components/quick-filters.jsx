@@ -11,14 +11,14 @@ export default function QuickFilters({ onFilterSelect, activeFilters = [] }) {
       label: 'Urgent Only',
       icon: Clock,
       color: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',
-      filter: { urgencyLevels: ['urgent', 'asap'] }
+      filter: { urgencyLevels: ['high'] } // Using 'High' to match the actual data
     },
     {
       id: 'online',
       label: 'Online',
       icon: Monitor,
       color: 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100',
-      filter: { meetingTypes: ['online'] }
+      filter: { meetingTypes: ['online'] } // Using 'Online' to match the actual data
     },
     {
       id: 'high-pay',
@@ -39,14 +39,14 @@ export default function QuickFilters({ onFilterSelect, activeFilters = [] }) {
       label: 'Assignment Help',
       icon: Zap,
       color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100',
-      filter: { requestTypes: ['Assignment'] }
+      filter: { requestTypes: ['Assignment'] } // Using 'Assignment Help' to match the actual data
     },
     {
       id: 'local',
       label: 'In-Person',
       icon: MapPin,
       color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
-      filter: { meetingTypes: ['offline'] }
+      filter: { meetingTypes: ['offline'] } // Using 'Offline' to match the actual data
     }
   ]
 

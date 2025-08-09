@@ -41,12 +41,13 @@ export default function MyStudentsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
+  const [lastRefresh, setLastRefresh] = useState(Date.now()) // Track refresh time
 
   useEffect(() => {
     if (user?.email) {
       fetchMyStudents()
     }
-  }, [user?.email])
+  }, [user?.email, lastRefresh]) // Include lastRefresh as dependency
 
   const fetchMyStudents = async () => {
     if (!user?.email) return
@@ -61,7 +62,12 @@ export default function MyStudentsPage() {
         throw new Error(result.error.message || 'Failed to fetch students')
       }
       
-      setAllStudents(result.data || [])
+      // Validate and sanitize data
+      const validStudents = (result.data || []).filter(student => {
+        return student && student.id && student.student_name
+      })
+      
+      setAllStudents(validStudents)
     } catch (err) {
       console.error('Error fetching students:', err)
       setError(err.message)
@@ -70,50 +76,65 @@ export default function MyStudentsPage() {
     }
   }
 
-  // Filter and sort students
+  // Enhanced filter and sort functionality
   const students = useMemo(() => {
-    let filtered = allStudents
+    let filtered = [...allStudents] // Create copy to avoid mutations
 
-    // Search filter
+    // Search filter with enhanced matching
     if (searchQuery) {
-      filtered = filtered.filter(student => 
-        student.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.subjects.some(subject => 
-          subject.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      )
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(student => {
+        const searchableText = [
+          student.student_name,
+          student.title,
+          student.description,
+          ...(student.subjects || []).map(s => s.name),
+          student.address?.city,
+          student.address?.country
+        ].filter(Boolean).join(' ').toLowerCase()
+        
+        return searchableText.includes(query)
+      })
     }
 
-    // Status filter
+    // Status filter with proper validation
     if (statusFilter !== "all") {
-      filtered = filtered.filter(student => student.status === statusFilter)
+      filtered = filtered.filter(student => {
+        const studentStatus = student.status || 'open'
+        return studentStatus === statusFilter
+      })
     }
 
-    // Sort
+    // Enhanced sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return new Date(b.contacted_at) - new Date(a.contacted_at)
+          return new Date(b.contacted_at || 0) - new Date(a.contacted_at || 0)
         case 'oldest':
-          return new Date(a.contacted_at) - new Date(b.contacted_at)
+          return new Date(a.contacted_at || 0) - new Date(b.contacted_at || 0)
         case 'name':
-          return a.student_name.localeCompare(b.student_name)
+          return (a.student_name || '').localeCompare(b.student_name || '')
         case 'price-high':
           return (b.price_amount || 0) - (a.price_amount || 0)
         case 'price-low':
           return (a.price_amount || 0) - (b.price_amount || 0)
+        case 'status':
+          return (a.status || 'open').localeCompare(b.status || 'open')
         default:
-          return new Date(b.contacted_at) - new Date(a.contacted_at)
+          return new Date(b.contacted_at || 0) - new Date(a.contacted_at || 0)
       }
     })
 
     return filtered
   }, [allStudents, searchQuery, statusFilter, sortBy])
 
-  // Get unique statuses for filter dropdown
+  // Get unique statuses with proper handling
   const availableStatuses = useMemo(() => {
-    const statuses = [...new Set(allStudents.map(s => s.status).filter(Boolean))]
+    const statuses = [...new Set(
+      allStudents
+        .map(s => s.status || 'open')
+        .filter(Boolean)
+    )]
     return statuses.sort()
   }, [allStudents])
 
@@ -300,20 +321,61 @@ export default function MyStudentsPage() {
           </Alert>
         )}
 
-        {/* Refresh Button */}
+        {/* Enhanced Refresh Button */}
         {!loading && allStudents.length > 0 && (
           <div className="mb-6 flex justify-between items-center">
             <div className="text-sm text-gray-600">
               Showing {students.length} of {allStudents.length} students
+              {allStudents.length > 0 && (
+                <span className="ml-2 text-gray-400">
+                  • Last updated: {new Date(lastRefresh).toLocaleTimeString()}
+                </span>
+              )}
             </div>
-            <Button 
-              variant="outline" 
-              onClick={fetchMyStudents}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setLastRefresh(Date.now())}
+                className="flex items-center gap-2"
+                disabled={loading}
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              
+              {/* Quick Actions */}
+              {students.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    // Export as CSV functionality
+                    const csvData = students.map(s => ({
+                      Name: s.student_name,
+                      Email: s.student_email,
+                      Request: s.title,
+                      Status: s.status || 'open',
+                      Price: `${s.price_currency_symbol}${s.price_amount}`,
+                      ContactedAt: s.contacted_at
+                    }))
+                    
+                    const csv = [
+                      Object.keys(csvData[0]).join(','),
+                      ...csvData.map(row => Object.values(row).join(','))
+                    ].join('\n')
+                    
+                    const blob = new Blob([csv], { type: 'text/csv' })
+                    const url = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `my-students-${new Date().toISOString().split('T')[0]}.csv`
+                    a.click()
+                    window.URL.revokeObjectURL(url)
+                  }}
+                >
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </div>
         )}
 

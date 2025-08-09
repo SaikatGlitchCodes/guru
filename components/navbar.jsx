@@ -28,37 +28,41 @@ export default function Navbar() {
   console.log("User:", user)
   console.log("Profile:", profile)
 
-  // Determine login state and user info
-  const isLoggedIn = !!user
-  const userRole = profile?.role || "guest"
-  const userName = profile?.name || user?.email?.split('@')[0] || "User"
+  // Determine login state and user info with better validation
+  const isLoggedIn = !!user && !!user.id
+  const userRole = profile?.role || (user ? "guest" : "guest")
+  const userName = profile?.name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User"
   const coinBalance = profile?.coin_balance || 0
 
   const getNavigationLinks = () => {
-    switch (userRole) {
-      case "student":
-        return [
-          { href: "/requests", label: "My Requests" },
-          { href: "/find-tutors", label: "Find Tutors" },
-          { href: "/messages", label: "Messages" },
-          { href: '/job-support', label: "Job Support" },
-        ]
-      case "tutor":
-        return [
-          { href: "/tutor-jobs", label: "Open Requests" },
-          { href: "/my-students", label: "My Students" },
-          { href: "/messages", label: "Messages" },
-        ]
-      case "guest":
-        return [
-          { href: "/find-tutors", label: "Find Tutors" },
-          { href: "/tutor-jobs", label: "Tutor Jobs" },
-          { href: "/become-tutor", label: "Become a Tutor" },
-          { href: '/job-support', label: "Job Support" },
-        ]
-      default:
-        return []
+    // Enhanced role-based navigation with fallbacks
+    const baseLinks = {
+      student: [
+        { href: "/requests", label: "My Requests", description: "View and manage your tutor requests" },
+        { href: "/find-tutors", label: "Find Tutors", description: "Browse available tutors" },
+        { href: "/messages", label: "Messages", description: "Chat with your tutors" },
+        { href: "/request-tutor?type=job-support", label: "Job Support", description: "Get career mentoring" },
+      ],
+      tutor: [
+        { href: "/tutor-jobs", label: "Browse Jobs", description: "Find students to help" },
+        { href: "/my-students", label: "My Students", description: "Students you've contacted" },
+        { href: "/job-support", label: "Job Support", description: "Career mentoring opportunities" },
+        { href: "/messages", label: "Messages", description: "Chat with your students" },
+      ],
+      admin: [
+        { href: "/admin/dashboard", label: "Dashboard", description: "Admin overview" },
+        { href: "/admin/users", label: "Users", description: "Manage platform users" },
+        { href: "/admin/requests", label: "Requests", description: "Monitor all requests" },
+        { href: "/tutor-jobs", label: "Browse Jobs", description: "View as tutor" },
+      ]
     }
+
+    return baseLinks[userRole] || [
+      { href: "/find-tutors", label: "Find Tutors", description: "Browse available tutors" },
+      { href: "/tutor-jobs", label: "Tutor Jobs", description: "Tutoring opportunities" },
+      { href: "/become-tutor", label: "Become a Tutor", description: "Start tutoring students" },
+      { href: "/request-tutor?type=job-support", label: "Job Support", description: "Get career help" },
+    ]
   }
 
   const navigationLinks = getNavigationLinks()
@@ -70,47 +74,45 @@ export default function Navbar() {
   )
 
   const CoinBalance = () => {
-    return (<button 
-      type="button" 
-      className="coin-button"
-      onClick={() => setShowWalletModal(true)}
-    >
-      <span className="fold"></span>
-
-      <div className="points_wrapper">
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-        <i className="point"></i>
-      </div>
-
-      <span className="inner"
+    if (!isLoggedIn || coinBalance === undefined) {
+      return null
+    }
+    
+    return (
+      <button 
+        type="button" 
+        className="coin-button"
+        onClick={() => setShowWalletModal(true)}
+        title={`${coinBalance} coins available. Click to purchase more.`}
       >
-        <svg
-          className="icon"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.5"
-        >
-          <polyline
-            points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"
-          >
-          </polyline>
-        </svg>
+        <span className="fold"></span>
 
-        {coinBalance} Coins
-      </span>
-    </button>)
+        <div className="points_wrapper">
+          {[...Array(10)].map((_, i) => (
+            <i key={i} className="point"></i>
+          ))}
+        </div>
+
+        <span className="inner">
+          <svg
+            className="icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          >
+            <polyline
+              points="13.18 1.37 13.18 9.64 21.45 9.64 10.82 22.63 10.82 14.36 2.55 14.36 13.18 1.37"
+            />
+          </svg>
+
+          {coinBalance} Coins
+        </span>
+      </button>
+    )
   }
 
   const UserMenu = () => (

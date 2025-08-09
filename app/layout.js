@@ -4,6 +4,7 @@ import Navbar from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import AuthProvider from "@/components/AuthProvider";
 import DebugAuth from "@/components/DebugAuth";
+import FloatingFeedback from "@/components/FloatingFeedback";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
           {children}
           <Toaster />
           <DebugAuth />
+          <FloatingFeedback />
         </AuthProvider>
       </body>
     </html>

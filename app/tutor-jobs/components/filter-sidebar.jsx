@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Filter, ChevronDown, ChevronUp, DollarSign, MapPin, Clock, BookOpen, User, Zap } from "lucide-react"
+import { X, Filter, ChevronDown, ChevronUp, DollarSign, MapPin, Clock, BookOpen, User, Zap, PiggyBank } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -180,7 +180,7 @@ export default function FilterSidebar({
             ) : (
               <div className="space-y-6">
                 {/* Price Range */}
-                <FilterSection title="Price Range" icon={DollarSign} isOpen={true}>
+                <FilterSection title="Price Range" icon={PiggyBank} isOpen={true}>
                   <div className="space-y-4">
                     <div className="px-2">
                       <Slider

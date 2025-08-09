@@ -1,17 +1,19 @@
 import React from 'react'
 
-export default function ThemedHero({ children }) {
+export default function ThemedHero({ children, variant = 'dark' }) {
+    const isDark = variant === 'dark'
+    
     return (
-        <section className="relative bg-black py-10 overflow-hidden">
+        <section className={`relative ${isDark ? 'bg-black' : 'bg-white'} py-10 overflow-hidden`}>
             {/* Animated Grid Background */}
             <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-b black black z-10"></div>
+                <div className={`absolute inset-0 bg-gradient-to-b ${isDark ? 'black black' : 'white white'} z-10`}></div>
                 <div
-                    className="absolute inset-0 opacity-20"
+                    className={`absolute inset-0 ${isDark ? 'opacity-20' : 'opacity-10'}`}
                     style={{
                         backgroundImage: `
-                linear-gradient(white 1px, transparent 1px),
-                linear-gradient(90deg, white 1px, transparent 1px)
+                linear-gradient(${isDark ? 'white' : '#e5e7eb'} 1px, transparent 1px),
+                linear-gradient(90deg, ${isDark ? 'white' : '#e5e7eb'} 1px, transparent 1px)
               `,
                         backgroundSize: '50px 50px',
                         animation: 'gridMove 20s linear infinite'
