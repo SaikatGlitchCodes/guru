@@ -15,54 +15,6 @@ import ProfileDashboard from "@/components/ProfileDashboard"
 import ThemedHero from "@/components/ThemedHero"
 import { getTopTutorsByRole } from "@/lib/supabaseAPI"
 
-// Sample data
-const subjects = [
-  "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science",
-  "English", "History", "Geography", "Economics", "Psychology", "Art", "Music"
-]
-
-const locations = [
-  "New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
-  "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"
-]
-
-const topTutors = [
-  {
-    id: 1,
-    name: "Shireen Sungkar",
-    avatar: "/placeholder.svg?height=80&width=80",
-    subject: "Algebra",
-    rating: 4.9,
-    reviews: 127,
-    experience: "20+ h taught",
-    location: "Germany",
-    hourlyRate: 75,
-    badges: ["Expert in Algebra", "Top Rated"],
-    totalSessions: 500,
-    responseTime: "Free video chat",
-    specialization: "Calculus, Statistics, Linear Algebra",
-    bgColor: "bg-gradient-to-br from-yellow-400 to-yellow-500",
-    feedbackRate: "92% Positive Feedback"
-  },
-  {
-    id: 2,
-    name: "Tony Lee",
-    avatar: "/placeholder.svg?height=80&width=80",
-    subject: "Cooking",
-    rating: 4.8,
-    reviews: 89,
-    experience: "Expert in Cooking",
-    location: "India",
-    hourlyRate: 85,
-    badges: ["Master Chef", "Indian Cuisine"],
-    totalSessions: 300,
-    responseTime: "Free video chat",
-    specialization: "Indian Cuisine, Vegetarian Cooking",
-    bgColor: "bg-gradient-to-br from-blue-400 to-blue-500",
-    feedbackRate: "95% Positive Feedback"
-  }
-]
-
 const popularCategories = [
   {
     name: "Science & Engineering",
@@ -181,52 +133,11 @@ export default function HomePage() {
     const fetchTopTutors = async () => {
       try {
         setLoading(true)
-        const { data, error } = await getTopTutorsByRole(6) // Get top 6 tutors
-        if (error) {
-          console.error('Error fetching tutors:', error)
-          // Fallback to sample data if database fetch fails
-          setTopTutors([
-            {
-              id: 1,
-              name: "Shireen Sungkar",
-              avatar: "/placeholder.svg?height=80&width=80",
-              subject: "Algebra",
-              rating: 4.9,
-              reviews: 127,
-              experience: "20+ h taught",
-              location: "Germany",
-              hourlyRate: 75,
-              badges: ["Expert in Algebra", "Top Rated"],
-              totalSessions: 500,
-              responseTime: "Free video chat",
-              specialization: "Calculus, Statistics, Linear Algebra",
-              bgColor: "bg-gradient-to-br from-yellow-400 to-yellow-500",
-              feedbackRate: "92% Positive Feedback"
-            },
-            {
-              id: 2,
-              name: "Tony Lee",
-              avatar: "/placeholder.svg?height=80&width=80",
-              subject: "Cooking",
-              rating: 4.8,
-              reviews: 89,
-              experience: "Expert in Cooking",
-              location: "India",
-              hourlyRate: 85,
-              badges: ["Master Chef", "Indian Cuisine"],
-              totalSessions: 300,
-              responseTime: "Free video chat",
-              specialization: "Indian Cuisine, Vegetarian Cooking",
-              bgColor: "bg-gradient-to-br from-blue-400 to-blue-500",
-              feedbackRate: "95% Positive Feedback"
-            }
-          ])
-        } else {
-          setTopTutors(data || [])
-        }
+        const { data, error } = await getTopTutorsByRole(4);
+        setTopTutors(data || [])
+
       } catch (err) {
         console.error('Error in fetchTopTutors:', err)
-        // Use fallback data
         setTopTutors([])
       } finally {
         setLoading(false)
@@ -235,14 +146,6 @@ export default function HomePage() {
 
     fetchTopTutors()
   }, [])
-
-  const searchTutor = () => {
-    const params = new URLSearchParams()
-    if (searchQuery) params.append('query', searchQuery)
-    if (selectedSubject) params.append('subject', selectedSubject)
-    if (selectedLocation) params.append('location', selectedLocation)
-    router.replace(`/find-tutors?${params.toString()}`)
-  }
 
   // Show profile dashboard if user is authenticated and profile is loaded
   if (user && !userLoading) {
@@ -264,9 +167,17 @@ export default function HomePage() {
                   <div className="flex items-start gap-2 mb-4">
                     {/* Overlapping profile avatars */}
                     <div className="flex -space-x-3 mr-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-white relative">
-                          <div className="w-full h-full rounded-full bg-gray-300"></div>
+                      {topTutors.map((profile) => (
+                        <div key={profile.id} onClick={() => (console.log(profile.name))} className="w-11 h-11">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={profile.avatar || ""} alt="Profile" />
+                            <AvatarFallback className="bg-black text-white">
+                              {profile?.name
+                                ?.split(" ")
+                                .map((n) => n[0])
+                                .join("") || "U"}
+                            </AvatarFallback>
+                          </Avatar>
                         </div>
                       ))}
                       {/* Playful arrow */}
@@ -334,145 +245,17 @@ export default function HomePage() {
             {/* Right Content - How it works video + Top tutors */}
             <div className="relative space-y-6">
               {/* How It Works Video Circle */}
-              <div className="relative mx-auto w-fit">
-                <div className="w-48 h-48 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl">
+              <div className="relative mx-auto w-fit animate-spin-slow">
+                <div className="w-48 h-48 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Play className="w-8 h-8 text-green-500 ml-1" fill="currentColor" />
+                    <Play className="reverse-animate-spin-slow w-8 h-8 text-green-500 ml-1" fill="currentColor" />
                   </div>
                 </div>
                 <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse"></div>
-                <div className="text-center mt-4">
-                  <p className="text-lg font-semibold text-gray-800">How it works</p>
-                  <p className="text-sm text-gray-600">Watch our 2-minute guide</p>
-                </div>
               </div>
-
-              {/* Top Tutors Cards */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-gray-800 text-center">Top Rated Tutors</h3>
-                <div className="space-y-4">
-                  {loading ? (
-                    // Loading skeleton
-                    <div className="space-y-4">
-                      {[1, 2].map((index) => (
-                        <Card key={index} className="overflow-hidden border-0 shadow-lg">
-                          <div className="bg-gray-200 animate-pulse p-6">
-                            <div className="flex justify-center mb-4">
-                              <div className="h-20 w-20 bg-gray-300 rounded-full"></div>
-                            </div>
-                            <div className="text-center space-y-2">
-                              <div className="h-4 bg-gray-300 rounded w-3/4 mx-auto"></div>
-                              <div className="h-3 bg-gray-300 rounded w-1/2 mx-auto"></div>
-                            </div>
-                          </div>
-                          <CardContent className="p-4 bg-white">
-                            <div className="space-y-3">
-                              <div className="h-3 bg-gray-200 rounded"></div>
-                              <div className="h-8 bg-gray-200 rounded"></div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    topTutors.slice(0, 2).map((tutor) => (
-                      <Card key={tutor.id} className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 group">
-                        <div className={`${tutor.bgColor} p-6 relative`}>
-                          {/* Heart icon */}
-                          <div className="absolute top-4 right-4">
-                            <div className="w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center">
-                              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-xs">♥</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Tutor Image */}
-                          <div className="flex justify-center mb-4">
-                            <div className="relative">
-                              <Avatar className="h-20 w-20 border-4 border-white/50">
-                                <AvatarImage src={tutor.avatar} alt={tutor.name} />
-                                <AvatarFallback className="bg-white text-gray-800 font-bold text-lg">
-                                  {tutor.name.split(" ").map((n) => n[0]).join("")}
-                                </AvatarFallback>
-                              </Avatar>
-                              {/* Verification badge */}
-                              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                                <CheckCircle2 className="w-3 h-3 text-white" />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Tutor Info */}
-                          <div className="text-center text-white">
-                            <h4 className="font-bold text-lg mb-1">{tutor.name}</h4>
-                            <div className="flex items-center justify-center gap-1 mb-2">
-                              <Award className="w-4 h-4" />
-                              <span className="text-sm font-medium">{tutor.experience}</span>
-                            </div>
-                            <p className="text-white/90 text-sm mb-3">{tutor.responseTime}</p>
-                          </div>
-                        </div>
-
-                        {/* Card Bottom */}
-                        <CardContent className="p-4 bg-white">
-                          <div className="space-y-3">
-                            {/* Feedback Badge */}
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1 bg-green-50 px-3 py-1 rounded-full">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span className="text-xs font-medium text-green-700">{tutor.feedbackRate}</span>
-                              </div>
-                            </div>
-
-                            {/* Subject Badge */}
-                            <div className="flex items-center justify-center">
-                              <Badge className="bg-orange-100 text-orange-800 border-orange-200 px-3 py-1">
-                                Expert in {tutor.subject}
-                              </Badge>
-                            </div>
-
-                            {/* Location with Country Flag */}
-                            <div className="flex items-center justify-center gap-1 text-gray-600">
-                              <div className="w-4 h-3 rounded-sm overflow-hidden">
-                                {tutor.country === "Germany" && (
-                                  <div className="flex h-full">
-                                    <div className="flex-1 bg-black"></div>
-                                    <div className="flex-1 bg-red-500"></div>
-                                    <div className="flex-1 bg-yellow-400"></div>
-                                  </div>
-                                )}
-                                {tutor.country === "India" && (
-                                  <div className="flex flex-col h-full">
-                                    <div className="flex-1 bg-orange-500"></div>
-                                    <div className="flex-1 bg-white border-t border-b border-gray-300"></div>
-                                    <div className="flex-1 bg-green-600"></div>
-                                  </div>
-                                )}
-                                {(tutor.country !== "Germany" && tutor.country !== "India") && (
-                                  <div className="w-full h-full bg-gray-300"></div>
-                                )}
-                              </div>
-                              <span className="text-sm">{tutor.location}</span>
-                            </div>
-
-                            {/* Rating */}
-                            <div className="flex items-center justify-center gap-1">
-                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="font-medium text-gray-900">{tutor.rating}</span>
-                              <span className="text-gray-600 text-sm">({tutor.reviews} reviews)</span>
-                            </div>
-
-                            {/* Contact Button */}
-                            <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200">
-                              Contact Tutor
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
+              <div className="text-center mt-4">
+                <p className="text-lg font-semibold text-gray-800">How it works</p>
+                <p className="text-sm text-gray-600">Watch our 2-minute guide</p>
               </div>
             </div>
 
@@ -767,11 +550,6 @@ export default function HomePage() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/become-tutor">
-                <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-green-50 hover:border-green-500 hover:text-green-600 px-12 py-6 text-lg rounded-full">
-                  Become a Tutor
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -831,11 +609,6 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold mb-6 text-white">For Tutors</h3>
               <ul className="space-y-3">
-                <li>
-                  <Link href="/become-tutor" className="hover:text-green-400 transition-colors">
-                    Become a Tutor
-                  </Link>
-                </li>
                 <li>
                   <Link href="/tutor-resources" className="hover:text-green-400 transition-colors">
                     Resources

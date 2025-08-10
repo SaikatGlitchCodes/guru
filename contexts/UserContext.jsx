@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { getUserProfile, uploadAvatar, createRequest } from "@/lib/supabaseAPI"
+import { set } from "react-hook-form"
 
 const UserContext = createContext(null)
 
@@ -55,7 +56,7 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     refreshUserData()
-   
+    localStorage.getItem("pendingTutorRequest") && setPendingRequest(true)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user) {
@@ -80,7 +81,7 @@ export function UserProvider({ children }) {
 
           // Check for pending requests in localStorage after authentication
           setTimeout(() => {
-            createRequestInLocalStorage()
+            createRequestInLocalStorage(session.user.email)
           }, 1000) // Small delay to ensure profile is loaded
         } else {
           setUser(null)
@@ -162,7 +163,7 @@ export function UserProvider({ children }) {
     }
   }
 
-  function createRequestInLocalStorage() {
+  function createRequestInLocalStorage(email) {
     try {
       const requestData = JSON.parse(localStorage.getItem("pendingTutorRequest"))
       if (!requestData) {
@@ -171,8 +172,8 @@ export function UserProvider({ children }) {
       }
       else {
         setPendingRequest(true)
-        console.log("Pending request data found in localStorage:", requestData, "user:", user)
-        if (user) {
+        console.log("Pending request data found in localStorage:", requestData, "email:", email)
+        if (email) {
           // Create the request using the API
           createRequest(requestData)
             .then((result) => {
