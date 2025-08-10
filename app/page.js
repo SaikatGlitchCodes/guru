@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useUser } from "@/contexts/UserContext"
 import ProfileDashboard from "@/components/ProfileDashboard"
 import ThemedHero from "@/components/ThemedHero"
-import { getTopTutorsByRole } from "@/lib/supabaseAPI"
+import { getTopTutorsByRole, getAllSubjects } from "@/lib/supabaseAPI"
 
 const popularCategories = [
   {
@@ -106,45 +106,43 @@ const successStories = [
   },
 ]
 
-const platformStats = [
-  { number: "28k+", label: "Verified Mentors", icon: Users, color: "text-green-400" },
-  { number: "290k+", label: "Sessions Completed", icon: Award, color: "text-blue-400" },
-  { number: "50+", label: "Industries", icon: Globe, color: "text-purple-400" },
-  { number: "4.9/5", label: "Average Rating", icon: Star, color: "text-orange-400" },
-]
-
-const trustSignals = [
-  { metric: "98%", label: "Success Rate", icon: TrendingUp },
-  { metric: "24/7", label: "Support", icon: Clock },
-  { metric: "100%", label: "Secure", icon: Shield },
-]
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("")
+  const router = useRouter()
   const [topTutors, setTopTutors] = useState([])
   const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [subjects, setSubjects] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const { user, profile, loading: userLoading } = useUser()
 
-  // Fetch top tutors from database
+  const [filteredSuggestions, setFilteredSuggestions] = useState([])
+
+  // Fetch top tutors and subjects from database
   useEffect(() => {
-    const fetchTopTutors = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
-        const { data, error } = await getTopTutorsByRole(4);
-        setTopTutors(data || [])
+        
+        // Fetch tutors and subjects in parallel
+        const [tutorsResult, subjectsResult] = await Promise.all([
+          getTopTutorsByRole(4),
+          getAllSubjects()
+        ])
+        
+        setTopTutors(tutorsResult.data || [])
+        setSubjects(subjectsResult.data || [])
 
       } catch (err) {
-        console.error('Error in fetchTopTutors:', err)
+        console.error('Error in fetchData:', err)
         setTopTutors([])
+        setSubjects([])
       } finally {
         setLoading(false)
       }
     }
 
-    fetchTopTutors()
+    fetchData()
   }, [])
 
   // Show profile dashboard if user is authenticated and profile is loaded
@@ -187,11 +185,100 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
+                  <h1 className="text-2xl lg:text-5xl font-bold leading-tight">
                     <span className="text-black">Find your</span>{" "}
-                    <span className="text-black font-bold text-5xl lg:text-7xl">Perfect guru</span>
+                    <span className="text-black font-bold text-5xl lg:text-6xl">Perfect guru</span>
                   </h1>
-
+                  {/* Enhanced Search Bar */}
+                  <div className="mt-8 mb-8">
+                    <div className="flex gap-4">
+                      <div className="flex-1 relative">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                        <Input
+                          type="text"
+                          placeholder="Search for subjects or tutors..."
+                          value={searchTerm}
+                          onChange={(e) => {
+                            const value = e.target.value
+                            setSearchTerm(value)
+                            
+                            if (value.trim().length > 0) {
+                              const filtered = subjects.filter(subject =>
+                                subject.name.toLowerCase().includes(value.toLowerCase()) ||
+                                subject.category?.toLowerCase().includes(value.toLowerCase())
+                              ).slice(0, 8) // Limit to 8 suggestions
+                              
+                              setFilteredSuggestions(filtered)
+                              setShowSuggestions(filtered.length > 0)
+                            } else {
+                              setShowSuggestions(false)
+                              setFilteredSuggestions([])
+                            }
+                          }}
+                          className="pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const query = searchTerm.trim() || 'all tutors'
+                              router.push(`/find-tutors?q=${encodeURIComponent(query)}`)
+                              setShowSuggestions(false)
+                            } else if (e.key === 'Escape') {
+                              setShowSuggestions(false)
+                            }
+                          }}
+                          onFocus={() => {
+                            if (searchTerm.trim().length > 0 && filteredSuggestions.length > 0) {
+                              setShowSuggestions(true)
+                            }
+                          }}
+                          onBlur={() => {
+                            // Delay hiding suggestions to allow for clicks
+                            setTimeout(() => setShowSuggestions(false), 150)
+                          }}
+                        />
+                        
+                        {/* Auto-suggestions dropdown */}
+                        {showSuggestions && filteredSuggestions.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 max-h-64 overflow-y-auto">
+                            {filteredSuggestions.map((subject, index) => (
+                              <div
+                                key={subject.id || index}
+                                className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                onClick={() => {
+                                  setSearchTerm(subject.name)
+                                  setShowSuggestions(false)
+                                  const query = subject.name.trim()
+                                  router.push(`/find-tutors?q=${encodeURIComponent(query)}`)
+                                }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                  <div>
+                                    <div className="font-medium text-gray-900">{subject.name}</div>
+                                    {subject.category && (
+                                      <div className="text-sm text-gray-500">{subject.category}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        size="lg"
+                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg shadow-green-500/20"
+                        onClick={() => {
+                          const query = searchTerm.trim() || 'all tutors'
+                          router.push(`/find-tutors?q=${encodeURIComponent(query)}`)
+                          setShowSuggestions(false)
+                        }}
+                      >
+                        <Search className="w-5 h-5 mr-2" />
+                        Search
+                      </Button>
+                    </div>
+                  
+                  </div>
                   <p className="text-xl text-gray-600 leading-relaxed max-w-lg mt-4">
                     We help you find the perfect guru. It's completely FREE
                   </p>
@@ -224,10 +311,10 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Enhanced Search Bar */}
+
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 mt-5">
                 <Link href="/request-tutor">
                   <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-6 text-lg rounded-full border-0 shadow-xl shadow-green-500/20">
                     Request a Tutor

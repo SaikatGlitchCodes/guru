@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,229 +10,576 @@ import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Star, MapPin, Clock, BookOpen, Award, Users } from "lucide-react"
-import { getAllTutors, startConversation } from '@/lib/supabaseAPI'
+import { Search, Star, MapPin, Clock, BookOpen, Award, Users, ChevronLeft, ChevronRight, X } from "lucide-react"
+import { searchTutors, getTutorFiltersData, startConversation } from '@/lib/supabaseAPI'
 import { useUser } from "@/contexts/UserContext"
-
-// Sample tutors data (fallback if API fails)
-const sampleTutors = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    avatar_url: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-    rating: 4.9,
-    total_reviews: 127,
-    subjects: ["Mathematics", "Physics"],
-    experience_years: 5,
-    hourly_rate: 45,
-    location: "New York, NY",
-    bio: "Experienced math tutor with PhD in Applied Mathematics. Specializing in calculus and algebra.",
-    verified: true,
-    response_time: "< 1 hour",
-    availability_status: "Available now"
-  },
-  {
-    id: 2,
-    name: "Michael Chen",
-    avatar_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    rating: 4.8,
-    total_reviews: 89,
-    subjects: ["Computer Science", "Programming"],
-    experience_years: 7,
-    hourly_rate: 60,
-    location: "San Francisco, CA",
-    bio: "Senior software engineer turned tutor. Expert in Python, JavaScript, and web development.",
-    verified: true,
-    response_time: "< 2 hours",
-    availability_status: "Available today"
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    avatar_url: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    rating: 4.9,
-    total_reviews: 156,
-    subjects: ["English", "Literature"],
-    experience_years: 8,
-    hourly_rate: 40,
-    location: "Austin, TX",
-    bio: "English professor with expertise in creative writing and literature analysis.",
-    verified: true,
-    response_time: "< 30 min",
-    availability_status: "Available now"
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    avatar_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    rating: 4.7,
-    total_reviews: 73,
-    subjects: ["Chemistry", "Biology"],
-    experience_years: 4,
-    hourly_rate: 35,
-    location: "Boston, MA",
-    bio: "Medical student with strong background in sciences. Patient and encouraging teaching style.",
-    verified: true,
-    response_time: "< 3 hours",
-    availability_status: "Available tomorrow"
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    avatar_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
-    rating: 4.8,
-    total_reviews: 92,
-    subjects: ["Spanish", "French"],
-    experience_years: 6,
-    hourly_rate: 38,
-    location: "Miami, FL",
-    bio: "Native Spanish speaker with certification in language teaching. Fluent in 4 languages.",
-    verified: true,
-    response_time: "< 1 hour",
-    availability_status: "Available now"
-  },
-  {
-    id: 6,
-    name: "Robert Wilson",
-    avatar_url: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=150&fit=crop&crop=face",
-    rating: 4.6,
-    total_reviews: 45,
-    subjects: ["Business", "Economics"],
-    experience_years: 10,
-    hourly_rate: 55,
-    location: "Chicago, IL",
-    bio: "Former investment banker with MBA. Specializes in business strategy and financial analysis.",
-    verified: true,
-    response_time: "< 4 hours",
-    availability_status: "Available this week"
-  }
-]
 
 export default function FindTutorsPage() {
   const { user } = useUser()
-  const [tutors, setTutors] = useState(sampleTutors)
-  const [filteredTutors, setFilteredTutors] = useState(sampleTutors)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSubject, setSelectedSubject] = useState("all")
-  const [selectedLocation, setSelectedLocation] = useState("all")
-  const [priceRange, setPriceRange] = useState([0, 100])
-  const [minRating, setMinRating] = useState(0)
-  const [sortBy, setSortBy] = useState("rating")
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // State for tutors and pagination
+  const [tutors, setTutors] = useState([])
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadingFilters, setLoadingFilters] = useState(true)
+  
+  // Filter options
+  const [availableSubjects, setAvailableSubjects] = useState([])
+  const [availableLocations, setAvailableLocations] = useState([])
+  
+  // Filter state - initialized from URL params
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '')
+  const [selectedSubjects, setSelectedSubjects] = useState(
+    searchParams.get('subjects') ? searchParams.get('subjects').split(',') : []
+  )
+  const [selectedLocations, setSelectedLocations] = useState(
+    searchParams.get('locations') ? searchParams.get('locations').split(',') : []
+  )
+  const [priceRange, setPriceRange] = useState([
+    parseInt(searchParams.get('minPrice')) || 0,
+    parseInt(searchParams.get('maxPrice')) || 100
+  ])
+  const [minRating, setMinRating] = useState(parseFloat(searchParams.get('minRating')) || 0)
+  const [availabilityFilter, setAvailabilityFilter] = useState(searchParams.get('availability') || 'all')
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating')
 
+  // Update URL when filters change
+  const updateURL = (newFilters) => {
+    const params = new URLSearchParams()
+    
+    if (newFilters.q) params.set('q', newFilters.q)
+    if (newFilters.subjects && newFilters.subjects.length > 0) {
+      params.set('subjects', newFilters.subjects.join(','))
+    }
+    if (newFilters.locations && newFilters.locations.length > 0) {
+      params.set('locations', newFilters.locations.join(','))
+    }
+    if (newFilters.minPrice > 0) params.set('minPrice', newFilters.minPrice.toString())
+    if (newFilters.maxPrice < 100) params.set('maxPrice', newFilters.maxPrice.toString())
+    if (newFilters.minRating > 0) params.set('minRating', newFilters.minRating.toString())
+    if (newFilters.availability && newFilters.availability !== 'all') {
+      params.set('availability', newFilters.availability)
+    }
+    if (newFilters.sort && newFilters.sort !== 'rating') params.set('sort', newFilters.sort)
+    if (newFilters.page && newFilters.page > 1) params.set('page', newFilters.page.toString())
+    
+    const newURL = params.toString() ? `?${params.toString()}` : '/find-tutors'
+    router.push(newURL, { scroll: false })
+  }
+
+  // Load filter options
   useEffect(() => {
-    const fetchTutors = async () => {
+    const loadFiltersData = async () => {
+      setLoadingFilters(true)
       try {
-        const allTutors = await getAllTutors()
-        if (allTutors.data && allTutors.data.length > 0) {
-          setTutors(allTutors.data)
-          setFilteredTutors(allTutors.data)
-        } else {
-          // Use sample data as fallback
-          setTutors(sampleTutors)
-          setFilteredTutors(sampleTutors)
+        const result = await getTutorFiltersData()
+        if (!result.error) {
+          setAvailableSubjects(result.subjects || [])
+          setAvailableLocations(result.locations || [])
         }
       } catch (error) {
-        console.error("Error fetching tutors:", error)
-        // Use sample data as fallback
-        setTutors(sampleTutors)
-        setFilteredTutors(sampleTutors)
+        console.error('Error loading filter data:', error)
+      } finally {
+        setLoadingFilters(false)
+      }
+    }
+    loadFiltersData()
+  }, [])
+
+  // Load tutors when filters change
+  useEffect(() => {
+    const fetchTutors = async () => {
+      setLoading(true)
+      try {
+        const pageFromURL = parseInt(searchParams.get('page')) || 1
+        setCurrentPage(pageFromURL)
+        
+        const result = await searchTutors({
+          searchQuery,
+          subjects: selectedSubjects,
+          locations: selectedLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating,
+          availabilityStatus: availabilityFilter,
+          sortBy,
+          page: pageFromURL,
+          limit: 8
+        })
+        
+        if (!result.error) {
+          setTutors(result.data || [])
+          setTotalCount(result.totalCount || 0)
+          setTotalPages(result.totalPages || 0)
+          setHasMore(result.hasMore || false)
+        } else {
+          console.error('Error fetching tutors:', result.error)
+          setTutors([])
+        }
+      } catch (error) {
+        console.error('Error fetching tutors:', error)
+        setTutors([])
       } finally {
         setLoading(false)
       }
     }
+    
     fetchTutors()
-  }, [])
+  }, [searchParams]) // Re-run when URL params change
 
-  // Get unique subjects and locations for filters
-  const subjects = [...new Set(tutors.flatMap(tutor => tutor.subjects || []))].filter(Boolean).sort()
-  const locations = [...new Set(tutors.map(tutor => tutor.location).filter(Boolean))].sort()
-
+  // Debounced search to avoid too many API calls
   useEffect(() => {
-    let filtered = tutors.filter(tutor => {
-      const matchesSearch = searchQuery === "" ||
-        tutor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (tutor.subjects && tutor.subjects.some(subject => subject.toLowerCase().includes(searchQuery.toLowerCase()))) ||
-        (tutor.bio && tutor.bio.toLowerCase().includes(searchQuery.toLowerCase()))
-
-      const matchesSubject = selectedSubject === "all" || selectedSubject === undefined ||
-        (tutor.subjects && tutor.subjects.includes(selectedSubject))
-      const matchesLocation = selectedLocation === "all" || selectedLocation === undefined ||
-        tutor.location === selectedLocation
-      const matchesPrice = tutor.hourly_rate >= priceRange[0] && tutor.hourly_rate <= priceRange[1]
-      const matchesRating = tutor.rating >= minRating
-
-      return matchesSearch && matchesSubject && matchesLocation && matchesPrice && matchesRating
-    })
-
-    // Sort tutors
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "rating":
-          return b.rating - a.rating
-        case "price-low":
-          return a.hourly_rate - b.hourly_rate
-        case "price-high":
-          return b.hourly_rate - a.hourly_rate
-        case "experience":
-          return b.experience_years - a.experience_years
-        case "reviews":
-          return b.total_reviews - a.total_reviews
-        default:
-          return 0
+    const timeoutId = setTimeout(() => {
+      if (searchQuery !== (searchParams.get('q') || '')) {
+        updateFiltersAndSearch()
       }
-    })
+    }, 500)
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery])
 
-    setFilteredTutors(filtered)
-  }, [tutors, searchQuery, selectedSubject, selectedLocation, priceRange, minRating, sortBy])
+  // Update filters and trigger new search
+  const updateFiltersAndSearch = () => {
+    const newFilters = {
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: availabilityFilter,
+      sort: sortBy,
+      page: 1 // Reset to first page when filters change
+    }
+    updateURL(newFilters)
+  }
+
+  // Handle filter changes
+  const handleSubjectChange = (subject, checked) => {
+    const newSubjects = checked 
+      ? [...selectedSubjects, subject]
+      : selectedSubjects.filter(s => s !== subject)
+    setSelectedSubjects(newSubjects)
+    
+    // Update immediately for checkboxes
+    updateURL({
+      q: searchQuery,
+      subjects: newSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: availabilityFilter,
+      sort: sortBy,
+      page: 1
+    })
+  }
+
+  const handleLocationChange = (location, checked) => {
+    const newLocations = checked 
+      ? [...selectedLocations, location]
+      : selectedLocations.filter(l => l !== location)
+    setSelectedLocations(newLocations)
+    
+    // Update immediately for checkboxes
+    updateURL({
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: newLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: availabilityFilter,
+      sort: sortBy,
+      page: 1
+    })
+  }
+
+  const handlePriceRangeChange = (newRange) => {
+    setPriceRange(newRange)
+    // Debounced update for slider
+    setTimeout(() => {
+      updateURL({
+        q: searchQuery,
+        subjects: selectedSubjects,
+        locations: selectedLocations,
+        minPrice: newRange[0],
+        maxPrice: newRange[1],
+        minRating,
+        availability: availabilityFilter,
+        sort: sortBy,
+        page: 1
+      })
+    }, 500)
+  }
+
+  const handleRatingChange = (rating) => {
+    const newRating = minRating === rating ? 0 : rating
+    setMinRating(newRating)
+    updateURL({
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating: newRating,
+      availability: availabilityFilter,
+      sort: sortBy,
+      page: 1
+    })
+  }
+
+  const handleAvailabilityChange = (value) => {
+    setAvailabilityFilter(value)
+    updateURL({
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: value,
+      sort: sortBy,
+      page: 1
+    })
+  }
+
+  const handleSortChange = (value) => {
+    setSortBy(value)
+    updateURL({
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: availabilityFilter,
+      sort: value,
+      page: 1
+    })
+  }
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    updateURL({
+      q: searchQuery,
+      subjects: selectedSubjects,
+      locations: selectedLocations,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      minRating,
+      availability: availabilityFilter,
+      sort: sortBy,
+      page
+    })
+  }
 
   const clearFilters = () => {
-    setSearchQuery("")
-    setSelectedSubject("all")
-    setSelectedLocation("all")
+    setSearchQuery('')
+    setSelectedSubjects([])
+    setSelectedLocations([])
     setPriceRange([0, 100])
     setMinRating(0)
+    setAvailabilityFilter('all')
+    setSortBy('rating')
+    router.push('/find-tutors')
+  }
+
+  // Remove individual filter
+  const removeFilter = (type, value) => {
+    switch (type) {
+      case 'search':
+        setSearchQuery('')
+        updateURL({
+          q: '',
+          subjects: selectedSubjects,
+          locations: selectedLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating,
+          availability: availabilityFilter,
+          sort: sortBy,
+          page: 1
+        })
+        break
+      case 'subject':
+        const newSubjects = selectedSubjects.filter(s => s !== value)
+        setSelectedSubjects(newSubjects)
+        updateURL({
+          q: searchQuery,
+          subjects: newSubjects,
+          locations: selectedLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating,
+          availability: availabilityFilter,
+          sort: sortBy,
+          page: 1
+        })
+        break
+      case 'location':
+        const newLocations = selectedLocations.filter(l => l !== value)
+        setSelectedLocations(newLocations)
+        updateURL({
+          q: searchQuery,
+          subjects: selectedSubjects,
+          locations: newLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating,
+          availability: availabilityFilter,
+          sort: sortBy,
+          page: 1
+        })
+        break
+      case 'price':
+        setPriceRange([0, 100])
+        updateURL({
+          q: searchQuery,
+          subjects: selectedSubjects,
+          locations: selectedLocations,
+          minPrice: 0,
+          maxPrice: 100,
+          minRating,
+          availability: availabilityFilter,
+          sort: sortBy,
+          page: 1
+        })
+        break
+      case 'rating':
+        setMinRating(0)
+        updateURL({
+          q: searchQuery,
+          subjects: selectedSubjects,
+          locations: selectedLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating: 0,
+          availability: availabilityFilter,
+          sort: sortBy,
+          page: 1
+        })
+        break
+      case 'availability':
+        setAvailabilityFilter('all')
+        updateURL({
+          q: searchQuery,
+          subjects: selectedSubjects,
+          locations: selectedLocations,
+          minPrice: priceRange[0],
+          maxPrice: priceRange[1],
+          minRating,
+          availability: 'all',
+          sort: sortBy,
+          page: 1
+        })
+        break
+    }
+  }
+
+  // Get active filters for display
+  const getActiveFilters = () => {
+    const filters = []
+    
+    if (searchQuery) {
+      filters.push({ type: 'search', value: searchQuery, label: `Search: "${searchQuery}"` })
+    }
+    
+    selectedSubjects.forEach(subject => {
+      filters.push({ type: 'subject', value: subject, label: `Subject: ${subject}` })
+    })
+    
+    selectedLocations.forEach(location => {
+      filters.push({ type: 'location', value: location, label: `Location: ${location}` })
+    })
+    
+    if (priceRange[0] > 0 || priceRange[1] < 100) {
+      filters.push({ 
+        type: 'price', 
+        value: `${priceRange[0]}-${priceRange[1]}`, 
+        label: `Price: $${priceRange[0]} - $${priceRange[1]}` 
+      })
+    }
+    
+    if (minRating > 0) {
+      filters.push({ type: 'rating', value: minRating, label: `Rating: ${minRating}+ stars` })
+    }
+    
+    if (availabilityFilter !== 'all') {
+      const availabilityLabels = {
+        'available': 'Available Now',
+        'available today': 'Available Today',
+        'available this week': 'Available This Week'
+      }
+      filters.push({ 
+        type: 'availability', 
+        value: availabilityFilter, 
+        label: availabilityLabels[availabilityFilter] || availabilityFilter
+      })
+    }
+    
+    return filters
+  }
+
+  // Active Filters Component
+  const ActiveFilters = () => {
+    const activeFilters = getActiveFilters()
+    
+    if (activeFilters.length === 0) return null
+    
+    return (
+      <div className="bg-white border-b border-gray-200 py-4">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-gray-700 mr-2">Active Filters:</span>
+            {activeFilters.map((filter, index) => (
+              <Badge 
+                key={`${filter.type}-${filter.value}-${index}`}
+                variant="secondary" 
+                className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 cursor-pointer transition-colors"
+              >
+                {filter.label}
+                <button
+                  onClick={() => removeFilter(filter.type, filter.value)}
+                  className="ml-2 hover:text-blue-900"
+                  aria-label={`Remove ${filter.label} filter`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </Badge>
+            ))}
+            {activeFilters.length > 1 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="text-gray-600 hover:text-gray-900 ml-2"
+              >
+                Clear All
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleContactTutor = async (tutor) => {
     if (!user?.id) {
-      // Redirect to login or show auth modal
       alert("Please sign in to contact tutors")
-      return;
+      return
     }
     
     if (!tutor.user_id && !tutor.id) {
       alert("Unable to contact this tutor. Please try again later.")
-      return;
+      return
     }
 
     try {
-      // Use tutor.user_id if available, otherwise use tutor.id
-      const tutorId = tutor.user_id || tutor.id;
+      const tutorId = tutor.user_id || tutor.id
       
-      // Create initial message to start conversation
       const result = await startConversation(
         user.id, 
         tutorId, 
-        null, // no specific request_id for general tutor contact
+        null,
         `Hi ${tutor.name}, I'm interested in your tutoring services. I'd love to discuss my learning needs with you. Are you available for a consultation?`
-      );
+      )
       
       if (result.error) {
-        console.error('Error starting conversation:', result.error);
-        alert('Failed to start conversation. Please try again.');
-        return;
+        console.error('Error starting conversation:', result.error)
+        alert('Failed to start conversation. Please try again.')
+        return
       }
       
-      // Navigate to the conversation
-      window.location.href = `/messages/${tutorId}`;
+      window.location.href = `/messages/${tutorId}`
     } catch (error) {
-      console.error('Error contacting tutor:', error);
-      alert('Failed to contact tutor. Please try again.');
+      console.error('Error contacting tutor:', error)
+      alert('Failed to contact tutor. Please try again.')
     }
-  };
+  }
 
-  if (loading) {
+  // Pagination component
+  const Pagination = () => {
+    if (totalPages <= 1) return null
+
+    const pages = []
+    const showPages = 5
+    let startPage = Math.max(1, currentPage - Math.floor(showPages / 2))
+    let endPage = Math.min(totalPages, startPage + showPages - 1)
+
+    if (endPage - startPage + 1 < showPages) {
+      startPage = Math.max(1, endPage - showPages + 1)
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-2 mt-8">
+        <Button
+          variant="outline"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="px-3 py-1"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+
+        {startPage > 1 && (
+          <>
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(1)}
+              className="px-3 py-1"
+            >
+              1
+            </Button>
+            {startPage > 2 && <span className="px-2">...</span>}
+          </>
+        )}
+
+        {pages.map(page => (
+          <Button
+            key={page}
+            variant={page === currentPage ? "default" : "outline"}
+            onClick={() => handlePageChange(page)}
+            className="px-3 py-1"
+          >
+            {page}
+          </Button>
+        ))}
+
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && <span className="px-2">...</span>}
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(totalPages)}
+              className="px-3 py-1"
+            >
+              {totalPages}
+            </Button>
+          </>
+        )}
+
+        <Button
+          variant="outline"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="px-3 py-1"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    )
+  }
+
+  if (loading && tutors.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-gray-500">Loading tutors...</div>
@@ -279,7 +627,7 @@ export default function FindTutorsPage() {
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-2xl shadow-2xl p-6 border border-gray-200 animate-slide-up">
-              <div className="grid md:grid-cols-4 gap-4">
+              <div className="grid md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
@@ -291,26 +639,15 @@ export default function FindTutorsPage() {
                     />
                   </div>
                 </div>
-                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                <Select value={availabilityFilter} onValueChange={handleAvailabilityChange}>
                   <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
-                    <SelectValue placeholder="All Subjects" />
+                    <SelectValue placeholder="Availability" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Subjects</SelectItem>
-                    {subjects.map(subject => (
-                      <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
-                    <SelectValue placeholder="All Locations" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Locations</SelectItem>
-                    {locations.map(location => (
-                      <SelectItem key={location} value={location}>{location}</SelectItem>
-                    ))}
+                    <SelectItem value="all">All Availability</SelectItem>
+                    <SelectItem value="available">Available Now</SelectItem>
+                    <SelectItem value="available today">Available Today</SelectItem>
+                    <SelectItem value="available this week">This Week</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -318,6 +655,9 @@ export default function FindTutorsPage() {
           </div>
         </div>
       </section>
+
+      {/* Active Filters */}
+      <ActiveFilters />
 
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -333,6 +673,64 @@ export default function FindTutorsPage() {
                 </div>
 
                 <div className="space-y-6">
+                  {/* Subjects */}
+                  <div>
+                    <label className="text-sm font-medium mb-3 block">Subjects</label>
+                    {loadingFilters ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : availableSubjects.length > 0 ? (
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {availableSubjects.map(subject => (
+                          <div key={subject} className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={selectedSubjects.includes(subject)}
+                              onCheckedChange={(checked) => handleSubjectChange(subject, checked)}
+                            />
+                            <span className="text-sm">{subject}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No subjects available</p>
+                    )}
+                  </div>
+
+                  {/* Locations */}
+                  <div>
+                    <label className="text-sm font-medium mb-3 block">Locations</label>
+                    {loadingFilters ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="flex items-center space-x-2">
+                            <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : availableLocations.length > 0 ? (
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {availableLocations.map(location => (
+                          <div key={location} className="flex items-center space-x-2">
+                            <Checkbox
+                              checked={selectedLocations.includes(location)}
+                              onCheckedChange={(checked) => handleLocationChange(location, checked)}
+                            />
+                            <span className="text-sm">{location}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">No locations available</p>
+                    )}
+                  </div>
+
                   {/* Price Range */}
                   <div>
                     <label className="text-sm font-medium mb-3 block">
@@ -340,7 +738,7 @@ export default function FindTutorsPage() {
                     </label>
                     <Slider
                       value={priceRange}
-                      onValueChange={setPriceRange}
+                      onValueChange={handlePriceRangeChange}
                       max={100}
                       step={5}
                       className="w-full"
@@ -355,7 +753,7 @@ export default function FindTutorsPage() {
                         <div key={rating} className="flex items-center space-x-2">
                           <Checkbox
                             checked={minRating === rating}
-                            onCheckedChange={(checked) => setMinRating(checked ? rating : 0)}
+                            onCheckedChange={() => handleRatingChange(rating)}
                           />
                           <div className="flex items-center">
                             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 mr-1" />
@@ -395,9 +793,12 @@ export default function FindTutorsPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {filteredTutors.length} Tutors Found
+                  {totalCount > 0 ? `${totalCount} Tutors Found` : `${tutors.length} Tutors Found`}
                 </h2>
-                <p className="text-gray-600">Find the perfect tutor for your learning needs</p>
+                <p className="text-gray-600">
+                  {currentPage > 1 && `Page ${currentPage} of ${totalPages} • `}
+                  Find the perfect tutor for your learning needs
+                </p>
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-48">
@@ -415,7 +816,7 @@ export default function FindTutorsPage() {
 
             {/* Tutors Grid */}
             <div className="grid gap-6">
-              {filteredTutors.map(tutor => (
+              {tutors.map(tutor => (
                 <Card key={tutor.id} className="hover:shadow-lg transition-shadow duration-200">
                   <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row gap-6">
@@ -454,7 +855,7 @@ export default function FindTutorsPage() {
 
                           <div className="flex flex-wrap gap-2 mb-3">
                             {tutor.subjects && tutor.subjects.map(subject => (
-                              <Badge key={subject} variant="outline">{subject}</Badge>
+                              <Badge key={subject.id || subject.name} variant="outline">{subject.name}</Badge>
                             ))}
                           </div>
 
@@ -489,7 +890,11 @@ export default function FindTutorsPage() {
                       >
                         Contact Tutor
                       </Button>
-                      <Button variant="outline" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        className="flex-1"
+                        onClick={() => router.push(`/tutor-profile/${tutor.user_id}`)}
+                      >
                         View Profile
                       </Button>
                     </div>
@@ -498,18 +903,36 @@ export default function FindTutorsPage() {
               ))}
             </div>
 
-            {filteredTutors.length === 0 && (
+            {/* Pagination */}
+            <Pagination />
+
+            {tutors.length === 0 && !loading && (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
                   <Users className="w-16 h-16 mx-auto" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No tutors found</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-gray-600 mb-6">
                   Try adjusting your search criteria or filters to find more tutors.
                 </p>
-                <Button onClick={clearFilters} variant="outline">
-                  Clear Filters
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                  <Button onClick={clearFilters} variant="outline">
+                    Clear Filters
+                  </Button>
+                  <span className="text-gray-400">or</span>
+                  <Button 
+                    onClick={() => router.push('/request-tutor')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Create a Tutor Request
+                  </Button>
+                </div>
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
+                  <p className="text-sm text-blue-800">
+                    <strong>Can't find what you're looking for?</strong><br />
+                    Create a request and let qualified tutors come to you! Describe what you need help with, and tutors will apply to work with you.
+                  </p>
+                </div>
               </div>
             )}
           </div>
