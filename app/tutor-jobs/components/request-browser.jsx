@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { MapPin, Clock, Users, Eye, Calendar, Star, User, Copy, TrendingUp } from "lucide-react"
+import { MapPin, Clock, Users, Eye, Calendar, Star, User, Copy, TrendingUp, Home, Car, Wifi } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -269,9 +269,7 @@ export default function RequestBrowser({ initialRequests }) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded-full text-xs text-green-700">
-                          <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
-                          <span className="hidden xs:inline">Online</span>
-                          <span className="xs:hidden">On</span>
+                          <Wifi className="w-4 h-4 flex-shrink-0" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -283,9 +281,7 @@ export default function RequestBrowser({ initialRequests }) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
-                          <span className="hidden xs:inline">In-person</span>
-                          <span className="xs:hidden">IP</span>
+                          <Home className="w-4 h-4 flex-shrink-0" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
@@ -297,9 +293,7 @@ export default function RequestBrowser({ initialRequests }) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center gap-1 px-2 py-1 bg-purple-50 border border-purple-200 rounded-full text-xs text-purple-700">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                          <span className="hidden xs:inline">Travel</span>
-                          <span className="xs:hidden">T</span>
+                          <Car className="w-4 h-4 flex-shrink-0" />
                         </div>
                       </TooltipTrigger>
                       <TooltipContent>
