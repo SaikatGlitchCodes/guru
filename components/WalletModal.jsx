@@ -4,7 +4,6 @@ import { useState } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Coins } from "lucide-react"
 import { toast } from "sonner"
@@ -13,14 +12,14 @@ import { useUser } from "@/contexts/UserContext"
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_live_51JuieFSBsceWQO10NrIXjHlkSt0IGLHgALhWXfZouPSrSTEw6uls0TPU7uCJhDiTIIZJyQ8lS0Inx8VFhTZTpofg00KXIYgAOo")
 
 const coinPackages = [
-  { coins: 50, price: 5, popular: false },
-  { coins: 80, price: 8, popular: false },
-  { coins: 100, price: 10, popular: true },
-  { coins: 150, price: 14, popular: false },
-  { coins: 200, price: 18, popular: false },
-  { coins: 500, price: 40, popular: true },
-  { coins: 1000, price: 75, popular: false },
-  { coins: 2000, price: 140, popular: true },
+  { coins: 50, price: 80, popular: false }, // ₹80
+  { coins: 80, price: 100, popular: false }, // ₹100
+  { coins: 100, price: 140, popular: true }, // ₹140
+  { coins: 150, price: 200, popular: false }, // ₹560
+  { coins: 200, price: 260, popular: false }, // ₹720
+  { coins: 500, price: 580, popular: true }, // ₹1600
+  { coins: 1000, price: 1050, popular: false }, // ₹2600
+  { coins: 2000, price: 2030, popular: true }, // ₹5600
 ]
 
 // Calculate base price per coin (using smallest package as baseline)
@@ -104,6 +103,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
   }
 
   const handleCheckout = async (packageData) => {
+    console.log(`Starting checkout for ${packageData.coins} coins at ₹${packageData.price}`)
     if (!user?.email) {
       toast.error("Please sign in to purchase coins")
       return
@@ -120,25 +120,46 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: packageData.price * 100,
+          amount: Math.round(packageData.price * 100), // INR in paise (100 paise = 1 INR)
           coins: packageData.coins,
-          currency: 'usd',
+          currency: 'inr',
           userEmail: user.email,
         }),
       })
 
+      // Handle non-OK responses
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create checkout session')
+        let errorMessage = 'Failed to create checkout session'
+        try {
+          // Clone response to avoid "body stream already read" error
+          const responseClone = response.clone()
+          const errorData = await responseClone.json()
+          errorMessage = errorData.error || errorMessage
+          if (errorData.details) {
+            console.error('API Error Details:', errorData.details)
+          }
+        } catch (jsonError) {
+          // If we can't parse as JSON, try as text
+          try {
+            const textResponse = await response.text()
+            console.error('Non-JSON error response:', textResponse)
+            errorMessage = `Server error (${response.status}): Please check your configuration`
+          } catch (textError) {
+            console.error('Failed to read error response:', textError)
+            errorMessage = `Server error (${response.status}): Unable to read error details`
+          }
+        }
+        throw new Error(errorMessage)
       }
 
       const { url } = await response.json()
       
       if (url) {
         // Redirect to Stripe Checkout
+        console.log('Redirecting to Stripe checkout:', url)
         window.location.href = url
       } else {
-        throw new Error('No checkout URL received')
+        throw new Error('No checkout URL received from server')
       }
 
     } catch (error) {
@@ -177,19 +198,22 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
         {/* Dropdown Selection */}
         <div className="bg-gray-50 p-4 rounded-lg mb-6">
           <h3 className="text-lg font-semibold mb-3">Quick Purchase</h3>
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1 sm:min-w-[300px]">
               <label className="text-sm font-medium text-gray-700 mb-2 block">
                 Select Coin Package
               </label>
               <Select value={selectedCoinPackage} onValueChange={setSelectedCoinPackage}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose coin amount" />
                 </SelectTrigger>
                 <SelectContent>
                   {coinPackagesWithSavings.map((pkg) => (
                     <SelectItem key={pkg.coins} value={pkg.coins.toString()}>
-                      {pkg.coins} coins
+                      <div className="flex justify-between items-center w-full min-w-[150px]">
+                        <span>{pkg.coins} coins</span>
+                        <span className="font-semibold text-green-600">₹{pkg.price}</span>
+                      </div>
                       {pkg.savingsPercentage > 0 && (
                         <span className="text-green-600 ml-1">({pkg.savingsPercentage}% off)</span>
                       )}
@@ -201,7 +225,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
             <Button 
               onClick={handleDropdownCheckout}
               disabled={isLoading || !selectedCoinPackage}
-              className="px-6"
+              className="px-8 py-2 sm:flex-shrink-0"
             >
               {isLoading ? (
                 <>
@@ -218,9 +242,12 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
           <h4 className="font-semibold mb-2">Payment Information</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Secure payment processing via Stripe</li>
+            <li>• <strong>Multiple payment options:</strong> Credit/Debit Cards, UPI, Net Banking, and more</li>
+            <li>• Local payment methods automatically available based on your location</li>
             <li>• Coins are added to your account immediately after payment</li>
             <li>• All transactions are encrypted and secure</li>
             <li>• Coins never expire and can be used for any premium features</li>
+            <li>• All prices are in Indian Rupees (₹)</li>
           </ul>
         </div>
       </DialogContent>

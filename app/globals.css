@@ -378,3 +378,30 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Custom slow rotation animation for how it works button */
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reverse-animate-spin-slow {
+  animation: reverse-spin-slow 8s linear infinite;
+}
+
+@keyframes reverse-spin-slow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}

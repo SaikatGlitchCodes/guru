@@ -15,13 +15,16 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import AuthModal from "./auth-modal"
+import { WalletModal } from "./WalletModal"
 import { useUser } from "@/contexts/UserContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertDescription, AlertTitle } from "./ui/alert"
 
 export default function Navbar() {
   const { user, profile, loading, isRequestInLocalStorage, signOut } = useUser()
+  console.log("Loading state in Navbar:", isRequestInLocalStorage)
   const [isOpen, setIsOpen] = useState(false)
+  const [showWalletModal, setShowWalletModal] = useState(false)
 
   console.log("User:", user)
   console.log("Profile:", profile)
@@ -51,7 +54,6 @@ export default function Navbar() {
         return [
           { href: "/find-tutors", label: "Find Tutors" },
           { href: "/tutor-jobs", label: "Tutor Jobs" },
-          { href: "/become-tutor", label: "Become a Tutor" },
           { href: '/job-support', label: "Job Support" },
         ]
       default:
@@ -68,7 +70,11 @@ export default function Navbar() {
   )
 
   const CoinBalance = () => {
-    return (<button type="button" className="coin-button">
+    return (<button 
+      type="button" 
+      className="coin-button"
+      onClick={() => setShowWalletModal(true)}
+    >
       <span className="fold"></span>
 
       <div className="points_wrapper">
@@ -259,6 +265,13 @@ export default function Navbar() {
     await signOut()
   }
 
+  // Handle successful coin purchase
+  const handleCoinPurchaseSuccess = (coinsAdded) => {
+    console.log(`Successfully added ${coinsAdded} coins to wallet`)
+    // The user context should automatically refresh the coin balance
+    // You could also manually refresh user data here if needed
+  }
+
   // Show a simplified navbar during initial load only
   if (loading) {
     return (
@@ -333,6 +346,13 @@ export default function Navbar() {
         </div>
         <AuthModal title="Login!" />
       </div>}
+
+      {/* Wallet Modal */}
+      <WalletModal 
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onSuccess={handleCoinPurchaseSuccess}
+      />
     </>
   )
 }

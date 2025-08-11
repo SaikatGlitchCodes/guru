@@ -70,7 +70,7 @@ export function BudgetPreferencesStep({ form }) {
   const [open, setOpen] = useState(false)
   const { profile } = useUser()
 
-  const suggestedCurrency = getCurrencyByCountry(profile.address.country);
+  const suggestedCurrency = getCurrencyByCountry(profile?.address?.country);
   const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "$";
 
 

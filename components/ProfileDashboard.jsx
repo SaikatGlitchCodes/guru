@@ -129,11 +129,6 @@ export default function ProfileDashboard() {
               <p className="text-sm text-muted-foreground mb-3">
                 Choose your role to get started
               </p>
-              <Link href="/become-tutor">
-                <Button size="sm" className="w-full">
-                  Become a Tutor
-                </Button>
-              </Link>
             </CardContent>
           </Card>
         )}

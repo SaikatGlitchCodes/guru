@@ -39,7 +39,7 @@ const signUpSchema = z.object({
     })
 })
 
-export default function AuthModal({ defaultRole = "student", triggerText = "Sign In / Up" }) {
+export default function AuthModal({ defaultRole = "student", triggerText = "Sign In / Up", background = "bg-primary" }) {
     const [isOpen, setIsOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -178,7 +178,7 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
             if (!open) clearErrors()
         }}>
             <DialogTrigger asChild>
-                <Button className="px-4">{triggerText}</Button>
+                <Button className={`px-4 ${background}`}>{triggerText}</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
