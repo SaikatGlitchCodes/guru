@@ -89,7 +89,7 @@ export function SubjectMeetingStep({ form }) {
 
 
   return (
-    <div className="space-y-8 border-t-2 pt-12">
+    <div className="space-y-4 border-t-2 pt-12">
       {/* Request type - Enhanced UI - Moved to top for priority */}
       <FormField
         control={form.control}
@@ -107,7 +107,7 @@ export function SubjectMeetingStep({ form }) {
                 const IconComponent = type.icon
                 const isSelected = field.value === type.value
                 return (
-                  <Card 
+                  <div 
                     key={type.value}
                     className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
                       isSelected 
@@ -116,7 +116,7 @@ export function SubjectMeetingStep({ form }) {
                     }`}
                     onClick={() => field.onChange(type.value)}
                   >
-                    <CardContent className="p-3 text-center">
+                    <div className="p-2 text-center">
                       <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${
                         isSelected ? type.color : 'bg-gray-100'
                       }`}>
@@ -137,8 +137,8 @@ export function SubjectMeetingStep({ form }) {
                           Selected
                         </Badge>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )
               })}
             </div>

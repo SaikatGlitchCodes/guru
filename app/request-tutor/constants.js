@@ -6,7 +6,7 @@ import { SubjectMeetingStep } from "@/app/request-tutor/steps/subject-meeting-st
 import { BudgetPreferencesStep } from "@/app/request-tutor/steps/budget-preferences-step"
 
 export const REQUEST_STEPS = [
-  { title: "Email Address", Component: EmailVerificationStep, fields: ["email"] },
+  { title: "Email Address", Component: EmailVerificationStep, fields: ["user_email"] },
   { title: "Basic Details", Component: NameAddressStep, fields: ["name", "street"] },
   { title: "Contact Info", Component: PhoneNumberStep, fields: ["phone_number"] },
   { title: "Requirements", Component: RequirementDescriptionStep, fields: ["description"] },

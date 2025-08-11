@@ -76,21 +76,7 @@ const JobSupportPage = () => {
               Help professionals advance their careers through personalized mentoring
             </p>
             
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/request-tutor">
-                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Request Job Support Tutor
-                </Button>
-              </Link>
-              <Link href="/tutor-jobs?filter=job-support">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black">
-                  <Briefcase className="w-5 h-5 mr-2" />
-                  Browse Job Support Opportunities
-                </Button>
-              </Link>
-            </div>
+            
           </div>
 
           {/* Quick Stats */}

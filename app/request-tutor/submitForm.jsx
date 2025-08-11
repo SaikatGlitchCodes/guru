@@ -49,7 +49,7 @@ const FormNavigationButton = ({
               console.log("User not authenticated, storing data in localStorage and redirecting to sign-in");
               localStorage.setItem("pendingTutorRequest", JSON.stringify(form.getValues()));
               console.log("User not authenticated, storing data and redirecting...")
-              signInWithMagicLink(form.getValues().email);
+              signInWithMagicLink(form.getValues().user_email);
             } else {
               console.log("User authenticated, submitting form...");
               await createRequest(form.getValues());
