@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useUser } from "@/contexts/UserContext"
 import ProfileDashboard from "@/components/ProfileDashboard"
 import ThemedHero from "@/components/ThemedHero"
@@ -352,7 +353,7 @@ export default function HomePage() {
       </ThemedHero>
       {/* Remove the absolute positioned video circle since it's now in the right column */}
       {/* Categories Section */}
-      <section className="py-20 bg-gray-50">
+      {/* <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Subjects</h2>
@@ -384,10 +385,10 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured Mentors */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Meet Our Top Tutors</h2>
@@ -452,7 +453,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* How It Works */}
       <section className="py-20 bg-gray-50">
@@ -506,7 +507,7 @@ export default function HomePage() {
       </section>
 
       {/* Success Stories */}
-      <section className="py-20 bg-white">
+      {/* <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
@@ -543,7 +544,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Customer Protection Card */}
+
           <div className="mt-16 max-w-4xl mx-auto">
             <Card className="bg-gray-50 border-gray-200">
               <CardContent className="p-12 text-center">
@@ -561,132 +562,191 @@ export default function HomePage() {
             </Card>
           </div>
         </div>
-      </section>
+      </section>  */}
 
-      {/* FAQ Section */}
+      {/* FAQ and Call to Action Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-start">
-            {/* Left Side - FAQ Info */}
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
-                <p className="text-gray-600 text-lg leading-relaxed mb-8">
-                  Get answers to common questions about our tutoring platform and services.
+          <div className="grid lg:grid-cols-3 gap-12 items-start">
+            
+            {/* Left Content - Call to Action */}
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-12 text-white">
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                  Ready to start learning?
+                </h2>
+                <p className="text-xl mb-8 text-green-50 leading-relaxed">
+                  Join thousands of students who have achieved their goals with personalized tutoring and expert guidance.
                 </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/request-tutor">
+                    <Button size="lg" className="bg-white text-green-600 hover:bg-gray-50 px-8 py-4 rounded-full shadow-lg font-semibold">
+                      <span className="mr-2">GET STARTED</span>
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link href="/find-tutors">
+                    <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-8 py-4 rounded-full">
+                      <Search className="mr-2 h-5 w-5" />
+                      Find Tutors
+                    </Button>
+                  </Link>
+                </div>
               </div>
-
-              <div className="space-y-4">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full justify-start border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600 hover:bg-green-50 text-left p-6 h-auto"
-                >
-                  <span>VIEW POPULAR SUBJECTS</span>
-                </Button>
-
-                <Link href="/find-tutors">
-                  <Button
-                    size="lg"
-                    className="w-full bg-green-500 hover:bg-green-600 text-white border-0 p-6 h-auto shadow-lg shadow-green-500/20"
-                  >
-                    <span className="mr-2">FIND TUTORS NOW</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Side - FAQ Items */}
-            <div className="space-y-4">
-              {[
-                "1. How do I find the right tutor for my needs?",
-                "2. What subjects and skills are available?",
-                "3. How does the booking and payment system work?",
-                "4. Can I reschedule or cancel sessions?",
-                "5. What if I'm not satisfied with my tutor?"
-              ].map((question, index) => (
-                <Card key={index} className="bg-white border-gray-200 hover:bg-gray-50 hover:border-green-300 transition-all cursor-pointer group">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-900 group-hover:text-green-600 transition-colors">{question}</span>
-                      <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-green-600 transition-colors" />
+              
+              {/* Additional Info Cards */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
+                  <CardContent className="p-0">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                        <Star className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">4.9/5 Rating</h3>
+                        <p className="text-gray-600 text-sm">From 10,000+ students</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                
+                <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
+                  <CardContent className="p-0">
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                        <GraduationCap className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">Expert Tutors</h3>
+                        <p className="text-gray-600 text-sm">Verified & experienced</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-white border-t border-gray-200">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Ready to start learning?
-            </h2>
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Join thousands of students who have achieved their goals with personalized tutoring and expert guidance.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link href="/request-tutor">
-                <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-12 py-6 text-lg rounded-full border-0 shadow-xl shadow-green-500/20">
-                  <span className="mr-2">GET STARTED</span>
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+            {/* Right Side - Compact FAQ */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
+                  Quick FAQ
+                </h3>
+                
+                <Accordion type="single" collapsible className="space-y-3">
+                  {[
+                    {
+                      question: "How do I find a tutor?",
+                      answer: "Browse verified tutors by subject, location, and budget. Filter by ratings and experience."
+                    },
+                    {
+                      question: "What's the cost?",
+                      answer: "Rates range from $15-100+ per hour based on subject and tutor experience."
+                    },
+                    {
+                      question: "Online or in-person?",
+                      answer: "Both options available with video platform tools for online sessions."
+                    },
+                    {
+                      question: "Can I reschedule?",
+                      answer: "Yes! Free rescheduling up to 24 hours before your session."
+                    },
+                    {
+                      question: "Money-back guarantee?",
+                      answer: "100% satisfaction guarantee - get refund or new tutor if not happy."
+                    }
+                  ].map((faq, index) => (
+                    <AccordionItem 
+                      key={index} 
+                      value={`faq-${index}`}
+                      className="border border-gray-100 rounded-lg px-4 hover:border-green-200 transition-colors"
+                    >
+                      <AccordionTrigger className="text-left hover:text-green-600 transition-colors py-3 text-sm font-medium">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-gray-600 text-sm leading-relaxed pb-3">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+                
+                <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                  <p className="text-gray-600 text-sm mb-3">Need more help?</p>
+                  <Link href="/contact">
+                    <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600 text-sm">
+                      Contact Support
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-16 px-4 border-t border-gray-800">
+      <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-10 px-4 border-t border-gray-700">
         <div className="container mx-auto">
           <div className="grid md:grid-cols-5 gap-12">
             {/* Brand */}
             <div className="md:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                  <GraduationCap className="w-6 h-6 text-white" />
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <GraduationCap className="w-7 h-7 text-white" />
                 </div>
-                <span className="text-2xl font-bold text-white">TutorConnect</span>
+                <span className="text-3xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
+                  Guru
+                </span>
               </div>
-              <p className="text-gray-400 mb-6 max-w-sm leading-relaxed">
-                Connecting students with expert tutors for personalized learning experiences.
+              <p className="text-gray-400 mb-8 max-w-sm leading-relaxed text-lg">
+                Find your perfect guru and unlock your learning potential with personalized guidance.
               </p>
-              <div className="text-sm space-y-1">
-                <p className="text-white font-semibold">123 Education Street, Learning City,</p>
-                <p>State 12345, United States</p>
-                <p className="mt-4">+1 (555) 123-4567</p>
-                <p>hello@tutorconnect.com</p>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <MapPin className="w-3 h-3 text-green-400" />
+                  </div>
+                  <div className="text-sm">
+                    <p className="text-white font-medium">San Francisco, CA</p>
+                    <p className="text-gray-400">United States</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <Globe className="w-3 h-3 text-green-400" />
+                  </div>
+                  <p className="text-gray-300">hello@findyourguru.com</p>
+                </div>
               </div>
             </div>
 
-            {/* Useful Links */}
+            {/* Quick Links */}
             <div>
-              <h3 className="font-semibold mb-6 text-white">For Students</h3>
-              <ul className="space-y-3">
+              <h3 className="font-bold mb-6 text-white text-lg">Students</h3>
+              <ul className="space-y-4">
                 <li>
-                  <Link href="/find-tutors" className="hover:text-green-400 transition-colors">
-                    Find Tutors
+                  <Link href="/find-tutors" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Find Tutors</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/subjects" className="hover:text-green-400 transition-colors">
-                    Browse Subjects
+                  <Link href="/subjects" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Book className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>All Subjects</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/how-it-works" className="hover:text-green-400 transition-colors">
-                    How it Works
+                  <Link href="/how-it-works" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Target className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>How it Works</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/pricing" className="hover:text-green-400 transition-colors">
-                    Pricing
+                  <Link href="/pricing" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <TrendingUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Pricing</span>
                   </Link>
                 </li>
               </ul>
@@ -694,63 +754,129 @@ export default function HomePage() {
 
             {/* For Tutors */}
             <div>
-              <h3 className="font-semibold mb-6 text-white">For Tutors</h3>
-              <ul className="space-y-3">
+              <h3 className="font-bold mb-6 text-white text-lg">Tutors</h3>
+              <ul className="space-y-4">
                 <li>
-                  <Link href="/tutor-resources" className="hover:text-green-400 transition-colors">
-                    Resources
+                  <Link href="/become-tutor" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Users className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Become a Tutor</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tutor-support" className="hover:text-green-400 transition-colors">
-                    Support
+                  <Link href="/tutor-resources" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Resources</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/success-stories" className="hover:text-green-400 transition-colors">
-                    Success Stories
+                  <Link href="/tutor-support" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Shield className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Support</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/success-stories" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Award className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Success Stories</span>
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Support */}
+            {/* Company */}
             <div>
-              <h3 className="font-semibold mb-6 text-white">Support</h3>
-              <ul className="space-y-3">
+              <h3 className="font-bold mb-6 text-white text-lg">Company</h3>
+              <ul className="space-y-4">
                 <li>
-                  <Link href="/help" className="hover:text-green-400 transition-colors">
-                    Help Center
+                  <Link href="/about" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Users className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>About Us</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:text-green-400 transition-colors">
-                    Contact Us
+                  <Link href="/contact" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <Globe className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Contact</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="hover:text-green-400 transition-colors">
-                    Privacy Policy
+                  <Link href="/careers" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <TrendingUp className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Careers</span>
                   </Link>
                 </li>
                 <li>
-                  <Link href="/terms" className="hover:text-green-400 transition-colors">
-                    Terms of Service
+                  <Link href="/blog" className="flex items-center space-x-2 hover:text-green-400 transition-colors group">
+                    <BookOpen className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span>Blog</span>
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm text-gray-500">© 2025 TutorConnect. All rights reserved.</p>
-            <div className="flex items-center gap-4 mt-4 md:mt-0">
-              <Button variant="outline" size="sm" className="border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400">
-                USD ($)
-              </Button>
-              <Button variant="outline" size="sm" className="border-gray-700 text-gray-400 hover:border-green-500 hover:text-green-400">
-                🌍 English
-              </Button>
+          {/* Bottom Footer */}
+          <div className="border-t border-gray-700/50 mt-16 pt-8">
+            <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
+              {/* Copyright */}
+              <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
+                <p className="text-sm text-gray-400">
+                  © 2025 Guru. All rights reserved.
+                </p>
+                <div className="flex space-x-6 text-sm">
+                  <Link href="/privacy" className="text-gray-400 hover:text-green-400 transition-colors">
+                    Privacy Policy
+                  </Link>
+                  <Link href="/terms" className="text-gray-400 hover:text-green-400 transition-colors">
+                    Terms of Service
+                  </Link>
+                  <Link href="/help" className="text-gray-400 hover:text-green-400 transition-colors">
+                    Help Center
+                  </Link>
+                </div>
+              </div>
+
+              {/* Language & Currency */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <Globe className="w-3 h-3 text-green-400" />
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-400 hover:bg-green-500/10 px-3 py-2 rounded-lg transition-all">
+                    🌍 English
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <TrendingUp className="w-3 h-3 text-green-400" />
+                  </div>
+                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-400 hover:bg-green-500/10 px-3 py-2 rounded-lg transition-all">
+                    USD ($)
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="mt-8 pt-6 border-t border-gray-700/30">
+              <div className="flex flex-wrap justify-center items-center space-x-8 text-gray-500 text-sm">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-green-400" />
+                  <span>Secure Platform</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Star className="w-4 h-4 text-yellow-400" />
+                  <span>4.9/5 Rating</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-blue-400" />
+                  <span>108k+ Students</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <GraduationCap className="w-4 h-4 text-purple-400" />
+                  <span>12k+ Tutors</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
