@@ -215,7 +215,7 @@ export default function HomePage() {
                               setFilteredSuggestions([])
                             }
                           }}
-                          className="pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500"
+                          className="pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500 h-12"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               const query = searchTerm.trim() || 'all tutors'
@@ -266,7 +266,7 @@ export default function HomePage() {
                       </div>
                       <Button
                         size="lg"
-                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg shadow-green-500/20"
+                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg shadow-green-500/20 h-12"
                         onClick={() => {
                           const query = searchTerm.trim() || 'all tutors'
                           router.push(`/find-tutors?q=${encodeURIComponent(query)}`)
@@ -280,7 +280,7 @@ export default function HomePage() {
                   
                   </div>
                   <p className="text-xl text-gray-600 leading-relaxed max-w-lg mt-4">
-                    We help you find the perfect guru. It's completely FREE
+                    We help you find the perfect guru. It&apos;s completely FREE
                   </p>
                 </div>
 
@@ -524,7 +524,7 @@ export default function HomePage() {
                       <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
                     ))}
                   </div>
-                  <p className="text-gray-700 mb-6 italic leading-relaxed">"{story.text}"</p>
+                  <p className="text-gray-700 mb-6 italic leading-relaxed">&quot;{story.text}&quot;</p>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex items-center justify-between">
                       <div>
