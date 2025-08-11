@@ -43,12 +43,7 @@ export default function MyStudentsPage() {
   const [sortBy, setSortBy] = useState("newest")
   const [lastRefresh, setLastRefresh] = useState(Date.now()) // Track refresh time
 
-  useEffect(() => {
-    if (user?.email) {
-      fetchMyStudents()
-    }
-  }, [user?.email, lastRefresh, fetchMyStudents]) // Include lastRefresh as dependency
-
+  // Define fetchMyStudents before using it in useEffect
   const fetchMyStudents = useCallback(async () => {
     if (!user?.email) return
     
@@ -75,6 +70,12 @@ export default function MyStudentsPage() {
       setLoading(false)
     }
   }, [user?.email])
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchMyStudents()
+    }
+  }, [user?.email, lastRefresh, fetchMyStudents]) // Include lastRefresh as dependency
 
   // Enhanced filter and sort functionality
   const students = useMemo(() => {

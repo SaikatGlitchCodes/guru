@@ -14,11 +14,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { supabase } from "@/lib/supabaseClient"
 import { useUser } from "@/contexts/UserContext"
-
+import { sendPasswordResetEmail } from "@/lib/supabaseAPI"
+import { toast } from "sonner"
 
 // Add prop to control default role
 const signInSchema = z.object({
@@ -39,12 +40,19 @@ const signUpSchema = z.object({
     })
 })
 
+const forgotPasswordSchema = z.object({
+    email: z.string().email("Please enter a valid email address")
+})
+
 export default function AuthModal({ defaultRole = "student", triggerText = "Sign In / Up", background = "bg-primary" }) {
     const [isOpen, setIsOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [signInErrors, setSignInErrors] = useState({})
     const [signUpErrors, setSignUpErrors] = useState({})
+    const [forgotPasswordErrors, setForgotPasswordErrors] = useState({})
+    const [showForgotPassword, setShowForgotPassword] = useState(false)
+    const [resetEmailSent, setResetEmailSent] = useState(false)
     
     const { refreshUserData } = useUser()
 
@@ -91,6 +99,27 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
         }
 
         setSignUpErrors({})
+        return true
+    }
+
+    const validateForgotPassword = (formData) => {
+        const data = {
+            email: formData.get("email")
+        }
+
+        const result = forgotPasswordSchema.safeParse(data)
+        if (!result.success) {
+            const errors = {}
+            result.error.errors.forEach((error) => {
+                if (error.path[0]) {
+                    errors[error.path[0]] = error.message
+                }
+            })
+            setForgotPasswordErrors(errors)
+            return false
+        }
+
+        setForgotPasswordErrors({})
         return true
     }
 
@@ -155,13 +184,41 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
             }
 
             if (data.user && data.session === null) {
-                alert("Please check your email to verify your account")
+                toast.success("Account created successfully! Please check your email to verify your account before signing in.")
             }
 
             setIsOpen(false)
             setSignUpErrors({})
         } catch (error) {
-            setSignUpErrors({ email: "An account with this email already exists" })
+            if (error.message?.includes('User already registered')) {
+                setSignUpErrors({ email: "An account with this email already exists. Try signing in instead." })
+            } else {
+                setSignUpErrors({ email: error.message || "An error occurred while creating your account" })
+            }
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const handleForgotPassword = async (formData) => {
+        if (!validateForgotPassword(formData)) return
+
+        setIsLoading(true)
+        try {
+            const email = formData.get("email")
+            
+            const result = await sendPasswordResetEmail(email)
+            
+            if (result.error) throw result.error
+
+            setResetEmailSent(true)
+            toast.success("Password reset email sent! Please check your inbox and follow the instructions.")
+        } catch (error) {
+            if (error.message?.includes('User not found')) {
+                setForgotPasswordErrors({ email: "No account found with this email address" })
+            } else {
+                setForgotPasswordErrors({ email: error.message || "Failed to send reset email. Please try again." })
+            }
         } finally {
             setIsLoading(false)
         }
@@ -170,6 +227,9 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
     const clearErrors = () => {
         setSignInErrors({})
         setSignUpErrors({})
+        setForgotPasswordErrors({})
+        setShowForgotPassword(false)
+        setResetEmailSent(false)
     }
 
     return (
@@ -182,230 +242,313 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Welcome</DialogTitle>
+                    <DialogTitle>
+                        {showForgotPassword ? "Reset Password" : "Welcome"}
+                    </DialogTitle>
                     <DialogDescription>
-                        Sign in to your account or create a new one to get started.
+                        {showForgotPassword 
+                            ? "Enter your email address to receive a password reset link."
+                            : "Sign in to your account or create a new one to get started."
+                        }
                     </DialogDescription>
                 </DialogHeader>
 
-                <Tabs defaultValue="signin" className="w-full" onValueChange={clearErrors}>
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="signin">Sign In</TabsTrigger>
-                        <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="signin" className="space-y-4 mt-6">
-                        <form action={handleSignIn} className="space-y-4">
-                            <div className="space-y-2">
-                                {signInErrors.email && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signInErrors.email}</span>
-                                    </div>
-                                )}
-                                <Label htmlFor="signin-email">Email</Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="signin-email"
-                                        name="email"
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        className={`pl-10 ${signInErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
+                {showForgotPassword ? (
+                    // Forgot Password Form
+                    <div className="space-y-4 mt-6">
+                        {resetEmailSent ? (
+                            <div className="text-center space-y-4">
+                                <div className="flex justify-center">
+                                    <CheckCircle2 className="h-12 w-12 text-green-500" />
                                 </div>
-                                
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="signin-password">Password</Label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="signin-password"
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Enter your password"
-                                        className={`pl-10 pr-10 ${signInErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
-                                    <Button
-                                        type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                        ) : (
-                                            <Eye className="h-4 w-4 text-muted-foreground" />
-                                        )}
-                                        <span className="sr-only">
-                                            {showPassword ? "Hide password" : "Show password"}
-                                        </span>
-                                    </Button>
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-medium">Check your email</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        We've sent a password reset link to your email address. 
+                                        Click the link in the email to reset your password.
+                                    </p>
                                 </div>
-                                {signInErrors.password && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signInErrors.password}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center justify-between">
                                 <Button
                                     type="button"
-                                    variant="link"
-                                    className="px-0 text-sm text-muted-foreground"
+                                    variant="outline"
+                                    onClick={() => {
+                                        setShowForgotPassword(false)
+                                        setResetEmailSent(false)
+                                    }}
                                 >
-                                    Forgot password?
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Back to Sign In
                                 </Button>
                             </div>
-
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? "Signing in..." : "Sign In"}
-                            </Button>
-                        </form>
-                    </TabsContent>
-
-                    <TabsContent value="signup" className="space-y-4 mt-6">
-                        <form action={handleSignUp} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="signup-name">Full Name</Label>
-                                <div className="relative">
-                                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="signup-name"
-                                        name="name"
-                                        type="text"
-                                        placeholder="Enter your full name"
-                                        className={`pl-10 ${signUpErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
-                                </div>
-                                {signUpErrors.name && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signUpErrors.name}</span>
+                        ) : (
+                            <form action={handleForgotPassword} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="forgot-email">Email Address</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="forgot-email"
+                                            name="email"
+                                            type="email"
+                                            placeholder="Enter your email address"
+                                            className={`pl-10 ${forgotPasswordErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
                                     </div>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="signup-email">Email</Label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="signup-email"
-                                        name="email"
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        className={`pl-10 ${signUpErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
+                                    {forgotPasswordErrors.email && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{forgotPasswordErrors.email}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                {signUpErrors.email && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signUpErrors.email}</span>
-                                    </div>
-                                )}
-                            </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="signup-password">Password</Label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input
-                                        id="signup-password"
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Create a password"
-                                        className={`pl-10 pr-10 ${signUpErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                        required
-                                    />
+                                <Button type="submit" className="w-full" disabled={isLoading}>
+                                    {isLoading ? "Sending Reset Link..." : "Send Reset Link"}
+                                </Button>
+
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="w-full"
+                                    onClick={() => setShowForgotPassword(false)}
+                                >
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Back to Sign In
+                                </Button>
+                            </form>
+                        )}
+                    </div>
+                ) : (
+                    // Sign In / Sign Up Tabs
+                    <Tabs defaultValue="signin" className="w-full" onValueChange={clearErrors}>
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="signin">Sign In</TabsTrigger>
+                            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="signin" className="space-y-4 mt-6">
+                            <form action={handleSignIn} className="space-y-4">
+                                <div className="space-y-2">
+                                    {signInErrors.email && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signInErrors.email}</span>
+                                        </div>
+                                    )}
+                                    <Label htmlFor="signin-email">Email</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="signin-email"
+                                            name="email"
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            className={`pl-10 ${signInErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="signin-password">Password</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="signin-password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Enter your password"
+                                            className={`pl-10 pr-10 ${signInErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                            ) : (
+                                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                            )}
+                                            <span className="sr-only">
+                                                {showPassword ? "Hide password" : "Show password"}
+                                            </span>
+                                        </Button>
+                                    </div>
+                                    {signInErrors.password && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signInErrors.password}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex items-center justify-between">
                                     <Button
                                         type="button"
-                                        variant="ghost"
-                                        size="sm"
-                                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                        onClick={() => setShowPassword(!showPassword)}
+                                        variant="link"
+                                        className="px-0 text-sm text-muted-foreground hover:text-primary"
+                                        onClick={() => setShowForgotPassword(true)}
                                     >
-                                        {showPassword ? (
-                                            <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                        ) : (
-                                            <Eye className="h-4 w-4 text-muted-foreground" />
-                                        )}
-                                        <span className="sr-only">
-                                            {showPassword ? "Hide password" : "Show password"}
-                                        </span>
+                                        Forgot password?
                                     </Button>
                                 </div>
-                                {signUpErrors.password && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signUpErrors.password}</span>
-                                    </div>
-                                )}
-                            </div>
 
-                            <div className="space-y-2">
-                                <Label>I am a</Label>
-                                <RadioGroup name="role" defaultValue={defaultRole} className="grid grid-cols-2 gap-4">
-                                    <Label
-                                        htmlFor="student"
-                                        className="flex items-center justify-center rounded-md border-2 border-muted bg-background p-3 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white cursor-pointer"
-                                    >
-                                        <RadioGroupItem
-                                            value="student"
-                                            id="student"
-                                            className="sr-only"
-                                        />
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span className="font-medium">Student</span>
-                                    </Label>
-
-                                    <Label
-                                        htmlFor="tutor"
-                                        className="flex items-center justify-center rounded-md border-2 border-muted bg-background p-3 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white cursor-pointer"
-                                    >
-                                        <RadioGroupItem
-                                            value="tutor"
-                                            id="tutor"
-                                            className="sr-only"
-                                        />
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span className="font-medium">Tutor</span>
-                                    </Label>
-                                </RadioGroup>
-                                {signUpErrors.role && (
-                                    <div className="flex items-center gap-2 text-sm text-red-600">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <span>{signUpErrors.role}</span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="text-sm text-muted-foreground">
-                                By creating an account, you agree to our{" "}
-                                <Button variant="link" className="px-0 text-sm h-auto">
-                                    Terms of Service
-                                </Button>{" "}
-                                and{" "}
-                                <Button variant="link" className="px-0 text-sm h-auto">
-                                    Privacy Policy
+                                <Button type="submit" className="w-full" disabled={isLoading}>
+                                    {isLoading ? "Signing in..." : "Sign In"}
                                 </Button>
-                            </div>
+                            </form>
+                        </TabsContent>
 
-                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                {isLoading ? "Creating account..." : "Create Account"}
-                            </Button>
-                        </form>
-                    </TabsContent>
-                </Tabs>
+                        <TabsContent value="signup" className="space-y-4 mt-6">
+                            <div className="text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <strong>Note:</strong> Your email will be used for account verification, password recovery, 
+                                and important platform communications. We'll also use it to connect you with tutors/students when you make requests.
+                            </div>
+                            
+                            <form action={handleSignUp} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="signup-name">Full Name</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="signup-name"
+                                            name="name"
+                                            type="text"
+                                            placeholder="Enter your full name"
+                                            className={`pl-10 ${signUpErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
+                                    </div>
+                                    {signUpErrors.name && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signUpErrors.name}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="signup-email">Email</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="signup-email"
+                                            name="email"
+                                            type="email"
+                                            placeholder="Enter your email address"
+                                            className={`pl-10 ${signUpErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        We'll send a verification email to this address.
+                                    </p>
+                                    {signUpErrors.email && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signUpErrors.email}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="signup-password">Password</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="signup-password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="Create a password"
+                                            className={`pl-10 pr-10 ${signUpErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                            required
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? (
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                            ) : (
+                                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                            )}
+                                            <span className="sr-only">
+                                                {showPassword ? "Hide password" : "Show password"}
+                                            </span>
+                                        </Button>
+                                    </div>
+                                    {signUpErrors.password && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signUpErrors.password}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>I am a</Label>
+                                    <RadioGroup name="role" defaultValue={defaultRole} className="grid grid-cols-2 gap-4">
+                                        <Label
+                                            htmlFor="student"
+                                            className="flex items-center justify-center rounded-md border-2 border-muted bg-background p-3 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white cursor-pointer"
+                                        >
+                                            <RadioGroupItem
+                                                value="student"
+                                                id="student"
+                                                className="sr-only"
+                                            />
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span className="font-medium">Student</span>
+                                        </Label>
+
+                                        <Label
+                                            htmlFor="tutor"
+                                            className="flex items-center justify-center rounded-md border-2 border-muted bg-background p-3 has-[:checked]:border-primary has-[:checked]:bg-primary has-[:checked]:text-white cursor-pointer"
+                                        >
+                                            <RadioGroupItem
+                                                value="tutor"
+                                                id="tutor"
+                                                className="sr-only"
+                                            />
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span className="font-medium">Tutor</span>
+                                        </Label>
+                                    </RadioGroup>
+                                    {signUpErrors.role && (
+                                        <div className="flex items-center gap-2 text-sm text-red-600">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <span>{signUpErrors.role}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="text-sm text-muted-foreground">
+                                    By creating an account, you agree to our{" "}
+                                    <Button variant="link" className="px-0 text-sm h-auto">
+                                        Terms of Service
+                                    </Button>{" "}
+                                    and{" "}
+                                    <Button variant="link" className="px-0 text-sm h-auto">
+                                        Privacy Policy
+                                    </Button>
+                                </div>
+
+                                <Button type="submit" className="w-full" disabled={isLoading}>
+                                    {isLoading ? "Creating account..." : "Create Account"}
+                                </Button>
+                            </form>
+                        </TabsContent>
+                    </Tabs>
+                )}
             </DialogContent>
         </Dialog>
     )

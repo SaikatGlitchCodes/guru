@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, BookOpen, Users, Star, ArrowRight, Award, Radiation, Book, Computer, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play } from "lucide-react"
+import { Search, BookOpen, Users, Star, ArrowRight, Award, Radiation, Book, Computer, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,9 +22,10 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [subjects, setSubjects] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const { user, profile, loading: userLoading } = useUser()
-
+  const { user, loading: userLoading } = useUser()
+  const [expandPlayer, setExpandPlayer] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
+  const [showPlayer, setShowPlayer] = useState(false)
 
   // Fetch top tutors and subjects from database
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 relative z-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
-            <div className="">
+            <div>
               <div>
                 {/* Title with overlapping avatars */}
                 <div className="relative">
@@ -238,18 +239,55 @@ export default function HomePage() {
             </div>
 
             {/* Right Content - How it works video + Top tutors */}
-            <div className="relative space-y-6">
+            <div className="relative space-y-6 h-full flex flex-col justify-center items-center" onMouseEnter={() => setExpandPlayer(true)} onMouseLeave={() => setExpandPlayer(false)}>
               {/* How It Works Video Circle */}
-              <div className="relative mx-auto w-fit animate-spin-slow">
-                <div className="w-48 h-48 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-                    <Play className="reverse-animate-spin-slow w-8 h-8 text-green-500 ml-1" fill="currentColor" />
-                  </div>
+              <div className={`relative mx-auto w-fit ${!expandPlayer && !showPlayer ? 'animate-spin-slow' : 'animate-none'}`}>
+                <div className={`bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none ${
+                  showPlayer 
+                    ? 'md:w-[600px] h-96 rounded-2xl' 
+                    : 'w-48 h-48 rounded-full hover:rounded-2xl hover:h-96 hover:w-[600px]'
+                }`}>
+                  {!showPlayer && (
+                    <div onClick={() => setShowPlayer(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">
+                      <Play className={`w-8 h-8 text-green-500 ml-1 ${!(expandPlayer) ? 'reverse-animate-spin-slow' : 'animate-none'}`} fill="currentColor" />
+                    </div>
+                  )}
+                  {showPlayer && (
+                    <div className="w-full h-full relative rounded-2xl overflow-hidden">
+                      {/* Close Button */}
+                      <button
+                        onClick={() => setShowPlayer(false)}
+                        className="absolute top-2 right-2 z-10 w-8 h-8 bg-black bg-opacity-70 hover:bg-opacity-90 rounded-full flex items-center justify-center transition-all duration-200"
+                      >
+                        <X className="w-5 h-5 text-white" />
+                      </button>
+                      
+                      {/* HTML5 Video Player */}
+                      <video
+                        className="w-full h-full object-cover"
+                        src="https://cdn.dribbble.com/userupload/18418019/file/original-8ff51bf6e981f7da43f0f74510703ad8.mp4"
+                        autoPlay
+                        controls
+                        muted
+                        loop
+                        playsInline
+                        preload="metadata"
+                        onLoadStart={() => console.log('Video loading started')}
+                        onError={(e) => console.error('Video error:', e)}
+                      >
+                        <source 
+                          src="https://cdn.dribbble.com/userupload/18418019/file/original-8ff51bf6e981f7da43f0f74510703ad8.mp4" 
+                          type="video/mp4" 
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  )}
                 </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse"></div>
+                <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse" hidden={expandPlayer || showPlayer}></div>
               </div>
               <div className="text-center mt-4">
-                <p className="text-lg font-semibold text-gray-800">How it works</p>
+                <p className="text-lg font-semibold text-gray-800 cursor-pointer">How it works</p>
                 <p className="text-sm text-gray-600">Watch our 2-minute guide</p>
               </div>
             </div>
