@@ -3,110 +3,17 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, BookOpen, Users, Star, ArrowRight, Award, Sigma, Radiation, FlaskConical, Book, Computer, Fingerprint, Shield, TrendingUp, Clock, CheckCircle2, Zap, Target, Globe, GraduationCap, MapPin, Play, ChevronDown } from "lucide-react"
+import { Search, BookOpen, Users, Star, ArrowRight, Award, Radiation, Book, Computer, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useUser } from "@/contexts/UserContext"
 import ProfileDashboard from "@/components/ProfileDashboard"
 import ThemedHero from "@/components/ThemedHero"
 import { getTopTutorsByRole, getAllSubjects } from "@/lib/supabaseAPI"
-
-const popularCategories = [
-  {
-    name: "Science & Engineering",
-    icon: <Radiation size="2em" className="text-green-400" />,
-    mentors: "2.8k",
-    color: "border-green-500/20 bg-green-500/5 hover:border-green-500/40",
-    description: "Physics, Chemistry, Engineering, Mathematics"
-  },
-  {
-    name: "Programming & Tech",
-    icon: <Computer size="2em" className="text-blue-400" />,
-    mentors: "3.2k",
-    color: "border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40",
-    description: "Software Development, Data Science, AI/ML"
-  },
-  {
-    name: "Business & Career",
-    icon: <TrendingUp size="2em" className="text-purple-400" />,
-    mentors: "1.9k",
-    color: "border-purple-500/20 bg-purple-500/5 hover:border-purple-500/40",
-    description: "Entrepreneurship, Leadership, Career Guidance"
-  },
-  {
-    name: "Creative & Design",
-    icon: <Target size="2em" className="text-orange-400" />,
-    mentors: "1.5k",
-    color: "border-orange-500/20 bg-orange-500/5 hover:border-orange-500/40",
-    description: "Graphic Design, UI/UX, Creative Writing"
-  },
-]
-
-const featuredMentors = [
-  {
-    name: "Dr. Sarah Chen",
-    expertise: "Machine Learning & Data Science",
-    rating: 4.9,
-    reviews: 127,
-    experience: "8+ years at Google",
-    image: "/placeholder.svg?height=80&width=80",
-    badges: ["PhD", "Google Alumni", "Top Mentor"],
-    sessions: "500+ sessions",
-  },
-  {
-    name: "Marcus Rodriguez",
-    expertise: "Full-Stack Development",
-    rating: 4.8,
-    reviews: 89,
-    experience: "Senior Engineer at Meta",
-    image: "/placeholder.svg?height=80&width=80",
-    badges: ["Meta Engineer", "React Expert", "Mentor+"],
-    sessions: "300+ sessions",
-  },
-  {
-    name: "Emily Thompson",
-    expertise: "Product Management",
-    rating: 4.9,
-    reviews: 156,
-    experience: "VP Product at Spotify",
-    image: "/placeholder.svg?height=80&width=80",
-    badges: ["VP Product", "Spotify", "Strategy Expert"],
-    sessions: "400+ sessions",
-  },
-]
-
-const successStories = [
-  {
-    name: "Alex Kumar",
-    role: "Software Engineer",
-    company: "Microsoft",
-    text: "My mentor helped me transition from finance to tech. Within 6 months, I landed my dream job at Microsoft!",
-    rating: 5,
-    outcome: "Career Change Success"
-  },
-  {
-    name: "Maria Santos",
-    role: "Data Scientist",
-    company: "Netflix",
-    text: "The personalized guidance and real-world projects helped me master ML. Now I'm building recommendation systems at Netflix.",
-    rating: 5,
-    outcome: "Skill Mastery"
-  },
-  {
-    name: "David Park",
-    role: "Startup Founder",
-    company: "TechStart Inc.",
-    text: "My business mentor guided me through fundraising and scaling. We just closed our Series A round!",
-    rating: 5,
-    outcome: "Business Growth"
-  },
-]
-
 
 export default function HomePage() {
   const router = useRouter()
@@ -351,111 +258,6 @@ export default function HomePage() {
         </div>
 
       </ThemedHero>
-      {/* Remove the absolute positioned video circle since it's now in the right column */}
-      {/* Categories Section */}
-      {/* <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Popular Subjects</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Find expert tutors across all subjects and skill levels
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {popularCategories.map((category, index) => (
-              <Link key={index} href="/find-tutors">
-                <Card className={`group cursor-pointer border-2 transition-all duration-300 hover:-translate-y-2 ${category.color} bg-white/50 backdrop-blur-sm hover:bg-white`}>
-                  <CardContent className="p-8 text-center">
-                    <div className="mb-6 flex justify-center">
-                      {category.icon}
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-3 text-lg group-hover:text-green-600 transition-colors">
-                      {category.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                      {category.description}
-                    </p>
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-700 border-gray-200 group-hover:bg-green-100 group-hover:text-green-700 group-hover:border-green-200 transition-all">
-                      {category.mentors} tutors
-                    </Badge>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
-      {/* Featured Mentors */}
-      {/* <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Meet Our Top Tutors</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Learn from verified, experienced tutors with proven track records of success.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {featuredMentors.map((mentor, index) => (
-              <Card key={index} className="group hover:scale-105 transition-all duration-300 bg-white border-gray-200 hover:shadow-xl">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-6">
-                    <Avatar className="h-20 w-20 mr-4 ring-2 ring-green-500/20 group-hover:ring-green-500/40 transition-all">
-                      <AvatarImage src={mentor.image || "/placeholder.svg"} alt={mentor.name} />
-                      <AvatarFallback className="bg-gradient-to-br from-green-500/20 to-emerald-500/10 text-green-600 font-semibold text-lg">
-                        {mentor.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-lg text-gray-900 group-hover:text-green-600 transition-colors">{mentor.name}</h3>
-                      <p className="text-gray-600 text-sm">{mentor.expertise}</p>
-                      <p className="text-gray-500 text-xs mt-1">{mentor.experience}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                      <span className="font-medium text-gray-900">{mentor.rating}</span>
-                      <span className="text-gray-600 text-sm ml-1">({mentor.reviews} reviews)</span>
-                    </div>
-                    <span className="text-sm text-gray-600">{mentor.sessions}</span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {mentor.badges.map((badge, badgeIndex) => (
-                      <Badge key={badgeIndex} variant="secondary" className="text-xs bg-green-100 text-green-700 border-green-200 hover:bg-green-200 transition-colors">
-                        {badge}
-                      </Badge>
-                    ))}
-                  </div>
-
-                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white border-0 group-hover:shadow-lg group-hover:shadow-green-500/20 transition-all">
-                    <GraduationCap className="mr-2 h-4 w-4" />
-                    Book Session
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <Link href="/find-tutors">
-              <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600 hover:bg-green-50">
-                View All Tutors
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section> */}
-
-      {/* How It Works */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -505,64 +307,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Success Stories */}
-      {/* <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              See how our students have achieved their goals with personalized tutoring
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {successStories.map((story, index) => (
-              <Card key={index} className="bg-white hover:bg-gray-50 transition-all duration-300 border-gray-200 hover:border-green-300 hover:shadow-lg group">
-                <CardContent className="p-8">
-                  <div className="flex items-center mb-4">
-                    {[...Array(story.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 text-yellow-400 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-gray-700 mb-6 italic leading-relaxed">&quot;{story.text}&quot;</p>
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold text-gray-900">{story.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {story.role} at {story.company}
-                        </p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-700 border-green-200">
-                        {story.outcome}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-
-          <div className="mt-16 max-w-4xl mx-auto">
-            <Card className="bg-gray-50 border-gray-200">
-              <CardContent className="p-12 text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Shield className="w-10 h-10 text-green-600" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">100% Secure & Protected</h3>
-                <p className="text-gray-700 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
-                  All payments are secured and protected. We track every transaction to ensure your safety and satisfaction.
-                </p>
-                <Button className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full border-0 shadow-lg shadow-green-500/20">
-                  Learn More
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>  */}
 
       {/* FAQ and Call to Action Section */}
       <section className="py-20 bg-gray-50">

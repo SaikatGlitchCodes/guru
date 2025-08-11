@@ -4,10 +4,38 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import CreatableSelect from 'react-select/creatable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabaseClient";
+import { BookOpen, Users, ClipboardList, Star } from "lucide-react"
 
 
-const requestTypes = ["Tutoring", "Job Support", "Assignment"]
+const requestTypes = [
+  {
+    value: "Tutoring",
+    label: "Tutoring",
+    icon: BookOpen,
+    description: "Get personalized learning sessions",
+    color: "bg-blue-50 border-blue-200 text-blue-800",
+    iconColor: "text-blue-600"
+  },
+  {
+    value: "Job Support", 
+    label: "Job Support",
+    icon: Users,
+    description: "Career mentoring & interview prep",
+    color: "bg-green-50 border-green-200 text-green-800",
+    iconColor: "text-green-600"
+  },
+  {
+    value: "Assignment",
+    label: "Assignment Help", 
+    icon: ClipboardList,
+    description: "Help with homework & projects",
+    color: "bg-purple-50 border-purple-200 text-purple-800",
+    iconColor: "text-purple-600"
+  }
+]
 const levels = [
   "Beginner", "Intermediate", "Advanced",
   "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6",
@@ -61,7 +89,64 @@ export function SubjectMeetingStep({ form }) {
 
 
   return (
-    <div className="space-y-6  border-t-2 pt-12">
+    <div className="space-y-8 border-t-2 pt-12">
+      {/* Request type - Enhanced UI - Moved to top for priority */}
+      <FormField
+        control={form.control}
+        name="type"
+        render={({ field }) => (
+          <FormItem>
+            <div className="mb-4">
+              <FormLabel className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                What type of help do you need?
+              </FormLabel>
+              <p className="text-sm text-gray-600 mt-1">Choose the option that best describes what you're looking for</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {requestTypes.map((type) => {
+                const IconComponent = type.icon
+                const isSelected = field.value === type.value
+                return (
+                  <Card 
+                    key={type.value}
+                    className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                      isSelected 
+                        ? 'shadow-md' + type.color
+                        : ''
+                    }`}
+                    onClick={() => field.onChange(type.value)}
+                  >
+                    <CardContent className="p-3 text-center">
+                      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${
+                        isSelected ? type.color : 'bg-gray-100'
+                      }`}>
+                        <IconComponent className={`w-4 h-4 ${
+                          isSelected ? type.iconColor : 'text-gray-600'
+                        }`} />
+                      </div>
+                      <h3 className={`font-medium mb-1 text-sm ${
+                        isSelected ? 'text-gray-900' : 'text-gray-700'
+                      }`}>
+                        {type.label}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {type.description}
+                      </p>
+                      {isSelected && (
+                        <Badge className="mt-2 bg-blue-100 text-blue-800 border-blue-200 text-xs">
+                          Selected
+                        </Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       {/* Subject selection */}
       <FormField
         control={form.control}
@@ -108,32 +193,6 @@ export function SubjectMeetingStep({ form }) {
                 {levels.map((level) => (
                   <SelectItem key={level} value={level}>
                     {level}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Request type */}
-      <FormField
-        control={form.control}
-        name="type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>I Want</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
-              <FormControl>
-                <SelectTrigger className="max-w-xs">
-                  <SelectValue placeholder="Select request type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {requestTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -212,3 +271,5 @@ export function SubjectMeetingStep({ form }) {
     </div>
   )
 }
+
+export default SubjectMeetingStep

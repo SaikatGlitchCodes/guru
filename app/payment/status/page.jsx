@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { CheckCircle, XCircle, Clock, ArrowLeft, Coins, Loader2 } from "lucide-r
 import { useUser } from "@/contexts/UserContext"
 import Link from "next/link"
 
-export default function PaymentStatusPage() {
+function PaymentStatusContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, profile, refreshUserData } = useUser()
@@ -246,5 +246,31 @@ export default function PaymentStatusPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// Loading component for suspense fallback
+function PaymentStatusLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardContent className="flex flex-col items-center justify-center p-8">
+          <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Loading Payment Status</h2>
+          <p className="text-gray-600 text-center">
+            Please wait while we load your payment status...
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Main export with Suspense boundary
+export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={<PaymentStatusLoading />}>
+      <PaymentStatusContent />
+    </Suspense>
   )
 }

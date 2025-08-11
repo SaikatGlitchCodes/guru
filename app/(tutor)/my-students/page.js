@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useUser } from "@/contexts/UserContext"
 import { getTutorStudents, startConversation } from "@/lib/supabaseAPI"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,9 +47,9 @@ export default function MyStudentsPage() {
     if (user?.email) {
       fetchMyStudents()
     }
-  }, [user?.email, lastRefresh]) // Include lastRefresh as dependency
+  }, [user?.email, lastRefresh, fetchMyStudents]) // Include lastRefresh as dependency
 
-  const fetchMyStudents = async () => {
+  const fetchMyStudents = useCallback(async () => {
     if (!user?.email) return
     
     setLoading(true)
@@ -74,7 +74,7 @@ export default function MyStudentsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.email])
 
   // Enhanced filter and sort functionality
   const students = useMemo(() => {
@@ -210,7 +210,7 @@ export default function MyStudentsPage() {
           <div className="container mx-auto px-4">
             <div className="text-center text-white">
               <h1 className="text-4xl font-bold mb-4">My Students</h1>
-              <p className="text-xl text-gray-300">Students you've contacted</p>
+              <p className="text-xl text-gray-300">Students you&apos;ve contacted</p>
             </div>
           </div>
         </ThemedHero>
@@ -249,7 +249,7 @@ export default function MyStudentsPage() {
           <div className="text-center text-white mb-8">
             <h1 className="text-4xl font-bold mb-4">My Students</h1>
             <p className="text-xl text-gray-300">
-              Students you've connected with ({allStudents.length})
+              Students you&apos;ve connected with ({allStudents.length})
             </p>
           </div>
 

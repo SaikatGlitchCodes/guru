@@ -22,12 +22,8 @@ import { AlertDescription, AlertTitle } from "./ui/alert"
 
 export default function Navbar() {
   const { user, profile, loading, isRequestInLocalStorage, signOut } = useUser()
-  console.log("Loading state in Navbar:", isRequestInLocalStorage)
   const [isOpen, setIsOpen] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
-
-  console.log("User:", user)
-  console.log("Profile:", profile)
 
   // Determine login state and user info
   const isLoggedIn = !!user
@@ -261,7 +257,6 @@ export default function Navbar() {
 
   // Use signOut when user clicks logout
   const handleLogout = async () => {
-    console.log("Logging out user:", user?.email)
     await signOut()
   }
 

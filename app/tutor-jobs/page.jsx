@@ -10,6 +10,14 @@ import LoadingSkeleton from "./components/loading-skeleton"
 import { useTutorJobsLogic } from "./hooks/useTutorJobsLogic"
 
 export default function BrowseRequestsPage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <BrowseRequestsContent />
+    </Suspense>
+  )
+}
+
+function BrowseRequestsContent() {
   const router = useRouter()
   
   // Use our custom hook for all the logic

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2 } from "lucide-react"
 import { useForm } from "react-hook-form"
@@ -21,6 +21,7 @@ import { formSchema } from "./util/request-schema"
 import { useUser } from "@/contexts/UserContext"
 import FormNavigationButton from "./submitForm"
 import { FormPersistence } from "@/lib/formPersistence"
+import { REQUEST_STEPS } from "./constants"
 
 const requestTypes = ["Tutoring", "Job Support", "Assignment"]
 const levels = [
@@ -33,16 +34,7 @@ const genderPreferences = ["None", "Prefer Male", "Prefer Female", "Only Male"]
 const tutorsWant = ["Only one", "More than one", "As many as Possible"]
 const iNeedSomeone = ["full time", "part time", "volunteer", "student"]
 
-export const REQUEST_STEPS = [
-  { title: "Email Address", Component: EmailVerificationStep, fields: ["email"] },
-  { title: "Basic Details", Component: NameAddressStep, fields: ["name", "street"] },
-  { title: "Contact Info", Component: PhoneNumberStep, fields: ["phone_number"] },
-  { title: "Requirements", Component: RequirementDescriptionStep, fields: ["description"] },
-  { title: "Subject & Meeting", Component: SubjectMeetingStep, fields: ["subject", "level", "type", "meeting_options"] },
-  { title: "Budget & Preferences", Component: BudgetPreferencesStep, fields: ["price_amount", "price_option", "price_currency", "price_currency_symbol", "gender_preference", "tutors_want", "i_need_someone", "language", "get_tutors_from"] },
-]
-
-export default function RequestTutorPage() {
+function RequestTutorContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const searchParams = useSearchParams()
@@ -116,7 +108,6 @@ export default function RequestTutorPage() {
     const savedData = formPersistence.loadFormData()
     if (savedData) {
       setHasSavedData(true)
-      console.log('Loading saved form data:', savedData)
       
       // Merge saved data with current form values
       Object.keys(savedData).forEach(key => {
@@ -152,19 +143,15 @@ export default function RequestTutorPage() {
 
   // Update form values when user/profile data loads
   useEffect(() => {
-    console.log('Form update effect triggered - user:', !!user, 'profile:', !!profile)
     if (user) {
-      console.log('Setting user email:', user.email)
       form.setValue('user_email', user.email || "")
     }
     
     if (profile) {
-      console.log('Setting profile data:', profile)
       form.setValue('name', profile.name || "")
       form.setValue('phone_number', profile.phone_number || "")
       
       if (profile.address) {
-        console.log('Setting address data:', profile.address)
         // Map database field names to form field names
         form.setValue('address.addressline_1', profile.address.address_line_1 || "")
         form.setValue('address.addressline_2', profile.address.address_line_2 || "")
@@ -291,5 +278,27 @@ export default function RequestTutorPage() {
         </Card>
       )}
     </div>
+  )
+}
+
+// Loading component for suspense fallback
+function RequestTutorLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-4xl">
+        <CardContent className="flex flex-col items-center justify-center p-8">
+          <div className="text-gray-500">Loading request form...</div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Main export with Suspense boundary
+export default function RequestTutorPage() {
+  return (
+    <Suspense fallback={<RequestTutorLoading />}>
+      <RequestTutorContent />
+    </Suspense>
   )
 }

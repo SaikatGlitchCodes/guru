@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,7 +14,7 @@ import { Search, Star, MapPin, Clock, BookOpen, Award, Users, ChevronLeft, Chevr
 import { searchTutors, getTutorFiltersData, startConversation } from '@/lib/supabaseAPI'
 import { useUser } from "@/contexts/UserContext"
 
-export default function FindTutorsPage() {
+function FindTutorsContent() {
   const { user } = useUser()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -939,5 +939,25 @@ export default function FindTutorsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Loading component for suspense fallback
+function FindTutorsLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-gray-500">Loading tutors...</div>
+      </div>
+    </div>
+  )
+}
+
+// Main export with Suspense boundary
+export default function FindTutorsPage() {
+  return (
+    <Suspense fallback={<FindTutorsLoading />}>
+      <FindTutorsContent />
+    </Suspense>
   )
 }
