@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { CheckCircle2, XCircle, Mail, AlertCircle, Home } from 'lucide-react'
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabaseClient"
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const [status, setStatus] = useState('loading')
   const [message, setMessage] = useState('')
   const router = useRouter()
@@ -166,5 +166,25 @@ export default function AuthCallbackPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-blue-200 bg-blue-50">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary"></div>
+            </div>
+            <CardTitle>Processing...</CardTitle>
+            <CardDescription>Please wait while we process your request.</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   )
 }
