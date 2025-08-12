@@ -147,7 +147,7 @@ export function UserProvider({ children }) {
         email,
         options: {
           shouldCreateUser: true,
-          emailRedirectTo: '/',
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
       console.log("Magic link sent to:", email, session)
