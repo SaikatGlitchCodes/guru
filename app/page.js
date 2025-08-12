@@ -32,13 +32,13 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        
+
         // Fetch tutors and subjects in parallel
         const [tutorsResult, subjectsResult] = await Promise.all([
           getTopTutorsByRole(4),
           getAllSubjects()
         ])
-        
+
         setTopTutors(tutorsResult.data || [])
         setSubjects(subjectsResult.data || [])
 
@@ -101,8 +101,9 @@ export default function HomePage() {
                   {/* Enhanced Search Bar */}
                   <div className="md:my-8 mt-4">
                     <div className="flex gap-4">
-                      <div className="flex-1 relative border-2 border-green-200 rounded-xl overflow-hidden">
+                      <div className="flex-1 relative">
                         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10 md:block hidden" />
+
                         <Input
                           type="text"
                           placeholder="Try 'Math', 'Physics', or 'English'"
@@ -110,13 +111,13 @@ export default function HomePage() {
                           onChange={(e) => {
                             const value = e.target.value
                             setSearchTerm(value)
-                            
+
                             if (value.trim().length > 0) {
                               const filtered = subjects.filter(subject =>
                                 subject.name.toLowerCase().includes(value.toLowerCase()) ||
                                 subject.category?.toLowerCase().includes(value.toLowerCase())
                               ).slice(0, 8) // Limit to 8 suggestions
-                              
+
                               setFilteredSuggestions(filtered)
                               setShowSuggestions(filtered.length > 0)
                             } else {
@@ -144,7 +145,7 @@ export default function HomePage() {
                             setTimeout(() => setShowSuggestions(false), 150)
                           }}
                         />
-                        
+
                         {/* Auto-suggestions dropdown */}
                         {showSuggestions && filteredSuggestions.length > 0 && (
                           <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-20 mt-1 max-h-64 overflow-y-auto">
@@ -186,7 +187,7 @@ export default function HomePage() {
                         <p className="hidden md:block">Search</p>
                       </Button>
                     </div>
-                  
+
                   </div>
                   <p className="md:text-xl text-lg text-gray-600 leading-relaxed max-w-lg mt-4">
                     We help you find the perfect guru. It&apos;s completely FREE
@@ -242,11 +243,10 @@ export default function HomePage() {
             <div className="relative space-y-6 h-full flex flex-col justify-center items-center" onMouseEnter={() => setExpandPlayer(true)} onMouseLeave={() => setExpandPlayer(false)}>
               {/* How It Works Video Circle */}
               <div className={`relative mx-auto w-fit ${!expandPlayer && !showPlayer ? 'animate-spin-slow' : 'animate-none'}`}>
-                <div className={`bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none ${
-                  showPlayer 
-                    ? 'md:w-[600px] h-96 rounded-2xl' 
+                <div className={`bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none ${showPlayer
+                    ? 'md:w-[600px] h-96 rounded-2xl'
                     : 'w-48 h-48 rounded-full hover:rounded-2xl hover:h-96 hover:w-[600px]'
-                }`}>
+                  }`}>
                   {!showPlayer && (
                     <div onClick={() => setShowPlayer(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">
                       <Play className={`w-8 h-8 text-green-500 ml-1 ${!(expandPlayer) ? 'reverse-animate-spin-slow' : 'animate-none'}`} fill="currentColor" />
@@ -261,7 +261,7 @@ export default function HomePage() {
                       >
                         <X className="w-5 h-5 text-white" />
                       </button>
-                      
+
                       {/* HTML5 Video Player */}
                       <video
                         className="w-full h-full object-cover"
@@ -272,10 +272,11 @@ export default function HomePage() {
                         preload="metadata"
                         onLoadStart={() => console.log('Video loading started')}
                         onError={(e) => console.error('Video error:', e)}
+                        onEnded={() => setTimeout(() => setShowPlayer(false), 1000)}
                       >
-                        <source 
-                          src="https://cdn.dribbble.com/userupload/18418019/file/original-8ff51bf6e981f7da43f0f74510703ad8.mp4" 
-                          type="video/mp4" 
+                        <source
+                          src="https://cdn.dribbble.com/userupload/18418019/file/original-8ff51bf6e981f7da43f0f74510703ad8.mp4"
+                          type="video/mp4"
                         />
                         Your browser does not support the video tag.
                       </video>
@@ -286,7 +287,7 @@ export default function HomePage() {
               </div>
               <div className="text-center mt-4">
                 <p className="text-lg font-semibold text-gray-800 cursor-pointer">How it works</p>
-                <p className="text-sm text-gray-600">Watch our 2-minute guide</p>
+                <p className="text-sm text-gray-600">Watch our 20-second guide</p>
               </div>
             </div>
 
@@ -348,7 +349,7 @@ export default function HomePage() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-3 gap-12 items-start">
-            
+
             {/* Left Content - Call to Action */}
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-12 text-white">
@@ -373,7 +374,7 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              
+
               {/* Additional Info Cards */}
               <div className="grid md:grid-cols-2 gap-6">
                 <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
@@ -389,7 +390,7 @@ export default function HomePage() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
                   <CardContent className="p-0">
                     <div className="flex items-center mb-4">
@@ -412,7 +413,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
                   Quick FAQ
                 </h3>
-                
+
                 <Accordion type="single" collapsible className="space-y-3">
                   {[
                     {
@@ -436,8 +437,8 @@ export default function HomePage() {
                       answer: "100% satisfaction guarantee - get refund or new tutor if not happy."
                     }
                   ].map((faq, index) => (
-                    <AccordionItem 
-                      key={index} 
+                    <AccordionItem
+                      key={index}
                       value={`faq-${index}`}
                       className="border border-gray-100 rounded-lg px-4 hover:border-green-200 transition-colors"
                     >
@@ -450,7 +451,7 @@ export default function HomePage() {
                     </AccordionItem>
                   ))}
                 </Accordion>
-                
+
                 <div className="mt-6 pt-6 border-t border-gray-100 text-center">
                   <p className="text-gray-600 text-sm mb-3">Need more help?</p>
                   <Link href="/contact">
