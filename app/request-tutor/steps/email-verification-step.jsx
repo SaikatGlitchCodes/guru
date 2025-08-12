@@ -19,7 +19,7 @@ export function EmailVerificationStep({ form }) {
               <Input
                 {...field}
                 type="email"
-                placeholder="your.email@example.com"
+                placeholder="Enter your email address"
                 autoComplete="email"
                 className="max-w-md"
                 readOnly={!!user?.email}
@@ -32,13 +32,6 @@ export function EmailVerificationStep({ form }) {
           </FormItem>
         )}
       />
-
-      <div className="rounded-md bg-muted p-4">
-        <p className="text-sm">
-          <strong>Note:</strong> Your email will only be used to communicate about your tutor request and will not be
-          shared publicly.
-        </p>
-      </div>
     </div>
   )
 }

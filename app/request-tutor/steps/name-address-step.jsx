@@ -149,16 +149,10 @@ export function NameAddressStep({ form }) {
   }, [debouncedAddressSearch])
 
   const handleAddressSelect = useCallback((selectedAddress) => {
-    // Update form fields using the correct nested structure
-    form.setValue('address.formatted', selectedAddress.formatted)
-    form.setValue('address.street', addressSearchValue || selectedAddress.street || selectedAddress.formatted)
-    form.setValue('address.city', selectedAddress.city)
-    form.setValue('address.state', selectedAddress.state)
-    form.setValue('address.zip', selectedAddress.zip)
-    form.setValue('address.country', selectedAddress.country)
-    form.setValue('address.country_code', selectedAddress.country_code)
-    form.setValue('address.lat', selectedAddress.lat)
-    form.setValue('address.lon', selectedAddress.lon)
+    // Set the address directly in the street field
+    form.setValue('address', selectedAddress.formatted)
+    form.setValue('address_lat', selectedAddress.lat)
+    form.setValue('address_lon', selectedAddress.lon)
 
     setAddressSearchValue(selectedAddress.formatted)
     setShowAddressSuggestions(false)
@@ -174,15 +168,10 @@ export function NameAddressStep({ form }) {
       const coordinates = await getCurrentLocation()
       const addressInfo = await reverseGeocode(coordinates.latitude, coordinates.longitude)
 
-      form.setValue('address.formatted', addressInfo.formatted)
-      form.setValue('address.street', addressSearchValue || addressInfo.formatted)
-      form.setValue('address.city', addressInfo.city)
-      form.setValue('address.state', addressInfo.state)
-      form.setValue('address.zip', addressInfo.zip)
-      form.setValue('address.country', addressInfo.country)
-      form.setValue('address.country_code', addressInfo.country_code)
-      form.setValue('address.lat', addressInfo.lat)
-      form.setValue('address.lon', addressInfo.lon)
+      // Set the address directly in the single field
+      form.setValue('address', addressInfo.formatted)
+      form.setValue('address_lat', addressInfo.lat)
+      form.setValue('address_lon', addressInfo.lon)
 
       setAddressSearchValue(addressInfo.formatted)
 
@@ -215,7 +204,7 @@ export function NameAddressStep({ form }) {
     setShowAddressSuggestions(false)
   }, [])
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <FormField
         control={form.control}
         name="name"
@@ -225,9 +214,9 @@ export function NameAddressStep({ form }) {
             <FormControl>
               <Input
                 {...field}
-                placeholder="John Doe"
+                placeholder="Enter your full name"
                 autoComplete="name"
-                className="max-w-md"
+                className="w-full"
               />
             </FormControl>
             <FormMessage />
@@ -237,10 +226,10 @@ export function NameAddressStep({ form }) {
 
       {/* Address Information Section */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-lg font-medium">Address Information</h3>
-            <p className="text-sm text-muted-foreground">Enter your address details</p>
+            <h3 className="text-lg font-medium">Address</h3>
+            <p className="text-sm text-muted-foreground">Enter your address or use current location</p>
           </div>
           <Button
             type="button"
@@ -248,7 +237,7 @@ export function NameAddressStep({ form }) {
             size="sm"
             onClick={handleGetCurrentLocation}
             disabled={isGettingLocation}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full sm:w-auto"
           >
             {isGettingLocation ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -259,109 +248,94 @@ export function NameAddressStep({ form }) {
           </Button>
         </div>
 
-        {/* Address Search with Autocomplete */}
-        <div className="space-y-2">
-          <FormLabel>Search Address</FormLabel>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Start typing an address..."
-              value={addressSearchValue}
-              onChange={(e) => handleAddressSearchChange(e.target.value)}
-              onClick={() => setShowAddressSuggestions(true)}
-              className="pl-10 pr-10"
-            />
-            {addressSearchValue && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={clearAddressSearch}
-                className="absolute right-1 top-1 h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+        {/* Single Address Input with Autocomplete */}
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Start typing your address..."
+                    value={addressSearchValue || field.value || ''}
+                    onChange={(e) => {
+                      field.onChange(e.target.value)
+                      handleAddressSearchChange(e.target.value)
+                    }}
+                    onClick={() => setShowAddressSuggestions(true)}
+                    className="pl-10 pr-10 w-full"
+                    autoComplete="street-address"
+                  />
+                </FormControl>
+                {(addressSearchValue || field.value) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      field.onChange('')
+                      clearAddressSearch()
+                    }}
+                    className="absolute right-1 top-1 h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
 
-          {showAddressSuggestions && addressSearchValue.length >= 3 && (
-            <div className="relative w-full mt-1 z-10 border rounded-md shadow-md bg-background">
-              {isLoadingSuggestions ? (
-                <div className="flex items-center justify-center p-4">
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span className="text-sm text-muted-foreground">Searching address...</span>
-                </div>
-              ) : addressSuggestions.length > 0 ? (
-                <div className="max-h-60 overflow-auto">
-                  {addressSuggestions.map((suggestion) => (
-                    <div
-                      key={suggestion.id}
-                      className="flex items-start p-2 cursor-pointer hover:bg-accent"
-                      onClick={() => handleAddressSelect(suggestion)}
-                    >
-                      <MapPin className="mr-2 h-4 w-4 mt-0.5" />
-                      <div className="flex flex-col">
-                        <span className="font-medium">{suggestion.formatted}</span>
-                        {suggestion.city && suggestion.state && (
-                          <span className="text-xs text-muted-foreground">
-                            {suggestion.city}, {suggestion.state}
-                          </span>
-                        )}
+                {/* Address Suggestions Dropdown - moved inside the relative container */}
+                {showAddressSuggestions && (addressSearchValue || field.value)?.length >= 3 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 z-50 border rounded-md shadow-lg bg-background max-h-60 overflow-hidden">
+                    {isLoadingSuggestions ? (
+                      <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <span className="text-sm text-muted-foreground">Searching addresses...</span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-sm text-muted-foreground text-center">
-                  No address found
-                </div>
-              )}
-            </div>
+                    ) : addressSuggestions.length > 0 ? (
+                      <div className="max-h-60 overflow-auto">
+                        {addressSuggestions.map((suggestion) => (
+                          <div
+                            key={suggestion.id}
+                            className="flex items-start p-3 cursor-pointer hover:bg-accent border-b last:border-b-0"
+                            onClick={() => handleAddressSelect(suggestion)}
+                          >
+                            <MapPin className="mr-3 h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="font-medium text-sm leading-tight">{suggestion.formatted}</span>
+                              {suggestion.city && suggestion.state && (
+                                <span className="text-xs text-muted-foreground mt-1">
+                                  {suggestion.city}, {suggestion.state} {suggestion.zip}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-sm text-muted-foreground text-center">
+                        No addresses found. Try a different search term.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <FormDescription>
+                Type your address and select from suggestions, or use the current location button.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
           )}
-
-          <FormDescription>
-            Search and select your address from suggestions, or fill in manually below.
-          </FormDescription>
-        </div>
-
-        <Separator />
+        />
       </div>
 
+      {/* Hidden coordinate fields */}
       <FormField
         control={form.control}
-        name="address.street"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Street Address</FormLabel>
-            <FormControl>
-              <Input
-                {...field}
-                placeholder="123 Main St"
-                autoComplete="street-address"
-                className="max-w-md"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Hidden fields for coordinates and other address data */}
-      <FormField
-        control={form.control}
-        name="address.formatted"
-        render={({ field }) => (
-          <FormItem className="hidden">
-            <FormControl>
-              <Input type="hidden" {...field} />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="address.lat"
+        name="address_lat"
         render={({ field }) => (
           <FormItem className="hidden">
             <FormControl>
@@ -373,7 +347,7 @@ export function NameAddressStep({ form }) {
 
       <FormField
         control={form.control}
-        name="address.lon"
+        name="address_lon"
         render={({ field }) => (
           <FormItem className="hidden">
             <FormControl>

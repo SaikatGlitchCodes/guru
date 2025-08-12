@@ -96,16 +96,16 @@ export default function HomePage() {
 
                   <h1 className="text-2xl lg:text-5xl font-bold leading-tight">
                     <span className="text-black">Find your</span>{" "}
-                    <span className="text-black font-bold text-5xl lg:text-6xl">Perfect guru</span>
+                    <span className="text-black font-bold text-4xl md:text-5xl lg:text-6xl">Perfect guru</span>
                   </h1>
                   {/* Enhanced Search Bar */}
-                  <div className="mt-8 mb-8">
+                  <div className="md:my-8 mt-4">
                     <div className="flex gap-4">
-                      <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
+                      <div className="flex-1 relative border-2 border-green-200 rounded-xl overflow-hidden">
+                        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10 md:block hidden" />
                         <Input
                           type="text"
-                          placeholder="Search for subjects or tutors..."
+                          placeholder="Try 'Math', 'Physics', or 'English'"
                           value={searchTerm}
                           onChange={(e) => {
                             const value = e.target.value
@@ -124,7 +124,7 @@ export default function HomePage() {
                               setFilteredSuggestions([])
                             }
                           }}
-                          className="pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500 h-12"
+                          className="md:pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500 h-12"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               const query = searchTerm.trim() || 'all tutors'
@@ -175,20 +175,20 @@ export default function HomePage() {
                       </div>
                       <Button
                         size="lg"
-                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-lg shadow-green-500/20 h-12"
+                        className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-full md:rounded-xl shadow-lg shadow-green-500/20 h-12"
                         onClick={() => {
                           const query = searchTerm.trim() || 'all tutors'
                           router.push(`/find-tutors?q=${encodeURIComponent(query)}`)
                           setShowSuggestions(false)
                         }}
                       >
-                        <Search className="w-5 h-5 mr-2" />
-                        Search
+                        <Search className="w-5 h-5 md:mr-2" />
+                        <p className="hidden md:block">Search</p>
                       </Button>
                     </div>
                   
                   </div>
-                  <p className="text-xl text-gray-600 leading-relaxed max-w-lg mt-4">
+                  <p className="md:text-xl text-lg text-gray-600 leading-relaxed max-w-lg mt-4">
                     We help you find the perfect guru. It&apos;s completely FREE
                   </p>
                 </div>
@@ -223,7 +223,7 @@ export default function HomePage() {
 
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 mt-5">
+              <div className="flex sm:flex-row gap-4 mt-5">
                 <Link href="/request-tutor">
                   <Button size="lg" className="bg-green-500 hover:bg-green-600 text-white px-8 py-6 text-lg rounded-full border-0 shadow-xl shadow-green-500/20">
                     Request a Tutor
@@ -265,11 +265,9 @@ export default function HomePage() {
                       {/* HTML5 Video Player */}
                       <video
                         className="w-full h-full object-cover"
-                        src="https://cdn.dribbble.com/userupload/18418019/file/original-8ff51bf6e981f7da43f0f74510703ad8.mp4"
+                        src="https://uwqkktncakctujlwbacq.supabase.co/storage/v1/object/public/helpinglearners/Hey.mp4"
                         autoPlay
                         controls
-                        muted
-                        loop
                         playsInline
                         preload="metadata"
                         onLoadStart={() => console.log('Video loading started')}
@@ -368,7 +366,7 @@ export default function HomePage() {
                     </Button>
                   </Link>
                   <Link href="/find-tutors">
-                    <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-green-600 px-8 py-4 rounded-full">
+                    <Button variant="outline" size="lg" className="bg-white text-green-600 hover:bg-gray-50 px-8 py-4 rounded-full shadow-lg font-semibold">
                       <Search className="mr-2 h-5 w-5" />
                       Find Tutors
                     </Button>

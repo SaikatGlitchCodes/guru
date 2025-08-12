@@ -250,11 +250,11 @@ function RequestTutorContent() {
 
       {!isSubmitting ? (
         <Card className="shadow-none border-0">
-          <CardContent className="pt-6">
+          <CardContent className="md:pt-6">
             <Form {...form}>
               <form>
                 <div className="space-y-6">
-                  <div className="pb-12 border-b border-gray-900/10">
+                  <div className="pb-8 border-b border-gray-900/10">
                     {REQUEST_STEPS.slice(0, currentStep + 1).map(({ title, Component }, index) => (
                       <div className="mb-5" key={title}><Component form={form} /></div>
                     ))}
