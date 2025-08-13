@@ -25,9 +25,8 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [showWalletModal, setShowWalletModal] = useState(false)
 
-  // Determine login state and user info
   const isLoggedIn = !!user
-  const userRole = profile?.role || "guest"
+  const userRole = profile?.role || "student"
   const userName = profile?.name || user?.email?.split('@')[0] || "User"
   const coinBalance = profile?.coin_balance || 0
 
@@ -169,10 +168,7 @@ export default function Navbar() {
       </SheetTrigger>
       <SheetContent side="right" className="w-[300px] sm:w-[400px]">
         <div className="flex flex-col space-y-4 mt-4">
-          <div className="flex items-center justify-between">
-            <Logo />
-          </div>
-
+          
           {isLoggedIn && (
             <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
               <Avatar className="h-12 w-12">
@@ -195,7 +191,7 @@ export default function Navbar() {
 
           {
             <div className="px-4">
-              <Link href="/request-tutor">
+              <Link href="/request-tutor" className="block mb-4">
                 <button className="request-button">
                   Request Guru
                 </button>
@@ -263,11 +259,8 @@ export default function Navbar() {
   // Handle successful coin purchase
   const handleCoinPurchaseSuccess = (coinsAdded) => {
     console.log(`Successfully added ${coinsAdded} coins to wallet`)
-    // The user context should automatically refresh the coin balance
-    // You could also manually refresh user data here if needed
   }
 
-  // Show a simplified navbar during initial load only
   if (loading) {
     return (
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
@@ -283,7 +276,6 @@ export default function Navbar() {
     )
   }
 
-  // Rest of the component remains unchanged
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
@@ -326,8 +318,20 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile menu button */}
-            <MobileMenu />
+            {/* Mobile Right side */}
+            <div className="flex md:hidden items-center space-x-2">
+              <Link href="/request-tutor">
+                <button className="request-button text-xs px-3 py-2">
+                  Request Guru
+                </button>
+              </Link>
+              <MobileMenu />
+            </div>
+
+            {/* Mobile menu button - Hidden, now inside mobile right side */}
+            <div className="hidden">
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </header>

@@ -62,6 +62,12 @@ export function NameAddressStep({ form }) {
       if (data.features && data.features.length > 0) {
         const feature = data.features[0]
         const props = feature.properties
+        
+        // Ensure formatted is a string, fallback to constructing it
+        const formattedAddress = typeof props.formatted === 'string' 
+          ? props.formatted 
+          : `${props.housenumber || ''} ${props.street || ''} ${props.city || ''} ${props.state || ''} ${props.postcode || ''}`.trim()
+        
         return {
           street: `${props.housenumber || ''} ${props.street || ''}`.trim(),
           city: props.city || props.town || props.village || '',
@@ -69,7 +75,7 @@ export function NameAddressStep({ form }) {
           zip: props.postcode || '',
           country: props.country || '',
           country_code: props.country_code || '',
-          formatted: props.formatted || '',
+          formatted: formattedAddress,
           lat: latitude,
           lon: longitude
         }
@@ -99,18 +105,27 @@ export function NameAddressStep({ form }) {
       const data = await response.json()
 
       if (data.features) {
-        return data.features.map(feature => ({
-          id: feature.properties.place_id,
-          formatted: feature.properties.formatted,
-          street: `${feature.properties.housenumber || ''} ${feature.properties.street || ''}`.trim(),
-          city: feature.properties.city || feature.properties.town || feature.properties.village || '',
-          state: feature.properties.state || feature.properties.region || '',
-          zip: feature.properties.postcode || '',
-          country: feature.properties.country || '',
-          country_code: feature.properties.country_code || '',
-          lat: feature.geometry.coordinates[1],
-          lon: feature.geometry.coordinates[0]
-        }))
+        return data.features.map(feature => {
+          const props = feature.properties
+          
+          // Ensure formatted is a string, fallback to constructing it
+          const formattedAddress = typeof props.formatted === 'string' 
+            ? props.formatted 
+            : `${props.housenumber || ''} ${props.street || ''} ${props.city || ''} ${props.state || ''} ${props.postcode || ''}`.trim()
+          
+          return {
+            id: props.place_id,
+            formatted: formattedAddress,
+            street: `${props.housenumber || ''} ${props.street || ''}`.trim(),
+            city: props.city || props.town || props.village || '',
+            state: props.state || props.region || '',
+            zip: props.postcode || '',
+            country: props.country || '',
+            country_code: props.country_code || '',
+            lat: feature.geometry.coordinates[1],
+            lon: feature.geometry.coordinates[0]
+          }
+        })
       }
 
       return []
@@ -149,12 +164,25 @@ export function NameAddressStep({ form }) {
   }, [debouncedAddressSearch])
 
   const handleAddressSelect = useCallback((selectedAddress) => {
-    // Set the address directly in the street field
-    form.setValue('address', selectedAddress.formatted)
+    // Ensure we have a proper string for the address
+    const addressString = typeof selectedAddress.formatted === 'string' 
+      ? selectedAddress.formatted 
+      : `${selectedAddress.street || ''} ${selectedAddress.city || ''} ${selectedAddress.state || ''} ${selectedAddress.zip || ''}`.trim()
+    
+    // Set all address-related fields
+    form.setValue('address', addressString)
     form.setValue('address_lat', selectedAddress.lat)
     form.setValue('address_lon', selectedAddress.lon)
+    
+    // Set individual address component fields
+    form.setValue('street', selectedAddress.street || '')
+    form.setValue('city', selectedAddress.city || '')
+    form.setValue('state', selectedAddress.state || '')
+    form.setValue('zip', selectedAddress.zip || '')
+    form.setValue('country', selectedAddress.country || '')
+    form.setValue('country_code', selectedAddress.country_code || '')
 
-    setAddressSearchValue(selectedAddress.formatted)
+    setAddressSearchValue(addressString)
     setShowAddressSuggestions(false)
     setAddressSuggestions([])
 
@@ -168,12 +196,25 @@ export function NameAddressStep({ form }) {
       const coordinates = await getCurrentLocation()
       const addressInfo = await reverseGeocode(coordinates.latitude, coordinates.longitude)
 
-      // Set the address directly in the single field
-      form.setValue('address', addressInfo.formatted)
+      // Ensure we have a proper string for the address
+      const addressString = typeof addressInfo.formatted === 'string' 
+        ? addressInfo.formatted 
+        : `${addressInfo.street || ''} ${addressInfo.city || ''} ${addressInfo.state || ''} ${addressInfo.zip || ''}`.trim()
+
+      // Set all address-related fields
+      form.setValue('address', addressString)
       form.setValue('address_lat', addressInfo.lat)
       form.setValue('address_lon', addressInfo.lon)
+      
+      // Set individual address component fields
+      form.setValue('street', addressInfo.street || '')
+      form.setValue('city', addressInfo.city || '')
+      form.setValue('state', addressInfo.state || '')
+      form.setValue('zip', addressInfo.zip || '')
+      form.setValue('country', addressInfo.country || '')
+      form.setValue('country_code', addressInfo.country_code || '')
 
-      setAddressSearchValue(addressInfo.formatted)
+      setAddressSearchValue(addressString)
 
       toast.success('Address updated successfully using your current location!')
 
@@ -202,7 +243,19 @@ export function NameAddressStep({ form }) {
     setAddressSearchValue("")
     setAddressSuggestions([])
     setShowAddressSuggestions(false)
-  }, [])
+    // Clear all address-related form values
+    form.setValue('address', '')
+    form.setValue('address_lat', '')
+    form.setValue('address_lon', '')
+    form.setValue('street', '')
+    form.setValue('city', '')
+    form.setValue('state', '')
+    form.setValue('zip', '')
+    form.setValue('country', '')
+    form.setValue('country_code', '')
+  }, [form])
+
+  console.log("Address Search Value:", addressSearchValue)
   return (
     <div className="space-y-6">
       <FormField
@@ -261,7 +314,7 @@ export function NameAddressStep({ form }) {
                   <Input
                     {...field}
                     placeholder="Start typing your address..."
-                    value={addressSearchValue || field.value || ''}
+                    value={addressSearchValue || ''}
                     onChange={(e) => {
                       field.onChange(e.target.value)
                       handleAddressSearchChange(e.target.value)
@@ -277,7 +330,6 @@ export function NameAddressStep({ form }) {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      field.onChange('')
                       clearAddressSearch()
                     }}
                     className="absolute right-1 top-1 h-8 w-8 p-0"
@@ -322,10 +374,6 @@ export function NameAddressStep({ form }) {
                   </div>
                 )}
               </div>
-
-              <FormDescription>
-                Type your address and select from suggestions, or use the current location button.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

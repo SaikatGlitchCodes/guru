@@ -11,12 +11,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
-import { EmailVerificationStep } from "@/app/request-tutor/steps/email-verification-step"
-import { NameAddressStep } from "@/app/request-tutor/steps/name-address-step"
-import { PhoneNumberStep } from "@/app/request-tutor/steps/phone-number-step"
-import { RequirementDescriptionStep } from "@/app/request-tutor/steps/requirement-description-step"
-import { SubjectMeetingStep } from "@/app/request-tutor/steps/subject-meeting-step"
-import { BudgetPreferencesStep } from "@/app/request-tutor/steps/budget-preferences-step"
 import { formSchema } from "./util/request-schema"
 import { useUser } from "@/contexts/UserContext"
 import FormNavigationButton from "./submitForm"
@@ -186,7 +180,7 @@ function RequestTutorContent() {
 
   const handleResendEmail = async () => {
     console.log("Resending magic link to:", form.getValues("email"))
-    signInWithMagicLink(form.getValues("email"))
+    signInWithMagicLink(form.getValues().user_email)
     setResendDisabled(true);
   }
 

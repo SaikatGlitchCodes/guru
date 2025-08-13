@@ -62,7 +62,7 @@ const currencies = [
 ]
 
 const priceOptions = ["per hour", "fixed/flat", "per day", "per month", "per year"]
-const genderPreferences = ["None", "Prefer Male", "Prefer Female", "Only Male"]
+const genderPreferences = ["None", "Prefer Male", "Prefer Female", "Only Male", "Only Female"]
 const tutorsWant = ["Only one", "More than one", "As many as Possible"]
 const iNeedSomeone = ["freelance", "full time", "part time", "volunteer", "student"]
 
@@ -70,7 +70,8 @@ export function BudgetPreferencesStep({ form }) {
   const [open, setOpen] = useState(false)
   const { profile } = useUser()
 
-  const suggestedCurrency = getCurrencyByCountry(profile?.address?.country);
+  console.log('User Profile:', form.getValues())
+  const suggestedCurrency = getCurrencyByCountry(form.getValues('country') || profile?.address?.country);
   const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "$";
 
 
@@ -108,7 +109,6 @@ export function BudgetPreferencesStep({ form }) {
                   <Input
                     {...field}
                     type="number"
-                    min="0"
                     placeholder="50"
                     className="pl-8"
                     onChange={(e) => field.onChange(Number(e.target.value))}

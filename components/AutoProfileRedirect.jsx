@@ -15,7 +15,8 @@ export default function AutoProfileRedirect() {
     // 2. User is authenticated
     // 3. Currently on the homepage
     // 4. Profile exists (to avoid redirecting before profile loads)
-    if (!loading && user && pathname === '/' && profile) {
+    // 5. User is not a student (students should see homepage)
+    if (!loading && user && pathname === '/' && profile && profile.role !== 'student') {
       // Add a small delay to ensure smooth transition
       const timer = setTimeout(() => {
         router.push('/profile')

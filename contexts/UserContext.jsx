@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { getUserProfile, uploadAvatar, createRequest } from "@/lib/supabaseAPI"
-import { set } from "react-hook-form"
+import { getUserProfile, uploadAvatar, createRequest, getOrCreateUser } from "@/lib/supabaseAPI"
 
 const UserContext = createContext(null)
 
@@ -28,7 +27,8 @@ export function UserProvider({ children }) {
           console.log('Address data in refreshUserData:', profileResult.data.address)
           setProfile(profileResult.data)
         } else {
-          console.log('No profile found, creating basic profile')
+          console.log('No profile found, creating basic profile', session.user);
+          getOrCreateUser(session.user)
           // Create a basic profile structure if none exists
           setProfile({
             email: session.user.email,
@@ -58,12 +58,11 @@ export function UserProvider({ children }) {
     refreshUserData()
     localStorage.getItem("pendingTutorRequest") && setPendingRequest(true)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_, session) => {
         if (session?.user) {
           setUser(session.user)
 
           try {
-            // Use the same API function for consistency
             const profileResult = await getUserProfile(session.user.email)
             
             if (profileResult.data) {
@@ -71,8 +70,19 @@ export function UserProvider({ children }) {
               console.log('Address from auth change:', profileResult.data.address)
               setProfile(profileResult.data)
             } else {
-              console.log('No profile found in auth change')
-              setProfile(null)
+              console.log('No profile found in auth change, creating basic profile')
+              // Create a basic profile structure if none exists
+              getOrCreateUser(session.user)
+              setProfile({
+                email: session.user.email,
+                name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+                role: 'student',
+                status: 'active',
+                coin_balance: 0,
+                rating: 0,
+                total_reviews: 0,
+                profile_completion_percentage: 0
+              })
             }
           } catch (error) {
             console.error("Error fetching profile in auth change:", error)

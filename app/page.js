@@ -3,11 +3,10 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Search, BookOpen, Users, Star, ArrowRight, Award, Radiation, Book, Computer, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play, X } from "lucide-react"
+import { Search, BookOpen, Users, Star, ArrowRight, Award, Book, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useUser } from "@/contexts/UserContext"
@@ -22,7 +21,7 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [subjects, setSubjects] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const { user, loading: userLoading } = useUser()
+  const { user, loading: userLoading, profile } = useUser()
   const [expandPlayer, setExpandPlayer] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [showPlayer, setShowPlayer] = useState(false)
@@ -54,8 +53,8 @@ export default function HomePage() {
     fetchData()
   }, [])
 
-  // Show profile dashboard if user is authenticated and profile is loaded
-  if (user && !userLoading) {
+  // Show profile dashboard only for tutors and admins, students see regular homepage
+  if (user && !userLoading && profile && profile.role !== 'student') {
     return <ProfileDashboard />
   }
 
@@ -125,7 +124,7 @@ export default function HomePage() {
                               setFilteredSuggestions([])
                             }
                           }}
-                          className="md:pl-12 pr-4 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500 h-12"
+                          className="md:pl-12 pr-4 py-4 text-lg border-green-500 rounded-xl border-2 focus:border-green-500 focus:ring-green-500 h-12"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               const query = searchTerm.trim() || 'all tutors'
@@ -211,7 +210,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Highlight Badge */}
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center gap-3">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 md:flex items-center gap-3 hidden">
                   <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
                     <Star className="w-5 h-5 text-yellow-700 fill-current" />
                   </div>
