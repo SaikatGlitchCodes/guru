@@ -3,90 +3,18 @@ import { useState, useCallback, useRef } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form"
-import { Separator } from "@/components/ui/separator"
-import { Loader2, Locate, Search, MapPin, X } from "lucide-react"
-import { toast } from "sonner"
+import { Loader2, Search, MapPin, X } from "lucide-react"
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
 
 export function NameAddressStep({ form }) {
-  const [isGettingLocation, setIsGettingLocation] = useState(false)
   const [addressSuggestions, setAddressSuggestions] = useState([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false)
   const [addressSearchValue, setAddressSearchValue] = useState("")
-  const debounceRef = useRef(null)
+  const debounceRef = useRef(null);
 
-  const getCurrentLocation = useCallback(() => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Geolocation is not supported by this browser.'))
-        return
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          })
-        },
-        (error) => {
-          reject(error)
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      )
-    })
-  }, [])
-
-  const reverseGeocode = async (latitude, longitude) => {
-    if (!GEOAPIFY_API_KEY) {
-      throw new Error('Geoapify API key is not configured')
-    }
-
-    try {
-      const response = await fetch(
-        `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${GEOAPIFY_API_KEY}`
-      )
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch address information')
-      }
-
-      const data = await response.json()
-
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0]
-        const props = feature.properties
-        
-        // Ensure formatted is a string, fallback to constructing it
-        const formattedAddress = typeof props.formatted === 'string' 
-          ? props.formatted 
-          : `${props.housenumber || ''} ${props.street || ''} ${props.city || ''} ${props.state || ''} ${props.postcode || ''}`.trim()
-        
-        return {
-          street: `${props.housenumber || ''} ${props.street || ''}`.trim(),
-          city: props.city || props.town || props.village || '',
-          state: props.state || props.region || '',
-          zip: props.postcode || '',
-          country: props.country || '',
-          country_code: props.country_code || '',
-          formatted: formattedAddress,
-          lat: latitude,
-          lon: longitude
-        }
-      } else {
-        throw new Error('No address found for the given coordinates')
-      }
-    } catch (error) {
-      console.error('Reverse geocoding error:', error)
-      throw error
-    }
-  }
+  console.log('address', form.getValues('address.street'))
 
   const searchAddresses = async (query) => {
     if (!GEOAPIFY_API_KEY || !query || query.length < 3) {
@@ -185,59 +113,7 @@ export function NameAddressStep({ form }) {
     setAddressSearchValue(addressString)
     setShowAddressSuggestions(false)
     setAddressSuggestions([])
-
-    toast.success('Address selected successfully!')
   }, [form])
-
-  const handleGetCurrentLocation = useCallback(async () => {
-    setIsGettingLocation(true)
-
-    try {
-      const coordinates = await getCurrentLocation()
-      const addressInfo = await reverseGeocode(coordinates.latitude, coordinates.longitude)
-
-      // Ensure we have a proper string for the address
-      const addressString = typeof addressInfo.formatted === 'string' 
-        ? addressInfo.formatted 
-        : `${addressInfo.street || ''} ${addressInfo.city || ''} ${addressInfo.state || ''} ${addressInfo.zip || ''}`.trim()
-
-      // Set all address-related fields
-      form.setValue('address', addressString)
-      form.setValue('address_lat', addressInfo.lat)
-      form.setValue('address_lon', addressInfo.lon)
-      
-      // Set individual address component fields
-      form.setValue('street', addressInfo.street || '')
-      form.setValue('city', addressInfo.city || '')
-      form.setValue('state', addressInfo.state || '')
-      form.setValue('zip', addressInfo.zip || '')
-      form.setValue('country', addressInfo.country || '')
-      form.setValue('country_code', addressInfo.country_code || '')
-
-      setAddressSearchValue(addressString)
-
-      toast.success('Address updated successfully using your current location!')
-
-    } catch (error) {
-      console.error('Location error:', error)
-
-      let errorMessage = 'Failed to get your location. '
-
-      if (error.code === 1) {
-        errorMessage += 'Please allow location access and try again.'
-      } else if (error.code === 2) {
-        errorMessage += 'Location information is unavailable.'
-      } else if (error.code === 3) {
-        errorMessage += 'Location request timed out.'
-      } else {
-        errorMessage += error.message || 'Please try again.'
-      }
-
-      toast.error(errorMessage)
-    } finally {
-      setIsGettingLocation(false)
-    }
-  }, [getCurrentLocation, reverseGeocode, form])
 
   const clearAddressSearch = useCallback(() => {
     setAddressSearchValue("")
@@ -255,7 +131,6 @@ export function NameAddressStep({ form }) {
     form.setValue('country_code', '')
   }, [form])
 
-  console.log("Address Search Value:", addressSearchValue)
   return (
     <div className="space-y-6">
       <FormField
@@ -263,11 +138,10 @@ export function NameAddressStep({ form }) {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Full Name</FormLabel>
+            <FormLabel>Name</FormLabel>
             <FormControl>
               <Input
                 {...field}
-                placeholder="Enter your full name"
                 autoComplete="name"
                 className="w-full"
               />
@@ -276,30 +150,6 @@ export function NameAddressStep({ form }) {
           </FormItem>
         )}
       />
-
-      {/* Address Information Section */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h3 className="text-lg font-medium">Address</h3>
-            <p className="text-sm text-muted-foreground">Enter your address or use current location</p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleGetCurrentLocation}
-            disabled={isGettingLocation}
-            className="flex items-center gap-2 w-full sm:w-auto"
-          >
-            {isGettingLocation ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Locate className="h-4 w-4" />
-            )}
-            {isGettingLocation ? 'Getting Location...' : 'Use Current Location'}
-          </Button>
-        </div>
 
         {/* Single Address Input with Autocomplete */}
         <FormField
@@ -314,13 +164,13 @@ export function NameAddressStep({ form }) {
                   <Input
                     {...field}
                     placeholder="Start typing your address..."
-                    value={addressSearchValue || ''}
+                    value={ form.getValues('address.street') ||addressSearchValue || ''}
                     onChange={(e) => {
                       field.onChange(e.target.value)
                       handleAddressSearchChange(e.target.value)
                     }}
                     onClick={() => setShowAddressSuggestions(true)}
-                    className="pl-10 pr-10 w-full"
+                    className="pl-8 pr-10 w-full"
                     autoComplete="street-address"
                   />
                 </FormControl>
@@ -378,32 +228,6 @@ export function NameAddressStep({ form }) {
             </FormItem>
           )}
         />
-      </div>
-
-      {/* Hidden coordinate fields */}
-      <FormField
-        control={form.control}
-        name="address_lat"
-        render={({ field }) => (
-          <FormItem className="hidden">
-            <FormControl>
-              <Input type="hidden" {...field} value={field.value || ""} />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="address_lon"
-        render={({ field }) => (
-          <FormItem className="hidden">
-            <FormControl>
-              <Input type="hidden" {...field} value={field.value || ""} />
-            </FormControl>
-          </FormItem>
-        )}
-      />
     </div>
   )
 }

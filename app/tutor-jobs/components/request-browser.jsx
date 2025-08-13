@@ -235,9 +235,9 @@ export default function RequestBrowser({ initialRequests }) {
                 {/* Budget */}
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1 font-semibold text-green-600">
+                    <div className="flex items-center gap-1 font-semibold text-blue-600">
                       <span>{request?.price_currency_symbol || '$'}</span>
-                      <span>{request.price_amount} {request?.price_option}</span>
+                      <span>{request.price_amount}/{request?.price_option}</span>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>

@@ -14,19 +14,18 @@ export function EmailVerificationStep({ form }) {
         name="user_email"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email Address</FormLabel>
+            <FormLabel>Email</FormLabel>
             <FormControl>
               <Input
                 {...field}
                 type="email"
-                placeholder="Enter your email address"
                 autoComplete="email"
                 className="max-w-md"
                 readOnly={!!user?.email}
               />
             </FormControl>
             <div className="text-xs text-muted-foreground">
-              Use a permanent address where you can receive mail.
+              Use a permanent(gmail) address where you can receive mail.
             </div>
             <FormMessage />
           </FormItem>
