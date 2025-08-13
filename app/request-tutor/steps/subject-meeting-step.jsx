@@ -46,23 +46,31 @@ export function SubjectMeetingStep({ form }) {
   const [subjects, setSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  const fetchSubjects = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await supabase
+        .from('subjects')
+        .select('id, name')
+      
+      if (response.error) {
+        throw new Error(response.error.message)
+      }
+      
+      setSubjects((response.data || []).map(subject => ({ value: subject.name, label: subject.name, id: subject.id })))
+    } catch (error) {
+      console.error('Error fetching subjects:', error)
+      setError(error.message || 'Failed to load subjects')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    setLoading(true)
-    const fetchSubjects = async () => {
-      try {
-        const response = await supabase
-          .from('subjects')
-          .select('id, name')
-        setSubjects((response.data || []).map(subject => ({ value: subject.name, label: subject.name, id: subject.id })))
-      } catch (error) {
-        console.error('Error fetching subjects:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchSubjects()
-    setLoading(false)
   }, [])
 
   const handleCreateSubject = async (newSubject) => {
@@ -89,63 +97,8 @@ export function SubjectMeetingStep({ form }) {
 
 
   return (
-    <div className="space-y-4 border-t-2 pt-12">
-      {/* Request type - Enhanced UI - Moved to top for priority */}
-      <FormField
-        control={form.control}
-        name="type"
-        render={({ field }) => (
-          <FormItem>
-            <div className="mb-4">
-              <FormLabel className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                What type of help do you need?
-              </FormLabel>
-              <p className="text-sm text-gray-600 mt-1">Choose the option that best describes what you're looking for</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {requestTypes.map((type) => {
-                const IconComponent = type.icon
-                const isSelected = field.value === type.value
-                return (
-                  <div 
-                    key={type.value}
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                      isSelected 
-                        ? 'shadow-md' + type.color
-                        : ''
-                    }`}
-                    onClick={() => field.onChange(type.value)}
-                  >
-                    <div className="p-2 text-center">
-                      <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full mb-2 ${
-                        isSelected ? type.color : 'bg-gray-100'
-                      }`}>
-                        <IconComponent className={`w-4 h-4 ${
-                          isSelected ? type.iconColor : 'text-gray-600'
-                        }`} />
-                      </div>
-                      <h3 className={`font-medium mb-1 text-sm ${
-                        isSelected ? 'text-gray-900' : 'text-gray-700'
-                      }`}>
-                        {type.label}
-                      </h3>
-                      <p className="text-xs text-gray-600">
-                        {type.description}
-                      </p>
-                      {isSelected && (
-                        <Badge className="mt-2 bg-blue-100 text-blue-800 border-blue-200 text-xs">
-                          Selected
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+    <div className="space-y-6 border-t-2 md:pt-12 pt-5">
+
 
       {/* Subject selection */}
       <FormField
@@ -153,16 +106,36 @@ export function SubjectMeetingStep({ form }) {
         name="subject"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Subjects</FormLabel>
+            <div className="flex items-center justify-between">
+              <FormLabel>Subjects</FormLabel>
+              {error && (
+                <button
+                  type="button"
+                  onClick={fetchSubjects}
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                  disabled={loading}
+                >
+                  {loading ? 'Reloading...' : 'Reload'}
+                </button>
+              )}
+            </div>
+            {error && (
+              <div className="rounded-md bg-red-50 px-3 py-2 mb-2 dark:bg-red-950">
+                <p className="text-sm text-red-800 dark:text-red-300">
+                  <strong>Error:</strong> {error}. Click reload to try again.
+                </p>
+              </div>
+            )}
             <FormControl>
               <CreatableSelect
                 isMulti
                 isClearable
-                placeholder='Search subjects...'
+                placeholder={error ? 'Error loading subjects - click reload' : 'Search subjects...'}
                 allowCreateWhileLoading
                 options={subjects}
-                noOptionsMessage={(error) => error ? 'Error loading subjects' : 'No Categories Found'}
+                noOptionsMessage={() => error ? 'Error loading subjects - click reload above' : 'No Categories Found'}
                 isLoading={loading}
+                isDisabled={!!error && !loading}
                 onChange={(selectedOptions) => {
                   field.onChange(selectedOptions);
                   setSelectedSubject(selectedOptions);
@@ -181,11 +154,11 @@ export function SubjectMeetingStep({ form }) {
         control={form.control}
         name="level"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Level</FormLabel>
+          <FormItem >
+            <FormLabel>Your Level</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select level" />
                 </SelectTrigger>
               </FormControl>
@@ -193,6 +166,38 @@ export function SubjectMeetingStep({ form }) {
                 {levels.map((level) => (
                   <SelectItem key={level} value={level}>
                     {level}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Request type - Enhanced UI - Moved to top for priority */}
+      <FormField
+        control={form.control}
+        name="type"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>What type of help do you need?</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose the option that best describes what you're looking for" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {requestTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    <div className="flex items-center gap-2">
+                      <type.icon className={`w-4 h-4 ${type.iconColor}`} />
+                      <div>
+                        <span className="font-medium">{type.label}</span>
+                        <span className="text-xs text-gray-500 ml-2">- {type.description}</span>
+                      </div>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -222,7 +227,7 @@ export function SubjectMeetingStep({ form }) {
                       />
                     </FormControl>
                     <FormLabel className="text-sm font-normal">
-                      Online
+                      Online (over zoom, google meet, etc)
                     </FormLabel>
                   </FormItem>
                 )}
@@ -240,7 +245,7 @@ export function SubjectMeetingStep({ form }) {
                       />
                     </FormControl>
                     <FormLabel className="text-sm font-normal">
-                      In-person
+                      In-person (Home/Institute)
                     </FormLabel>
                   </FormItem>
                 )}

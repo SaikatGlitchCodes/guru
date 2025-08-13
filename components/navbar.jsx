@@ -26,7 +26,7 @@ export default function Navbar() {
   const [showWalletModal, setShowWalletModal] = useState(false)
 
   const isLoggedIn = !!user
-  const userRole = profile?.role || "student"
+  const userRole = isLoggedIn ? (profile?.role || "guest") : "guest"
   const userName = profile?.name || user?.email?.split('@')[0] || "User"
   const coinBalance = profile?.coin_balance || 0
 

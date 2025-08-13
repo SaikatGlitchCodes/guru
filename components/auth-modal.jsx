@@ -293,7 +293,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="forgot-email"
                                             name="email"
                                             type="email"
-                                            placeholder="Enter your email address"
                                             className={`pl-10 ${forgotPasswordErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -346,7 +345,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="signin-email"
                                             name="email"
                                             type="email"
-                                            placeholder="Enter your email"
                                             className={`pl-10 ${signInErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -362,7 +360,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="signin-password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="Enter your password"
                                             className={`pl-10 pr-10 ${signInErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -409,10 +406,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                         </TabsContent>
 
                         <TabsContent value="signup" className="space-y-4 mt-6">
-                            <div className="text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <strong>Note:</strong> Your email will be used for account verification, password recovery, 
-                                and important platform communications. We'll also use it to connect you with tutors/students when you make requests.
-                            </div>
                             
                             <form action={handleSignUp} className="space-y-4">
                                 <div className="space-y-2">
@@ -423,7 +416,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="signup-name"
                                             name="name"
                                             type="text"
-                                            placeholder="Enter your full name"
                                             className={`pl-10 ${signUpErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -444,7 +436,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="signup-email"
                                             name="email"
                                             type="email"
-                                            placeholder="Enter your email address"
                                             className={`pl-10 ${signUpErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -468,7 +459,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                             id="signup-password"
                                             name="password"
                                             type={showPassword ? "text" : "password"}
-                                            placeholder="Create a password"
                                             className={`pl-10 pr-10 ${signUpErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />

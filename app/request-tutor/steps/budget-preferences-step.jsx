@@ -85,92 +85,61 @@ export function BudgetPreferencesStep({ form }) {
 
   }, [])
 
-  const handleCurrencyChange = (code) => {
-    const currency = currencies.find(c => c.code === code);
-    form.setValue("price_currency", code);
-    form.setValue("price_currency_symbol", currency?.symbol || "$");
-  }
-
   return (
-    <div className="space-y-6 border-t-2 pt-12">
+    <div className="space-y-6 md:border-t-2 md:pt-12 pt-5">
       {/* Budget, Price Unit and Currency */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <FormField
-          control={form.control}
-          name="price_amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Budget</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {suggestedSymbol}
-                  </span>
-                  <Input
-                    {...field}
-                    type="number"
-                    placeholder="50"
-                    className="pl-8"
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="price_option"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price Unit</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+      <div>
+        <p className="text-sm font-semibold mb-1">Budget, Price Unit</p>
+        <div className="flex items-center">
+          <FormField
+            control={form.control}
+            name="price_amount"
+            render={({ field }) => (
+              <FormItem>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select price unit" />
-                  </SelectTrigger>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      {suggestedSymbol}
+                    </span>
+                    <Input
+                      {...field}
+                      type="number"
+                      value={field.value || ""}
+                      className="pl-8"
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </div>
                 </FormControl>
-                <SelectContent>
-                  {priceOptions.map((unit) => (
-                    <SelectItem key={unit} value={unit}>
-                      {unit}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="price_currency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency</FormLabel>
-              <Select onValueChange={handleCurrencyChange} value={field.value || suggestedCurrency || "USD"}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {currencies.map((currency) => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      {currency.symbol} - {currency.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="price_option"
+            render={({ field }) => (
+              <FormItem>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Select price unit" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {priceOptions.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
-
       {/* Gender Preference and Tutors Want */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
@@ -181,7 +150,7 @@ export function BudgetPreferencesStep({ form }) {
               <FormLabel>Gender Preference</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select preference" />
                   </SelectTrigger>
                 </FormControl>
@@ -206,7 +175,7 @@ export function BudgetPreferencesStep({ form }) {
               <FormLabel>How many tutors do you want?</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select option" />
                   </SelectTrigger>
                 </FormControl>
@@ -233,7 +202,7 @@ export function BudgetPreferencesStep({ form }) {
             <FormLabel>I need someone who is available</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select availability" />
                 </SelectTrigger>
               </FormControl>
