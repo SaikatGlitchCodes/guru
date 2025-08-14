@@ -379,6 +379,13 @@
   overflow: hidden;
 }
 
+/* Word break utility for better text wrapping */
+.word-break {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
 /* Custom slow rotation animation for how it works button */
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
