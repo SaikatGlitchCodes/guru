@@ -13,7 +13,7 @@ const FormNavigationButton = ({
   setIsSubmitting,
   clearSavedData
 }) => {
-  const {user, signInWithMagicLink} = useUser();
+  const { user, signInWithMagicLink } = useUser();
   const googleOneTapRef = useRef(null);
 
   // Initialize Google One Tap when on first step and user is not authenticated
@@ -77,13 +77,13 @@ const FormNavigationButton = ({
       if (currentStepFields.includes('subject') && !form.getValues('subject')) {
         form.setValue('subject', []);
       }
-      
+
       const isValid = await form.trigger(currentStepFields);
       // Log form errors if validation fails
       if (!isValid) {
         console.error('Form errors:', form.formState.errors);
       }
-      
+
       if (isValid) {
         if (currentStep < REQUEST_STEPS.length - 1) {
           setCurrentStep(currentStep + 1);
@@ -117,22 +117,20 @@ const FormNavigationButton = ({
   const showGoogleOption = currentStep === 0 && !user;
 
   return (
-    <div className="flex flex-col gap-3 mb-4">
-      <div className="flex gap-3 justify-start">
-        <Button
-          type={currentStep === REQUEST_STEPS.length - 1 ? "submit" : "button"}
-          onClick={handleNext}
-          className="px-14 bg-black text-white mt-5"
-          disabled={isSubmitting}
-        >
-          {currentStep === REQUEST_STEPS.length - 1 ? 'Submit' : 'Continue'}
-        </Button>
-      </div>
+    <div className="flex items-center gap-3 mb-4 mt-5">
+      <Button
+        type={currentStep === REQUEST_STEPS.length - 1 ? "submit" : "button"}
+        onClick={handleNext}
+        className="px-14 bg-black text-white"
+        disabled={isSubmitting}
+      >
+        {currentStep === REQUEST_STEPS.length - 1 ? 'Submit' : 'Continue'}
+      </Button>
 
       {/* Google One Tap Button Container - Shows on first step only */}
       {showGoogleOption && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-        <div className="flex justify-start mt-2">
-          <div ref={googleOneTapRef} className="min-h-[40px]"></div>
+        <div className="flex justify-start ">
+          <div ref={googleOneTapRef}></div>
         </div>
       )}
     </div>

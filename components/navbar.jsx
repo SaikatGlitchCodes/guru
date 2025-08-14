@@ -44,6 +44,7 @@ export default function Navbar() {
           { href: "/tutor-jobs", label: "Open Requests" },
           { href: "/my-students", label: "My Students" },
           { href: "/messages", label: "Messages" },
+            { href: "/requests", label: "My Requests" },
         ]
       case "guest":
         return [

@@ -5,10 +5,10 @@ export const formSchema = z.object({
   type: z.string().min(1, "Type is required"),
   user_email: z.string()
     .min(1, "Email is required")
-    .email("Please enter a valid email address"),
-    // .refine((email) => email.endsWith("@gmail.com"), {
-    //   message: "Email must be a gmail address (@gmail.com)"
-    // }), change required
+    .email("Please enter a valid email address")
+    .refine((email) => email.endsWith("@gmail.com"), {
+      message: "Email must be a gmail address (@gmail.com)"
+    }),
   name: z.string().min(2, "Name must be at least 2 characters"),
   address: z.object({
     addressline_1: z.string().optional(),

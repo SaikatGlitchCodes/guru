@@ -33,27 +33,47 @@ import {
 import { toast } from "sonner"
 
 export default function StudentRequestsPage() {
-  const { user, profile } = useUser()
+  const { user, profile, loading: userLoading } = useUser()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [closingRequest, setClosingRequest] = useState(null)
   const [showCloseDialog, setShowCloseDialog] = useState(null)
 
+  // Debug logging
   useEffect(() => {
-    if (user && profile) {
+    console.log('StudentRequestsPage - user:', user)
+    console.log('StudentRequestsPage - profile:', profile)
+    console.log('StudentRequestsPage - userLoading:', userLoading)
+  }, [user, profile, userLoading])
+
+  useEffect(() => {
+    // Wait for user loading to complete and user to be available
+    if (!userLoading && user?.email) {
       fetchRequests()
+    } else if (!userLoading && !user) {
+      setLoading(false)
     }
-  }, [user, profile])
+  }, [user, userLoading])
 
   const fetchRequests = async () => {
+    if (!user?.email) {
+      console.log('No user email available')
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
-      const result = await getUserRequests(profile.user_id)
+      console.log('Fetching requests for user:', user.email, user.id)
+      
+      // Use user email instead of profile.user_id
+      const result = await getUserRequests(user.id)
       
       if (result.error) {
         throw new Error(result.error.message || 'Failed to fetch requests')
       }
 
+      console.log('Fetched requests:', result.data)
       setRequests(result.data || [])
     } catch (error) {
       console.error('Error fetching requests:', error)
@@ -68,11 +88,12 @@ export default function StudentRequestsPage() {
       toast.error('Authentication required')
       return
     }
+    console.log('Closing request:', requestId, 'for user:', user.email)
 
     try {
       setClosingRequest(requestId)
       
-      const result = await updateRequestStatus(requestId, 'closed', user.email)
+      const result = await updateRequestStatus(requestId, 'completed', user.id)
       
       if (result.error) {
         throw new Error(result.error.message || 'Failed to close request')
@@ -100,8 +121,9 @@ export default function StudentRequestsPage() {
   const getStatusBadge = (status) => {
     const statusConfig = {
       open: { label: 'Open', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      closed: { label: 'Closed', color: 'bg-gray-100 text-gray-800', icon: XCircle },
-      in_progress: { label: 'In Progress', color: 'bg-blue-100 text-blue-800', icon: Clock }
+      completed: { label: 'Completed', color: 'bg-gray-100 text-gray-800', icon: XCircle },
+      in_progress: { label: 'In Progress', color: 'bg-blue-100 text-blue-800', icon: Clock },
+      cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle }
     }
 
     const config = statusConfig[status] || statusConfig.open
@@ -129,18 +151,20 @@ export default function StudentRequestsPage() {
     }
   }
 
-  if (loading) {
+  // Show loading while user context is loading or while fetching requests
+  if (userLoading || (loading && !user)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Loading your requests...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
   }
 
-  if (!user || !profile) {
+  // Show authentication error if user is not logged in
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Alert className="max-w-md">
@@ -149,6 +173,18 @@ export default function StudentRequestsPage() {
             Please sign in to view your requests.
           </AlertDescription>
         </Alert>
+      </div>
+    )
+  }
+
+  // Show loading while fetching requests
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading your requests...</p>
+        </div>
       </div>
     )
   }
@@ -195,7 +231,7 @@ export default function StudentRequestsPage() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-4 h-4" />
-                          {request.applications?.length || 0} applications
+                          {request.contacted_count || 0} tutors contacted
                         </div>
                       </div>
                     </div>
@@ -280,36 +316,36 @@ export default function StudentRequestsPage() {
                     </>
                   )}
 
-                  {/* Applications */}
-                  {request.applications && request.applications.length > 0 && (
+                  {/* Contact Activities */}
+                  {request.contact_activities && request.contact_activities.length > 0 && (
                     <>
                       <Separator />
                       <div>
                         <p className="text-sm font-medium text-gray-700 mb-3">
-                          Applications ({request.applications.length})
+                          Tutors Contacted ({request.contact_activities.length})
                         </p>
                         <div className="space-y-2">
-                          {request.applications.slice(0, 3).map((app, index) => (
+                          {request.contact_activities.slice(0, 3).map((contact, index) => (
                             <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                               <div className="flex items-center gap-3">
                                 <img 
-                                  src={app.tutor?.user?.avatar_url || "/api/placeholder/32/32"} 
-                                  alt={app.tutor?.user?.name || 'Tutor'}
+                                  src={contact.tutor?.avatar_url || "/api/placeholder/32/32"} 
+                                  alt={contact.tutor?.name || 'Tutor'}
                                   className="w-8 h-8 rounded-full"
                                 />
                                 <div>
-                                  <p className="font-medium text-sm">{app.tutor?.user?.name || 'Anonymous'}</p>
-                                  <p className="text-xs text-gray-500">{getTimeAgo(app.created_at)}</p>
+                                  <p className="font-medium text-sm">{contact.tutor?.name || 'Anonymous Tutor'}</p>
+                                  <p className="text-xs text-gray-500">{getTimeAgo(contact.contacted_at)}</p>
                                 </div>
                               </div>
                               <Badge variant="outline" className="text-xs">
-                                {app.status}
+                                Contacted
                               </Badge>
                             </div>
                           ))}
-                          {request.applications.length > 3 && (
+                          {request.contact_activities.length > 3 && (
                             <p className="text-xs text-gray-500 text-center">
-                              +{request.applications.length - 3} more applications
+                              +{request.contact_activities.length - 3} more tutors contacted
                             </p>
                           )}
                         </div>
@@ -351,7 +387,7 @@ export default function StudentRequestsPage() {
             <DialogDescription>
               Are you sure you want to close this request? This will:
               <ul className="mt-2 list-disc list-inside space-y-1 text-sm">
-                <li>Stop accepting new applications from tutors</li>
+                <li>Stop new tutors from contacting you</li>
                 <li>Hide your request from search results</li>
                 <li>Mark the request as closed</li>
               </ul>
