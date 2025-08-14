@@ -1,5 +1,4 @@
 // components/steps/phone-number-step.tsx
-import { UseFormReturn } from "react-hook-form"
 import { useState, useEffect } from "react"
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
@@ -104,7 +103,7 @@ export function PhoneNumberStep({ form }) {
 
   // Initialize selected country based on form's country value
   useEffect(() => {
-    const formCountry = form.getValues('address.country');
+    const formCountry = form.getValues('country');
     console.log('Form country:', formCountry);
     if (formCountry) {
       const countryCode = getCountryCode(formCountry);

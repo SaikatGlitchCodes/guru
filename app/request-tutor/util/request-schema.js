@@ -8,7 +8,7 @@ export const formSchema = z.object({
     .email("Please enter a valid email address"),
     // .refine((email) => email.endsWith("@gmail.com"), {
     //   message: "Email must be a gmail address (@gmail.com)"
-    // }), change required
+    // }),
   name: z.string().min(2, "Name must be at least 2 characters"),
   address: z.object({
     addressline_1: z.string().optional(),
