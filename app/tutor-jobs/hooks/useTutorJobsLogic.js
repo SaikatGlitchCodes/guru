@@ -9,7 +9,9 @@ export function useTutorJobsLogic() {
   const router = useRouter()
   
   // State management
-  const [allRequests, setAllRequests] = useState([])
+  const [requests, setRequests] = useState([])
+  const [totalItems, setTotalItems] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState(searchParams?.get('search') || "")
@@ -19,6 +21,8 @@ export function useTutorJobsLogic() {
   const [isFilterOptionsLoading, setIsFilterOptionsLoading] = useState(true)
   const [activeQuickFilters, setActiveQuickFilters] = useState([])
   const [isApplyingFilters, setIsApplyingFilters] = useState(false)
+  
+  const itemsPerPage = 12
 
   // URL parameters
   const urlFilter = searchParams?.get('filter')
@@ -45,19 +49,21 @@ export function useTutorJobsLogic() {
   // Debounced search
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
 
-  // Optimized requests
-  const { requests: filteredRequests, stats: requestStats, hasResults } = useOptimizedRequests(
-    allRequests,
-    filters,
-    debouncedSearchQuery,
-    sortBy
-  )
+  // Calculate pagination info
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const hasResults = requests.length > 0
+  const requestStats = {
+    total: totalItems,
+    displayed: requests.length,
+    pages: totalPages,
+    currentPage
+  }
 
   // Cache management
   const getCacheKey = useCallback(() => {
-    const key = `requests_${JSON.stringify(filters)}_${debouncedSearchQuery}_${sortBy}`
+    const key = `requests_${JSON.stringify(filters)}_${debouncedSearchQuery}_${sortBy}_${currentPage}`
     return key.length > 250 ? `requests_${btoa(key).slice(0, 50)}` : key
-  }, [filters, debouncedSearchQuery, sortBy])
+  }, [filters, debouncedSearchQuery, sortBy, currentPage])
 
   // Fetch requests with caching
   const fetchRequests = useCallback(async () => {
@@ -83,8 +89,9 @@ export function useTutorJobsLogic() {
           const parsed = JSON.parse(cachedData)
           const isExpired = Date.now() - parsed.timestamp > 5 * 60 * 1000 // 5 minutes
           
-          if (!isExpired && parsed.data) {
-            setAllRequests(parsed.data)
+          if (!isExpired && parsed.data && parsed.totalItems) {
+            setRequests(parsed.data)
+            setTotalItems(parsed.totalItems)
             setIsLoading(false)
             return
           }
@@ -108,7 +115,8 @@ export function useTutorJobsLogic() {
         minPrice: filters.minPrice,
         maxPrice: filters.maxPrice,
         sortBy,
-        limit: 100
+        page: currentPage,
+        limit: itemsPerPage
       })
 
       if (result.error) {
@@ -116,12 +124,23 @@ export function useTutorJobsLogic() {
       }
 
       const requestData = result.data || []
-      setAllRequests(requestData)
+      const totalCount = result.totalItems || requestData.length
+      
+      console.log('Fetched data:', {
+        requestDataLength: requestData.length,
+        totalCount,
+        currentPage,
+        itemsPerPage
+      })
+      
+      setRequests(requestData)
+      setTotalItems(totalCount)
 
       // Update cache
       try {
         localStorage.setItem(cacheKey, JSON.stringify({
           data: requestData,
+          totalItems: totalCount,
           timestamp: Date.now()
         }))
       } catch (storageError) {
@@ -158,18 +177,20 @@ export function useTutorJobsLogic() {
           
           const cached = JSON.parse(localStorage.getItem(latestKey))
           if (cached.data) {
-            setAllRequests(cached.data)
+            setRequests(cached.data)
+            setTotalItems(cached.totalItems || cached.data.length)
             setError('Showing cached results. Some information may be outdated.')
           }
         }
       } catch (cacheError) {
         console.error('Error loading cached data:', cacheError)
         setAllRequests([])
+        setTotalItems(0)
       }
     } finally {
       setIsLoading(false)
     }
-  }, [getCacheKey, debouncedSearchQuery, filters, sortBy])
+  }, [getCacheKey, debouncedSearchQuery, filters, sortBy, currentPage])
 
   // Fetch filter options
   const fetchFilterOptions = useCallback(async () => {
@@ -234,20 +255,27 @@ export function useTutorJobsLogic() {
   }, [searchParams, router, searchQuery, sortBy])
 
   // Event handlers
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page)
+  }, [])
+
   const handleFiltersChange = useCallback((newFilters) => {
     setIsApplyingFilters(true)
     setFilters(newFilters)
+    setCurrentPage(1) // Reset to first page when filters change
     updateURL(newFilters)
     setTimeout(() => setIsApplyingFilters(false), 300)
   }, [updateURL])
 
   const handleSearchChange = useCallback((newSearchQuery) => {
     setSearchQuery(newSearchQuery)
+    setCurrentPage(1) // Reset to first page when search changes
     updateURL(filters, newSearchQuery, sortBy)
   }, [filters, sortBy, updateURL])
 
   const handleSortChange = useCallback((newSortBy) => {
     setSortBy(newSortBy)
+    setCurrentPage(1) // Reset to first page when sort changes
     updateURL(filters, searchQuery, newSortBy)
   }, [filters, searchQuery, updateURL])
 
@@ -266,6 +294,7 @@ export function useTutorJobsLogic() {
     setFilters(clearedFilters)
     setSearchQuery("")
     setSortBy("newest")
+    setCurrentPage(1)
     setActiveQuickFilters([])
     router.push('/tutor-jobs', { shallow: true })
     setTimeout(() => setIsApplyingFilters(false), 300)
@@ -302,6 +331,7 @@ export function useTutorJobsLogic() {
     }
     
     setFilters(newFilters)
+    setCurrentPage(1) // Reset to first page when quick filters change
     setActiveQuickFilters(prev => {
       if (prev.includes(filterId)) {
         return prev.filter(id => id !== filterId)
@@ -345,7 +375,11 @@ export function useTutorJobsLogic() {
 
   return {
     // State
-    allRequests,
+    requests,
+    totalItems,
+    currentPage,
+    totalPages,
+    itemsPerPage,
     isLoading,
     error,
     searchQuery,
@@ -356,12 +390,12 @@ export function useTutorJobsLogic() {
     activeQuickFilters,
     isApplyingFilters,
     filters,
-    filteredRequests,
     requestStats,
     hasResults,
     isJobSupportMode,
     
     // Handlers
+    handlePageChange,
     handleFiltersChange,
     handleSearchChange,
     handleSortChange,

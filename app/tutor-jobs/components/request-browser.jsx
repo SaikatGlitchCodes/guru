@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { 
   MapPin, 
@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Pagination from "@/components/ui/pagination"
 import { getUrgencyInfo } from "@/lib/contactPricing"
 
 
@@ -44,8 +45,32 @@ const getTimeAgo = (dateString) => {
   }
 }
 
-export default function RequestBrowser({ initialRequests }) {
+export default function RequestBrowser({ 
+  requests = [], 
+  totalItems = 0,
+  currentPage = 1, 
+  itemsPerPage = 12,
+  isLoading = false,
+  onPageChange 
+}) {
   const router = useRouter()
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+
+  // Debug logging
+  console.log('RequestBrowser props:', {
+    totalItems,
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    requestsLength: requests.length
+  })
+
+  const handlePageChange = (page) => {
+    onPageChange?.(page)
+    // Scroll to top of the results when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleViewDetails = async (request) => {
     router.push(`/tutor-jobs/${request.id}`)
@@ -223,7 +248,34 @@ export default function RequestBrowser({ initialRequests }) {
     )
   }
 
-  if (initialRequests.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: itemsPerPage }).map((_, index) => (
+          <Card key={index} className="w-full max-w-full">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="h-4 bg-gray-100 rounded animate-pulse w-1/2"></div>
+                </div>
+                <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-100 rounded animate-pulse"></div>
+                <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4"></div>
+                <div className="h-4 bg-gray-100 rounded animate-pulse w-1/2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
+
+  if (requests.length === 0 && !isLoading) {
     return (
       <Card>
         <CardContent className="text-center py-12">
@@ -242,15 +294,33 @@ export default function RequestBrowser({ initialRequests }) {
 
   return (
     <div className="space-y-6">
-      {initialRequests.map((request) => (
-        <RequestCard key={request.id} request={request} />
-      ))}
+      {/* Cards Grid */}
+      <div className="space-y-4">
+        {requests.map((request) => (
+          <RequestCard key={request.id} request={request} />
+        ))}
+      </div>
       
-      {/* Results count */}
-      {initialRequests.length > 0 && (
+      {/* Simple pagination test */}
+
+        <div className="mt-4 border-t pt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.max(3, totalPages)}
+            totalItems={Math.max(36, totalItems)}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            showInfo={true}
+            className="justify-center"
+          />
+        </div>
+    
+      
+      {/* Results summary for single page */}
+      {totalPages <= 1 && requests.length > 0 && (
         <div className="text-center pt-4">
           <p className="text-sm text-gray-500">
-            Showing {initialRequests.length} tutoring opportunities
+            Showing {requests.length} tutoring opportunities
           </p>
         </div>
       )}

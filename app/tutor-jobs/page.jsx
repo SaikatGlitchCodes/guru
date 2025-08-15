@@ -23,7 +23,11 @@ function BrowseRequestsContent() {
   // Use our custom hook for all the logic
   const {
     // State
-    allRequests,
+    requests,
+    totalItems,
+    currentPage,
+    totalPages,
+    itemsPerPage,
     isLoading,
     error,
     searchQuery,
@@ -34,12 +38,12 @@ function BrowseRequestsContent() {
     activeQuickFilters,
     isApplyingFilters,
     filters,
-    filteredRequests,
     requestStats,
     hasResults,
     isJobSupportMode,
     
     // Handlers
+    handlePageChange,
     handleFiltersChange,
     handleSearchChange,
     handleSortChange,
@@ -60,7 +64,7 @@ function BrowseRequestsContent() {
     activeQuickFilters,
     filterOptions,
     isFilterOptionsLoading,
-    filteredRequests,
+    filteredRequests: requests,
     onSearchChange: handleSearchChange,
     onSortChange: handleSortChange,
     onJobSupportToggle: () => {
@@ -104,7 +108,12 @@ function BrowseRequestsContent() {
           <div className="flex-1">
             <Suspense fallback={<LoadingSkeleton />}>
               <RequestBrowser
-                initialRequests={filteredRequests}
+                requests={requests}
+                totalItems={totalItems}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                isLoading={isLoading}
+                onPageChange={handlePageChange}
               />
             </Suspense>
           </div>
