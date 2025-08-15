@@ -10,20 +10,13 @@ export default function AuthLayout({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Wait for loading to complete
     if (loading) return
-
-    // If no user, redirect to home
     if (!user) {
       router.push('/')
       return
     }
-
-    // Allow access if user exists, even if profile is still loading
-    // The profile page itself will handle the profile loading state
   }, [user, loading, router])
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">
@@ -32,7 +25,6 @@ export default function AuthLayout({ children }) {
     )
   }
 
-  // Show loading if user exists but we're still waiting
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[70vh]">

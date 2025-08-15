@@ -3,7 +3,6 @@ import { REQUEST_STEPS } from './constants';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import { createRequest } from '@/lib/api';
-import { UserPlus } from 'lucide-react';
 
 const FormNavigationButton = ({
   currentStep,
