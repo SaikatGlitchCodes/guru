@@ -65,7 +65,15 @@ function AuthCallbackContent() {
           if (session) {
             setStatus('success')
             setMessage('Authentication successful! Redirecting...')
-            router.push('/')
+            
+            // Check for pending request or custom redirect
+            const redirectUrl = localStorage.getItem('redirectAfterAuth')
+            if (redirectUrl && redirectUrl.includes('/request-tutor')) {
+              localStorage.removeItem('redirectAfterAuth')
+              router.push(redirectUrl)
+            } else {
+              router.push('/')
+            }
           } else {
             setStatus('error')
             setMessage('No authentication session found.')
