@@ -32,7 +32,7 @@ export default function PageHeader({
               <h1 className="text-2xl md:text-4xl font-bold mb-4 animate-fade-in">
                 Tutoring Opportunities
               </h1>
-              <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-delay">
+              <p className="text-xl md:text-2xl text-gray-300 animate-fade-in-delay hidden md:block">
                 Connect with students who need your expertise
               </p>
             </>

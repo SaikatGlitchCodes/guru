@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useRef } from "react"
 import { useSearchParams } from "next/navigation"
-import { CheckCircle2, UserPlus } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -13,7 +13,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Info } from "lucide-react"
 import { formSchema } from "./util/request-schema"
 import { useUser } from "@/contexts/UserContext"
-import { supabase } from "@/lib/supabaseClient"
 import FormNavigationButton from "./submitForm"
 import { FormPersistence } from "@/lib/formPersistence"
 import { REQUEST_STEPS } from "./constants"
@@ -182,68 +181,6 @@ function RequestTutorContent() {
     }, 50);
   }, [user, profile, currentStep])
 
-  // Initialize Google One Tap when component mounts and user is not authenticated
-  useEffect(() => {
-    if (!user && process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-      const initializeGoogleOneTap = () => {
-        if (typeof window !== 'undefined' && window.google) {
-          window.google.accounts.id.initialize({
-            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-            auto_select: false,
-            cancel_on_tap_outside: false,
-          })
-
-          if (googleOneTapRef.current) {
-            window.google.accounts.id.renderButton(googleOneTapRef.current, {
-              theme: 'outline',
-              size: 'large',
-              width: '100%',
-              text: 'continue_with',
-              shape: 'rectangular',
-            })
-          }
-
-          // Show One Tap prompt after a short delay
-          setTimeout(() => {
-            window.google.accounts.id.prompt((notification) => {
-              if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                console.log('Google One Tap not displayed:', notification.getNotDisplayedReason())
-              }
-            })
-          }, 1000)
-        }
-      }
-
-      // Load Google Identity Services script
-      if (!window.google) {
-        const script = document.createElement('script')
-        script.src = 'https://accounts.google.com/gsi/client'
-        script.async = true
-        script.defer = true
-        script.onload = initializeGoogleOneTap
-        script.onerror = () => {
-          console.error('Failed to load Google Identity Services')
-          // Hide the Google One Tap container if script fails
-          if (googleOneTapRef.current) {
-            googleOneTapRef.current.style.display = 'none'
-          }
-        }
-        document.head.appendChild(script)
-
-        // Cleanup function
-        return () => {
-          try {
-            document.head.removeChild(script)
-          } catch (e) {
-            // Script might already be removed
-          }
-        }
-      } else {
-        initializeGoogleOneTap()
-      }
-    }
-  }, [])
-
   const handleResendEmail = async () => {
     signInWithMagicLink(form.getValues("user_email"))
     setResendDisabled(true);
@@ -277,10 +214,6 @@ function RequestTutorContent() {
         </p>
 
         <div className="flex flex-col gap-4 w-full max-w-sm">
-          {/* Google One Tap Button Container - Only shows if properly configured */}
-          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-            <div ref={googleOneTapRef} className="flex justify-center min-h-[40px] rounded-xl"></div>
-          )}
 
           <div className="flex items-center gap-3 my-2">
             <div className="flex-1 border-t border-gray-300"></div>

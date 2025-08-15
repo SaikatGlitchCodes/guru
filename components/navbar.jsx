@@ -61,7 +61,7 @@ export default function Navbar() {
 
   const Logo = () => (
     <Link href="/" className="flex items-center space-x-2">
-      <img className="w-28" src="/logo.png" alt="MentorHub Logo" />
+      <img className="w-15" src="/logo.png" alt="MentorHub Logo" />
     </Link>
   )
 
@@ -339,7 +339,7 @@ export default function Navbar() {
       {(isRequestInLocalStorage) && <div className="container mx-auto p-2 flex items-center gap-x-4 border-b pb-4 justify-center">
         <div>
           <AlertTitle>Request creation still pending we require you to login!</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className=" hidden md:block">
             Please login to continue with your request creation. If you
             don't have an account, you can create one.
           </AlertDescription>

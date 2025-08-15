@@ -102,7 +102,7 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Sort Dropdown */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 hidden md:block">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Sort By
               </label>
@@ -152,7 +152,7 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Job Support Toggle */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 hidden md:block">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mode
               </label>
@@ -172,7 +172,7 @@ export default function EnhancedSearchBar({
             </div>
 
             {/* Clear Filters */}
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 hidden md:block">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Actions
               </label>

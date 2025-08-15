@@ -622,7 +622,7 @@ function FindTutorsContent() {
         `}</style>
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
-          <div className="text-center text-white mb-6 sm:mb-8">
+          <div className="text-center text-white mb-6 sm:mb-8 hidden md:block">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4 animate-fade-in leading-tight">
               Find Your Perfect Tutor
             </h1>

@@ -4,10 +4,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import CreatableSelect from 'react-select/creatable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabaseClient";
-import { BookOpen, Users, ClipboardList, Star } from "lucide-react"
+import { BookOpen, Users, ClipboardList } from "lucide-react"
 
 
 const requestTypes = [
