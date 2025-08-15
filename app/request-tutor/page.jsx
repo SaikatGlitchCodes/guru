@@ -32,14 +32,13 @@ function RequestTutorContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
   const searchParams = useSearchParams()
-  const { user, profile, signInWithMagicLink, signInWithGoogle } = useUser()
+  const { user, profile, signInWithMagicLink } = useUser()
   const [resendTimer, setResendTimer] = useState(60);
   const [resendDisabled, setResendDisabled] = useState(false);
   const [formPersistence] = useState(() => new FormPersistence('tutorRequestForm'))
   const [hasSavedData, setHasSavedData] = useState(false);
   const [initialValue, setInitialValue] = useState(0);
-  const googleOneTapRef = useRef(null);
-
+  console.log('profile', )
   useEffect(() => {
     if (resendDisabled) {
       const timer = setInterval(() => {
@@ -166,9 +165,9 @@ function RequestTutorContent() {
   useEffect(() => {
     if (user && currentStep === 0) {
       setCurrentStep(1);
-      setInitialValue(1);
+      setInitialValue(2);
     }
-    if (user && profile && currentStep === 1 && profile.address) {
+    if (user && profile && currentStep === 1 && profile.address.formatted) {
       setCurrentStep(2);
       // setInitialValue(2);
     }
@@ -257,10 +256,10 @@ function RequestTutorContent() {
         <Card className="shadow-none border-0">
           <CardContent className="md:pt-6">
             <Form {...form}>
-              <form>
+              <form onSubmit={(e) => e.preventDefault()}>
                 <div className="space-y-6 ">
                   <div className="pb-8 border-b border-gray-900/10">
-                    {REQUEST_STEPS.slice(initialValue, currentStep + 1 + initialValue).map(({ title, Component }) => (
+                    {REQUEST_STEPS.slice(initialValue, currentStep + 1 ).map(({ title, Component }) => (
                       <div className="mb-5" key={title}><Component form={form} /></div>
                     ))}
                   </div>

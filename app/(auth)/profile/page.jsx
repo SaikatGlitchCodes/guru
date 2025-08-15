@@ -4,7 +4,7 @@ import { useState, useCallback, useRef, useEffect } from "react"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
 import * as yup from "yup"
-import { Camera, Loader2, Star, MapPin, Locate, Search, X, Plus, Coins } from "lucide-react"
+import { Camera, Loader2, Star, MapPin, Locate, Search, X, Plus, Coins, Clock, DollarSign, Award, Languages, Calendar, Shield, CheckCircle, AlertTriangle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
 import { updateProfile, createProfile, getAllSubjects, getUserSubjects, addUserSubject, removeUserSubject } from "@/lib/supabaseAPI"
@@ -22,7 +23,8 @@ import { WalletModal } from "@/components/WalletModal"
 
 const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY
 
-const profileFormSchema = yup.object({
+// Base schema for all users
+const baseUserSchema = {
   email: yup
     .string()
     .email("Please enter a valid email address format")
@@ -33,7 +35,7 @@ const profileFormSchema = yup.object({
     .required("Please enter your name"),
   role: yup
     .string()
-    .oneOf(["student", "tutor", "admin", "user"], "Please select a valid role")
+    .oneOf(["student", "tutor"], "Please select a valid role")
     .required("Please select your role"),
   phone_number: yup
     .string()
@@ -42,20 +44,6 @@ const profileFormSchema = yup.object({
   gender: yup
     .string()
     .optional(),
-  address: yup.object({
-    id: yup.string().nullable().optional(),
-    street: yup.string().optional(),
-    city: yup.string().optional(),
-    state: yup.string().optional(),
-    zip: yup.string().optional(),
-    country: yup.string().optional(),
-    country_code: yup.string().optional(),
-    lat: yup.number().nullable().optional(),
-    lon: yup.number().nullable().optional(),
-    address_line_1: yup.string().nullable().optional(),
-    address_line_2: yup.string().nullable().optional(),
-    formatted: yup.string().optional(),
-  }).optional(),
   bio: yup
     .string()
     .optional()
@@ -76,7 +64,125 @@ const profileFormSchema = yup.object({
   coin_balance: yup
     .number()
     .optional(),
-}).required("Please complete the form");
+  rating: yup
+    .number()
+    .optional(),
+  total_reviews: yup
+    .number()
+    .optional(),
+  timezone: yup
+    .string()
+    .optional(),
+  preferred_language: yup
+    .string()
+    .optional(),
+  profile_completion_percentage: yup
+    .number()
+    .optional(),
+  email_verified: yup
+    .boolean()
+    .optional(),
+  phone_verified: yup
+    .boolean()
+    .optional(),
+  government_id_verified: yup
+    .boolean()
+    .optional(),
+  address: yup.object({
+    id: yup.string().nullable().optional(),
+    street: yup.string().optional(),
+    city: yup.string().optional(),
+    state: yup.string().optional(),
+    zip: yup.string().optional(),
+    country: yup.string().optional(),
+    country_code: yup.string().optional(),
+    lat: yup.number().nullable().optional(),
+    lon: yup.number().nullable().optional(),
+    address_line_1: yup.string().nullable().optional(),
+    address_line_2: yup.string().nullable().optional(),
+    formatted: yup.string().optional(),
+  }).optional(),
+}
+
+// Tutor-specific schema
+const tutorSchema = {
+  ...baseUserSchema,
+  tutor: yup.object({
+    hourly_rate: yup
+      .number()
+      .transform((value) => (isNaN(value) ? 0 : value))
+      .min(0, "Hourly rate cannot be negative")
+      .required("Please enter your hourly rate"),
+    experience_years: yup
+      .number()
+      .transform((value) => (isNaN(value) ? 0 : value))
+      .min(0, "Experience years cannot be negative")
+      .optional(),
+    education: yup
+      .string()
+      .optional(),
+    certifications: yup
+      .array()
+      .of(yup.string())
+      .optional(),
+    languages: yup
+      .array()
+      .of(yup.string())
+      .optional(),
+    teaching_style: yup
+      .string()
+      .optional(),
+    specializations: yup
+      .array()
+      .of(yup.string())
+      .optional(),
+    response_time: yup
+      .string()
+      .optional(),
+    availability_status: yup
+      .string()
+      .oneOf(['available', 'busy', 'away'], 'Invalid availability status')
+      .optional(),
+    verified: yup
+      .boolean()
+      .optional(),
+    verification_documents: yup
+      .array()
+      .of(yup.string())
+      .optional(),
+    background_check: yup
+      .boolean()
+      .optional(),
+    preferred_meeting_types: yup
+      .array()
+      .of(yup.string())
+      .optional(),
+    travel_radius_km: yup
+      .number()
+      .transform((value) => (isNaN(value) ? 10 : value))
+      .min(0, "Travel radius cannot be negative")
+      .optional(),
+    minimum_session_duration: yup
+      .number()
+      .transform((value) => (isNaN(value) ? 60 : value))
+      .min(15, "Minimum session duration must be at least 15 minutes")
+      .optional(),
+    cancellation_policy: yup
+      .string()
+      .optional(),
+    instant_booking: yup
+      .boolean()
+      .optional(),
+  }).optional(),
+}
+
+// Create dynamic schema based on role
+const createProfileSchema = (role) => {
+  if (role === 'tutor') {
+    return yup.object(tutorSchema).required("Please complete the form")
+  }
+  return yup.object(baseUserSchema).required("Please complete the form")
+}
 
 export default function ProfilePage() {
   const [avatar, setAvatar] = useState("/placeholder.svg?height=100&width=100")
@@ -95,12 +201,20 @@ export default function ProfilePage() {
   const [userSubjects, setUserSubjects] = useState([])
   const [selectedSubject, setSelectedSubject] = useState("")
   const [isLoadingSubjects, setIsLoadingSubjects] = useState(false)
+
+  // Language management
+  const [newLanguage, setNewLanguage] = useState("")
+  const [newSpecialization, setNewSpecialization] = useState("")
+  const [newCertification, setNewCertification] = useState("")
   
   const { profile, loading, uploadAvatarToSupabase, user, refreshUserData } = useUser()
   const debounceRef = useRef(null)
 
+  // Get current role from profile
+  const currentRole = profile?.role || 'student'
+  
   const form = useForm({
-    resolver: yupResolver(profileFormSchema),
+    resolver: yupResolver(createProfileSchema(currentRole)),
     defaultValues: profile,
     mode: "onChange",
   })
@@ -109,7 +223,7 @@ export default function ProfilePage() {
     if (profile) {
       console.log('Profile data received:', profile)
       const formattedAddress = profile.address
-        ? `${addressSearchValue || profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
+        ? `${addressSearchValue || profile.address.formatted || profile.address.street || ""} ${profile.address.city || ""} ${profile.address.state || ""} ${profile.address.zip || ""}`.trim()
         : ""
 
       // Create a properly structured form data object
@@ -123,6 +237,15 @@ export default function ProfilePage() {
         years_of_experience: profile.years_of_experience || 0,
         hobbies: profile.hobbies || "",
         status: profile.status || "active",
+        rating: profile.rating || 0,
+        total_reviews: profile.total_reviews || 0,
+        coin_balance: profile.coin_balance || 0,
+        timezone: profile.timezone || "UTC",
+        preferred_language: profile.preferred_language || "English",
+        profile_completion_percentage: profile.profile_completion_percentage || 0,
+        email_verified: profile.email_verified || false,
+        phone_verified: profile.phone_verified || false,
+        government_id_verified: profile.government_id_verified || false,
         address: {
           id: profile.address?.id || null,
           street: profile.address?.street || "",
@@ -136,6 +259,29 @@ export default function ProfilePage() {
           lat: profile.address?.lat || 0,
           lon: profile.address?.lon || 0,
           formatted: profile.address?.formatted || ""
+        }
+      }
+
+      // Add tutor-specific data if user is a tutor
+      if (profile.role === 'tutor' && profile.tutor) {
+        formData.tutor = {
+          hourly_rate: profile.tutor.hourly_rate || 0,
+          experience_years: profile.tutor.experience_years || 0,
+          education: profile.tutor.education || "",
+          certifications: profile.tutor.certifications || [],
+          languages: profile.tutor.languages || [],
+          teaching_style: profile.tutor.teaching_style || "",
+          specializations: profile.tutor.specializations || [],
+          response_time: profile.tutor.response_time || "< 24 hours",
+          availability_status: profile.tutor.availability_status || "available",
+          verified: profile.tutor.verified || false,
+          verification_documents: profile.tutor.verification_documents || [],
+          background_check: profile.tutor.background_check || false,
+          preferred_meeting_types: profile.tutor.preferred_meeting_types || [],
+          travel_radius_km: profile.tutor.travel_radius_km || 10,
+          minimum_session_duration: profile.tutor.minimum_session_duration || 60,
+          cancellation_policy: profile.tutor.cancellation_policy || "",
+          instant_booking: profile.tutor.instant_booking || false,
         }
       }
       
@@ -245,6 +391,58 @@ export default function ProfilePage() {
   const handleCoinPurchaseSuccess = async (coins) => {
     await refreshUserData() // Refresh profile to get updated coin balance
     toast.success(`${coins} coins added to your wallet!`)
+  }
+
+  // Helper functions for managing tutor arrays
+  const addLanguage = () => {
+    if (!newLanguage.trim()) return
+    const currentLanguages = form.getValues('tutor.languages') || []
+    if (!currentLanguages.includes(newLanguage.trim())) {
+      form.setValue('tutor.languages', [...currentLanguages, newLanguage.trim()])
+      setNewLanguage("")
+    }
+  }
+
+  const removeLanguage = (language) => {
+    const currentLanguages = form.getValues('tutor.languages') || []
+    form.setValue('tutor.languages', currentLanguages.filter(l => l !== language))
+  }
+
+  const addSpecialization = () => {
+    if (!newSpecialization.trim()) return
+    const currentSpecs = form.getValues('tutor.specializations') || []
+    if (!currentSpecs.includes(newSpecialization.trim())) {
+      form.setValue('tutor.specializations', [...currentSpecs, newSpecialization.trim()])
+      setNewSpecialization("")
+    }
+  }
+
+  const removeSpecialization = (spec) => {
+    const currentSpecs = form.getValues('tutor.specializations') || []
+    form.setValue('tutor.specializations', currentSpecs.filter(s => s !== spec))
+  }
+
+  const addCertification = () => {
+    if (!newCertification.trim()) return
+    const currentCerts = form.getValues('tutor.certifications') || []
+    if (!currentCerts.includes(newCertification.trim())) {
+      form.setValue('tutor.certifications', [...currentCerts, newCertification.trim()])
+      setNewCertification("")
+    }
+  }
+
+  const removeCertification = (cert) => {
+    const currentCerts = form.getValues('tutor.certifications') || []
+    form.setValue('tutor.certifications', currentCerts.filter(c => c !== cert))
+  }
+
+  const toggleMeetingType = (type) => {
+    const currentTypes = form.getValues('tutor.preferred_meeting_types') || []
+    if (currentTypes.includes(type)) {
+      form.setValue('tutor.preferred_meeting_types', currentTypes.filter(t => t !== type))
+    } else {
+      form.setValue('tutor.preferred_meeting_types', [...currentTypes, type])
+    }
   }
 
   if (loading) {
@@ -549,8 +747,22 @@ export default function ProfilePage() {
   return (
     <div className="container py-10 mx-auto px-3 lg:px-0">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">User Profile</h1>
-        <p className="text-muted-foreground">Manage your account settings and profile information</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              {currentRole === 'tutor' ? 'Tutor Profile' : 'Student Profile'}
+            </h1>
+            <p className="text-muted-foreground">
+              {currentRole === 'tutor' 
+                ? 'Manage your teaching profile and professional information'
+                : 'Manage your learning profile and account information'
+              }
+            </p>
+          </div>
+          <Badge variant={currentRole === 'tutor' ? 'default' : 'secondary'} className="text-sm">
+            {currentRole === 'tutor' ? 'Tutor' : 'Student'}
+          </Badge>
+        </div>
       </div>
 
       <Form {...form}>
@@ -562,14 +774,17 @@ export default function ProfilePage() {
               <p>Form is valid: {form.formState.isValid ? 'Yes' : 'No'}</p>
               <p>Is saving: {isSaving ? 'Yes' : 'No'}</p>
               <p>Form dirty: {form.formState.isDirty ? 'Yes' : 'No'}</p>
+              <p>Current role: {currentRole}</p>
               {Object.keys(form.formState.errors).length > 0 && (
                 <p style={{color: 'red'}}>Errors: {JSON.stringify(form.formState.errors)}</p>
               )}
             </div>
           )}
+          
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Personal Information Column */}
             <div className="space-y-6">
+              {/* Basic Profile Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Personal Information</CardTitle>
@@ -614,13 +829,16 @@ export default function ProfilePage() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`h-4 w-4 ${star <= Math.floor(form.getValues().rating || 0)
+                          className={`h-4 w-4 ${star <= Math.floor(form.watch('rating') || 0)
                               ? 'fill-yellow-400 text-yellow-400'
                               : 'fill-muted text-muted'
                             }`}
                         />
                       ))}
-                      <span className="ml-1 text-sm font-medium">{Number(form.watch('rating'))?.toFixed(1) || '0.0'}</span>
+                      <span className="ml-1 text-sm font-medium">
+                        {Number(form.watch('rating'))?.toFixed(1) || '0.0'} 
+                        ({form.watch('total_reviews') || 0} reviews)
+                      </span>
                     </div>
                   </div>
 
@@ -633,7 +851,13 @@ export default function ProfilePage() {
                         <FormControl>
                           <Input {...field} readOnly className="bg-muted" />
                         </FormControl>
-                        <FormDescription>Your email address is read-only.</FormDescription>
+                        <div className="flex items-center gap-2 text-sm">
+                          {form.watch('email_verified') ? (
+                            <><CheckCircle className="h-4 w-4 text-green-500" /> Verified</>
+                          ) : (
+                            <><AlertTriangle className="h-4 w-4 text-yellow-500" /> Unverified</>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -668,8 +892,6 @@ export default function ProfilePage() {
                           <SelectContent>
                             <SelectItem value="student">Student</SelectItem>
                             <SelectItem value="tutor">Tutor</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="user">User</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -686,20 +908,85 @@ export default function ProfilePage() {
                         <FormControl>
                           <Input placeholder="Enter your phone number" {...field} />
                         </FormControl>
+                        <div className="flex items-center gap-2 text-sm">
+                          {form.watch('phone_verified') ? (
+                            <><CheckCircle className="h-4 w-4 text-green-500" /> Verified</>
+                          ) : (
+                            <><AlertTriangle className="h-4 w-4 text-yellow-500" /> Unverified</>
+                          )}
+                        </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="gender"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Gender</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select gender" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="male">Male</SelectItem>
+                              <SelectItem value="female">Female</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                              <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="timezone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Timezone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="UTC" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
                   <FormField
                     control={form.control}
-                    name="gender"
+                    name="preferred_language"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Gender</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter your gender" {...field} />
-                        </FormControl>
+                        <FormLabel>Preferred Language</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select language" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="English">English</SelectItem>
+                            <SelectItem value="Spanish">Spanish</SelectItem>
+                            <SelectItem value="French">French</SelectItem>
+                            <SelectItem value="German">German</SelectItem>
+                            <SelectItem value="Italian">Italian</SelectItem>
+                            <SelectItem value="Portuguese">Portuguese</SelectItem>
+                            <SelectItem value="Chinese">Chinese</SelectItem>
+                            <SelectItem value="Japanese">Japanese</SelectItem>
+                            <SelectItem value="Korean">Korean</SelectItem>
+                            <SelectItem value="Arabic">Arabic</SelectItem>
+                            <SelectItem value="Hindi">Hindi</SelectItem>
+                            <SelectItem value="Russian">Russian</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -707,19 +994,20 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
+              {/* Account Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Account Information</CardTitle>
                   <CardDescription>View your account status and balance</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-1">
+                  <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <div className="h-8 w-8 rounded-full bg-yellow-400 flex items-center justify-center">
                           <span className="text-xs font-bold text-yellow-900">$</span>
                         </div>
-                        <p className="text-2xl font-bold">{form.watch('coin_balance')}</p>
+                        <p className="text-2xl font-bold">{form.watch('coin_balance') || 0}</p>
                       </div>
                       <Button
                         type="button"
@@ -732,7 +1020,17 @@ export default function ProfilePage() {
                         Buy Coins
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Last updated: May 30, 2025</p>
+                    
+                    <div className="flex items-center justify-between text-sm">
+                      <span>Profile Completion</span>
+                      <span>{form.watch('profile_completion_percentage') || 0}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full" 
+                        style={{ width: `${form.watch('profile_completion_percentage') || 0}%` }}
+                      ></div>
+                    </div>
                   </div>
 
                   <Separator />
@@ -759,12 +1057,54 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* Verification Status */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Verification Status</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        {form.watch('email_verified') ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                        Email
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {form.watch('phone_verified') ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                        Phone
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {form.watch('government_id_verified') ? (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        ) : (
+                          <X className="h-4 w-4 text-red-500" />
+                        )}
+                        Government ID
+                      </div>
+                      {currentRole === 'tutor' && (
+                        <div className="flex items-center gap-2">
+                          {form.watch('tutor.background_check') ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-red-500" />
+                          )}
+                          Background Check
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Profile Details Column */}
+            {/* Profile Details & Role-Specific Column */}
             <div className="space-y-6">
+              {/* Profile Details */}
               <Card>
                 <CardHeader>
                   <CardTitle>Profile Details</CardTitle>
@@ -778,9 +1118,21 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Bio</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Tell us about yourself..." className="min-h-[120px]" {...field} />
+                          <Textarea 
+                            placeholder={currentRole === 'tutor' 
+                              ? "Tell students about your teaching philosophy and expertise..." 
+                              : "Tell tutors about your learning goals and interests..."
+                            } 
+                            className="min-h-[120px]" 
+                            {...field} 
+                          />
                         </FormControl>
-                        <FormDescription>Write a short bio to introduce yourself to others.</FormDescription>
+                        <FormDescription>
+                          {currentRole === 'tutor' 
+                            ? "Describe your teaching style and what makes you unique as a tutor." 
+                            : "Describe what you're looking to learn and your academic goals."
+                          }
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -791,7 +1143,9 @@ export default function ProfilePage() {
                     name="years_of_experience"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Years of Experience</FormLabel>
+                        <FormLabel>
+                          {currentRole === 'tutor' ? 'Years of Teaching Experience' : 'Years of Learning Experience'}
+                        </FormLabel>
                         <FormControl>
                           <Input type="number" min="0" step="0.1" {...field} />
                         </FormControl>
@@ -820,6 +1174,335 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
+              {/* Tutor-Specific Information */}
+              {currentRole === 'tutor' && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        Professional Information
+                      </CardTitle>
+                      <CardDescription>Set your rates and professional details</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="tutor.hourly_rate"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Hourly Rate ($)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="0" step="0.01" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="tutor.experience_years"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Teaching Experience (years)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="0" step="1" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="tutor.education"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Education Background</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your educational background..."
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="tutor.teaching_style"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Teaching Style</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your teaching approach and methodology..."
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Languages className="h-5 w-5" />
+                        Languages & Specializations
+                      </CardTitle>
+                      <CardDescription>Manage your language skills and areas of expertise</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Languages */}
+                      <div className="space-y-3">
+                        <FormLabel>Languages Spoken</FormLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add a language"
+                            value={newLanguage}
+                            onChange={(e) => setNewLanguage(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addLanguage())}
+                          />
+                          <Button type="button" onClick={addLanguage} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(form.watch('tutor.languages') || []).map((language, index) => (
+                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                              {language}
+                              <X
+                                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                onClick={() => removeLanguage(language)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Specializations */}
+                      <div className="space-y-3">
+                        <FormLabel>Specializations</FormLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add a specialization"
+                            value={newSpecialization}
+                            onChange={(e) => setNewSpecialization(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSpecialization())}
+                          />
+                          <Button type="button" onClick={addSpecialization} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(form.watch('tutor.specializations') || []).map((spec, index) => (
+                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                              {spec}
+                              <X
+                                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                onClick={() => removeSpecialization(spec)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Certifications */}
+                      <div className="space-y-3">
+                        <FormLabel>Certifications</FormLabel>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Add a certification"
+                            value={newCertification}
+                            onChange={(e) => setNewCertification(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCertification())}
+                          />
+                          <Button type="button" onClick={addCertification} size="sm">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {(form.watch('tutor.certifications') || []).map((cert, index) => (
+                            <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                              {cert}
+                              <X
+                                className="h-3 w-3 cursor-pointer hover:text-destructive"
+                                onClick={() => removeCertification(cert)}
+                              />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5" />
+                        Availability & Preferences
+                      </CardTitle>
+                      <CardDescription>Set your availability and tutoring preferences</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="tutor.availability_status"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Availability Status</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="available">Available</SelectItem>
+                                  <SelectItem value="busy">Busy</SelectItem>
+                                  <SelectItem value="away">Away</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="tutor.response_time"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Response Time</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select time" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="< 1 hour">Within 1 hour</SelectItem>
+                                  <SelectItem value="< 4 hours">Within 4 hours</SelectItem>
+                                  <SelectItem value="< 12 hours">Within 12 hours</SelectItem>
+                                  <SelectItem value="< 24 hours">Within 24 hours</SelectItem>
+                                  <SelectItem value="1-2 days">1-2 days</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="tutor.minimum_session_duration"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Min Session Duration (minutes)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="15" step="15" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="tutor.travel_radius_km"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Travel Radius (km)</FormLabel>
+                              <FormControl>
+                                <Input type="number" min="0" step="1" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      {/* Meeting Types */}
+                      <div className="space-y-3">
+                        <FormLabel>Preferred Meeting Types</FormLabel>
+                        <div className="grid grid-cols-2 gap-2">
+                          {['online', 'in_person', 'hybrid', 'group_sessions'].map((type) => (
+                            <div key={type} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={type}
+                                checked={(form.watch('tutor.preferred_meeting_types') || []).includes(type)}
+                                onCheckedChange={() => toggleMeetingType(type)}
+                              />
+                              <label htmlFor={type} className="text-sm capitalize">
+                                {type.replace('_', ' ')}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Instant Booking */}
+                      <div className="flex items-center space-x-2">
+                        <FormField
+                          control={form.control}
+                          name="tutor.instant_booking"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel>
+                                  Enable Instant Booking
+                                </FormLabel>
+                                <FormDescription>
+                                  Allow students to book sessions with you instantly
+                                </FormDescription>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="tutor.cancellation_policy"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cancellation Policy</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Describe your cancellation policy..."
+                                className="min-h-[80px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+
+              {/* Address Information - Common for both roles */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -1009,10 +1692,16 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
 
+              {/* Subjects - Common for both roles */}
               <Card>
                 <CardHeader>
                   <CardTitle>Your Subjects</CardTitle>
-                  <CardDescription>Manage subjects you're interested in or can teach</CardDescription>
+                  <CardDescription>
+                    {currentRole === 'tutor' 
+                      ? 'Manage subjects you can teach and your expertise level'
+                      : 'Manage subjects you\'re interested in learning'
+                    }
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Add new subject */}
@@ -1054,6 +1743,9 @@ export default function ProfilePage() {
                         className="flex items-center gap-1"
                       >
                         {userSubject.subject?.name}
+                        {currentRole === 'tutor' && userSubject.proficiency_level && (
+                          <span className="text-xs">({userSubject.proficiency_level})</span>
+                        )}
                         <X
                           className="h-3 w-3 cursor-pointer hover:text-destructive"
                           onClick={() => handleRemoveSubject(userSubject.subject_id)}
@@ -1062,7 +1754,10 @@ export default function ProfilePage() {
                     ))}
                     {userSubjects.length === 0 && (
                       <p className="text-sm text-muted-foreground">
-                        No subjects added yet. Add subjects you're interested in or can teach.
+                        {currentRole === 'tutor' 
+                          ? 'No subjects added yet. Add subjects you can teach.'
+                          : 'No subjects added yet. Add subjects you\'re interested in learning.'
+                        }
                       </p>
                     )}
                   </div>

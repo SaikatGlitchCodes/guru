@@ -20,6 +20,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useUser } from "@/contexts/UserContext"
 import { sendPasswordResetEmail } from "@/lib/supabaseAPI"
 import { toast } from "sonner"
+import GoogleAuthButton from "./GoogleAuthButton"
 
 // Add prop to control default role
 const signInSchema = z.object({
@@ -29,7 +30,10 @@ const signInSchema = z.object({
 
 const signUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters long"),
-    email: z.string().email("Please enter a valid email address"),
+    email: z.string().email("Please enter a valid email address")
+    .refine((email) => email.endsWith("@gmail.com"), {
+      message: "Please use a Gmail address for registration"
+    }),
     password: z.string()
         .min(8, "Password must be at least 8 characters long")
         .regex(/[a-zA-Z]/, "Password must contain at least one letter")
@@ -44,7 +48,7 @@ const forgotPasswordSchema = z.object({
     email: z.string().email("Please enter a valid email address")
 })
 
-export default function AuthModal({ defaultRole = "student", triggerText = "Sign In / Up", background = "bg-primary" }) {
+export default function AuthModal({ defaultRole = "", triggerText = "Sign In / Up", background = "bg-primary" }) {
     const [isOpen, setIsOpen] = useState(false)
     const [showPassword, setShowPassword] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
@@ -402,6 +406,7 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                 <Button type="submit" className="w-full" disabled={isLoading}>
                                     {isLoading ? "Signing in..." : "Sign In"}
                                 </Button>
+                                <GoogleAuthButton />
                             </form>
                         </TabsContent>
 
@@ -409,12 +414,12 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                             
                             <form action={handleSignUp} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="signup-name">Full Name</Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="signup-name"
                                             name="name"
+                                            placeholder="Full Name"
                                             type="text"
                                             className={`pl-10 ${signUpErrors.name ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
@@ -429,13 +434,13 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="signup-email">Email</Label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             id="signup-email"
                                             name="email"
                                             type="email"
+                                            placeholder="Email"
                                             className={`pl-10 ${signUpErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
                                             required
                                         />
@@ -452,7 +457,6 @@ export default function AuthModal({ defaultRole = "student", triggerText = "Sign
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="signup-password">Password</Label>
                                     <div className="relative">
                                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                         <Input

@@ -173,28 +173,6 @@ export function UserProvider({ children }) {
     }
   }
 
-  async function signInWithGoogle() {
-    setLoading(true)
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-      })
-      
-      if (error) {
-        console.error("Error during Google sign-in:", error)
-        return { error }
-      }
-      
-      // For OAuth, the user will be redirected, so we don't need to handle success here
-      return { data }
-    } catch (error) {
-      console.error("Error during Google sign-in:", error)
-      return { error }
-    } finally {
-      setLoading(false)
-    }
-  }
-
   function createRequestInLocalStorage(email) {
     try {
       const requestData = JSON.parse(localStorage.getItem("pendingTutorRequest"))
@@ -242,7 +220,6 @@ export function UserProvider({ children }) {
         loading,
         signOut,
         signInWithMagicLink,
-        signInWithGoogle,
         refreshUserData,
         uploadAvatarToSupabase,
         createRequestInLocalStorage,

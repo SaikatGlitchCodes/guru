@@ -232,15 +232,6 @@ export default function RequestBrowser({
                   <span>Posted {timeAgo}</span>
                 </div>
               </div>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => handleViewDetails(request)}
-                className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto flex-shrink-0"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                View Details
-              </Button>
             </div>
           </>
         </CardContent>

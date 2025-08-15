@@ -87,14 +87,6 @@ export default function MessagesPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <ThemedHero>
-          <div className="container mx-auto px-4">
-            <div className="text-center text-white">
-              <h1 className="text-4xl font-bold mb-4">Messages</h1>
-              <p className="text-xl text-gray-300">Your conversations</p>
-            </div>
-          </div>
-        </ThemedHero>
         
         <div className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto space-y-4">
@@ -121,31 +113,6 @@ export default function MessagesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ThemedHero>
-        <div className="container mx-auto px-4">
-          <div className="text-center text-white mb-8">
-            <h1 className="text-4xl font-bold mb-4">Messages</h1>
-            <p className="text-xl text-gray-300">
-              Your conversations ({conversations.length})
-            </p>
-          </div>
-
-          {/* Search Bar */}
-          {!loading && conversations.length > 0 && (
-            <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-6 border border-gray-200">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-black"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </ThemedHero>
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">

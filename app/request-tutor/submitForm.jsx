@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { REQUEST_STEPS } from './constants';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import { createRequest } from '@/lib/api';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const FormNavigationButton = ({
   currentStep,
@@ -12,7 +15,19 @@ const FormNavigationButton = ({
   setIsSubmitting,
   clearSavedData
 }) => {
-  const { user, signInWithMagicLink } = useUser();
+  const { user, signInWithMagicLink, isRequestInLocalStorage } = useUser();
+  const router = useRouter();
+
+  // Handle successful authentication and automatic request creation
+  useEffect(() => {
+    if (user && isRequestInLocalStorage && !isSubmitting) {
+      // User is authenticated and there's a pending request, it should be handled by UserContext
+      toast.success("Request submitted successfully! Redirecting...");
+      setTimeout(() => {
+        router.push('/tutor-jobs');
+      }, 2000);
+    }
+  }, [user, isRequestInLocalStorage, isSubmitting, router]);
 
   const handleNext = async (e) => {
     e.preventDefault();
@@ -38,19 +53,25 @@ const FormNavigationButton = ({
           }, 50);
         } else {
           try {
+            setIsSubmitting(true);
             if (!user) {
+              // Save form data to localStorage before redirecting to Google OAuth
               localStorage.setItem("pendingTutorRequest", JSON.stringify(form.getValues()));
-              signInWithMagicLink(form.getValues().user_email);
+              toast.info("Please sign in to submit your request");
+              // Don't call signInWithMagicLink here, let user choose Google or email
             } else {
               await createRequest(form.getValues());
               // Clear saved form data after successful submission
               if (clearSavedData) {
                 clearSavedData();
               }
+              toast.success("Request submitted successfully!");
+              router.push('/tutor-jobs');
             }
-            setIsSubmitting(true);
           } catch (error) {
-            console.error("Form submission error:", error)
+            console.error("Form submission error:", error);
+            toast.error("Failed to submit request. Please try again.");
+            setIsSubmitting(false);
           }
         }
       }
@@ -60,15 +81,31 @@ const FormNavigationButton = ({
   };
 
   return (
-    <div className="flex items-center gap-3 mb-4 mt-5">
+    <div className="flex flex-wrap items-center gap-3 mb-4 mt-5">
       <Button
         type={currentStep === REQUEST_STEPS.length - 1 ? "submit" : "button"}
         onClick={handleNext}
         className="px-14 bg-black text-white"
         disabled={isSubmitting}
       >
-        {currentStep === REQUEST_STEPS.length - 1 ? 'Submit' : 'Continue'}
+        {isSubmitting 
+          ? 'Submitting...'
+          : currentStep === REQUEST_STEPS.length - 1 
+            ? (user ? 'Submit' : 'Sign In to Submit') 
+            : 'Continue'
+        }
       </Button>
+      {currentStep === 0 && (
+        <div onClick={(e) => e.stopPropagation()}>
+          <GoogleAuthButton btn={true} />
+        </div>
+      )}
+      {currentStep === REQUEST_STEPS.length - 1 && !user && (
+        <div className="w-full mt-3" onClick={(e) => e.stopPropagation()}>
+          <p className="text-sm text-gray-600 mb-2">Sign in to submit your request:</p>
+          <GoogleAuthButton btn={false} />
+        </div>
+      )}
     </div>
   );
 };

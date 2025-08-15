@@ -269,15 +269,6 @@ const JobSupportPage = () => {
                         </div>
                       </div>
                     </div>
-
-                    <div className="pt-4 border-t">
-                      <Link href={`/tutor-jobs/${request.id}`}>
-                        <Button className="w-full">
-                          <Briefcase className="w-4 h-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                    </div>
                   </div>
                 </CardContent>
               </Card>
