@@ -66,13 +66,14 @@ export default function TutorProfilePage() {
         
         setTutor(result.data)
         
-        // Check if user has already purchased contact for this tutor
-        if (user && result.data) {
+        // Set contact purchase status from the API response
+        setContactPurchased(result.data.hasContactAccess || false)
+        
+        // Get user's coin balance if user is logged in
+        if (user) {
           const coinsResult = await getUserCoins(user.id)
           if (!coinsResult.error) {
             setUserCoins(coinsResult.coins)
-            // Check if user has contact access to this tutor by email
-            setContactPurchased(coinsResult.hasContactAccess?.[result.data.email] || false)
           }
         }
       } catch (error) {
@@ -113,6 +114,13 @@ export default function TutorProfilePage() {
       setContactPurchased(true)
       setUserCoins(prev => prev - CONTACT_COST)
       setShowPaymentModal(false)
+      
+      // Refresh tutor data to get contact details
+      const updatedTutorResult = await getTutorProfile(params.id)
+      if (!updatedTutorResult.error) {
+        setTutor(updatedTutorResult.data)
+      }
+      
       toast.success('Contact details unlocked!')
     } catch (error) {
       console.error('Error purchasing contact:', error)

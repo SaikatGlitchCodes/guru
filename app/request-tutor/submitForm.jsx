@@ -24,7 +24,7 @@ const FormNavigationButton = ({
       // User is authenticated and there's a pending request, it should be handled by UserContext
       toast.success("Request submitted successfully! Redirecting...");
       setTimeout(() => {
-        router.push('/tutor-jobs');
+        router.push('/find-tutors');
       }, 2000);
     }
   }, [user, isRequestInLocalStorage, isSubmitting, router]);

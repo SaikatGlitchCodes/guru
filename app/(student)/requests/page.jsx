@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useUser } from "@/contexts/UserContext"
 import { getUserRequests, updateRequestStatus } from "@/lib/supabaseAPI"
+import { usePageVisibility } from "@/lib/hooks/usePageVisibility"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -34,6 +35,7 @@ import { toast } from "sonner"
 
 export default function StudentRequestsPage() {
   const { user, profile, loading: userLoading } = useUser()
+  const { justBecameVisible } = usePageVisibility()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [closingRequest, setClosingRequest] = useState(null)
@@ -47,13 +49,18 @@ export default function StudentRequestsPage() {
   }, [user, profile, userLoading])
 
   useEffect(() => {
+    // Skip if page just became visible and we already have requests
+    if (justBecameVisible && requests.length > 0) {
+      return
+    }
+    
     // Wait for user loading to complete and user to be available
     if (!userLoading && user?.email) {
       fetchRequests()
     } else if (!userLoading && !user) {
       setLoading(false)
     }
-  }, [user, userLoading])
+  }, [user, userLoading, justBecameVisible, requests.length])
 
   const fetchRequests = async () => {
     if (!user?.email) {
@@ -287,7 +294,7 @@ export default function StudentRequestsPage() {
                       <div>
                         <p className="text-sm font-medium text-gray-700 mb-1">Budget</p>
                         <div className="flex items-center gap-1 text-green-600 font-semibold">
-                          <DollarSign className="w-4 h-4" />
+                          {request.price_currency_symbol}
                           {request.price_amount} {request.price_option}
                         </div>
                       </div>

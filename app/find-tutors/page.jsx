@@ -84,17 +84,6 @@ function FindTutorsContent() {
           {/* Main Content */}
           <div className="flex-1">
             {/* Results Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {totalItems > 0 ? `${totalItems} Tutors Found` : `${tutors.length} Tutors Found`}
-                </h2>
-                <p className="text-sm sm:text-base text-gray-600">
-                  {currentPage > 1 && `Page ${currentPage} of ${totalPages} • `}
-                  Find the perfect tutor for your learning needs
-                </p>
-              </div>
-            </div>
 
             <Suspense fallback={<LoadingSkeleton />}>
               <TutorBrowser
