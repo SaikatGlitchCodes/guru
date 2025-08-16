@@ -2,13 +2,10 @@ import { useState, useEffect, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { getOpenRequests, getRequestFilterOptions } from "@/lib/supabaseAPI"
 import { useDebounce } from "@/lib/hooks/useDebounce"
-import { useOptimizedRequests } from "@/lib/hooks/useOptimizedRequests"
-import { usePageVisibility } from "@/lib/hooks/usePageVisibility"
 
 export function useTutorJobsLogic() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { isVisible, justBecameVisible } = usePageVisibility()
   
   // State management
   const [requests, setRequests] = useState([])
@@ -61,50 +58,12 @@ export function useTutorJobsLogic() {
     currentPage
   }
 
-  // Cache management
-  const getCacheKey = useCallback(() => {
-    const key = `requests_${JSON.stringify(filters)}_${debouncedSearchQuery}_${sortBy}_${currentPage}`
-    return key.length > 250 ? `requests_${btoa(key).slice(0, 50)}` : key
-  }, [filters, debouncedSearchQuery, sortBy, currentPage])
-
-  // Fetch requests with caching
+  // Fetch requests without caching
   const fetchRequests = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
     try {
-      // Cache logic
-      const cacheKey = getCacheKey()
-      let cachedData = null
-      
-      try {
-        cachedData = localStorage.getItem(cacheKey)
-      } catch (storageError) {
-        console.warn('Cache access failed:', storageError)
-        try {
-          localStorage.clear()
-        } catch {}
-      }
-      
-      if (cachedData) {
-        try {
-          const parsed = JSON.parse(cachedData)
-          const isExpired = Date.now() - parsed.timestamp > 5 * 60 * 1000 // 5 minutes
-          
-          if (!isExpired && parsed.data && parsed.totalItems) {
-            setRequests(parsed.data)
-            setTotalItems(parsed.totalItems)
-            setIsLoading(false)
-            return
-          }
-        } catch (parseError) {
-          console.warn('Cache parse failed:', parseError)
-          try {
-            localStorage.removeItem(cacheKey)
-          } catch {}
-        }
-      }
-
       // Fetch new data
       const result = await getOpenRequests({
         searchQuery: debouncedSearchQuery,
@@ -138,85 +97,23 @@ export function useTutorJobsLogic() {
       setRequests(requestData)
       setTotalItems(totalCount)
 
-      // Update cache
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify({
-          data: requestData,
-          totalItems: totalCount,
-          timestamp: Date.now()
-        }))
-      } catch (storageError) {
-        console.warn('Cache save failed:', storageError)
-        try {
-          const keys = Object.keys(localStorage).filter(key => key.startsWith('requests_'))
-          keys.slice(0, Math.floor(keys.length / 2)).forEach(key => localStorage.removeItem(key))
-          localStorage.setItem(cacheKey, JSON.stringify({
-            data: requestData,
-            timestamp: Date.now()
-          }))
-        } catch (retryError) {
-          console.warn('Cache retry failed:', retryError)
-        }
-      }
-
     } catch (err) {
       console.error('Error fetching requests:', err)
       setError('Failed to load tutoring opportunities. Please check your connection and try again.')
-      
-      // Fallback to cache
-      try {
-        const keys = Object.keys(localStorage).filter(key => key.startsWith('requests_'))
-        if (keys.length > 0) {
-          const latestKey = keys.reduce((latest, current) => {
-            try {
-              const currentData = JSON.parse(localStorage.getItem(current))
-              const latestData = JSON.parse(localStorage.getItem(latest))
-              return currentData.timestamp > latestData.timestamp ? current : latest
-            } catch {
-              return latest
-            }
-          })
-          
-          const cached = JSON.parse(localStorage.getItem(latestKey))
-          if (cached.data) {
-            setRequests(cached.data)
-            setTotalItems(cached.totalItems || cached.data.length)
-            setError('Showing cached results. Some information may be outdated.')
-          }
-        }
-      } catch (cacheError) {
-        console.error('Error loading cached data:', cacheError)
-        setAllRequests([])
-        setTotalItems(0)
-      }
+      setRequests([])
+      setTotalItems(0)
     } finally {
       setIsLoading(false)
     }
-  }, [getCacheKey, debouncedSearchQuery, filters, sortBy, currentPage])
+  }, [debouncedSearchQuery, filters, sortBy, currentPage])
 
   // Fetch filter options
   const fetchFilterOptions = useCallback(async () => {
     setIsFilterOptionsLoading(true)
     try {
-      const cachedOptions = localStorage.getItem('filterOptions')
-      if (cachedOptions) {
-        const parsed = JSON.parse(cachedOptions)
-        const isExpired = Date.now() - parsed.timestamp > 30 * 60 * 1000 // 30 minutes
-        
-        if (!isExpired) {
-          setFilterOptions(parsed.data)
-          setIsFilterOptionsLoading(false)
-          return
-        }
-      }
-
       const { data, error } = await getRequestFilterOptions()
       if (data && !error) {
         setFilterOptions(data)
-        localStorage.setItem('filterOptions', JSON.stringify({
-          data,
-          timestamp: Date.now()
-        }))
       }
     } catch (error) {
       console.error('Error fetching filter options:', error)
@@ -344,27 +241,25 @@ export function useTutorJobsLogic() {
   }, [filters, activeQuickFilters, updateURL])
 
   const handleRefresh = useCallback(() => {
-    const keys = Object.keys(localStorage).filter(key => key.startsWith('requests_'))
-    keys.forEach(key => localStorage.removeItem(key))
     fetchRequests()
   }, [fetchRequests])
 
-  // Effects
+  // Effects - Essential for data fetching
   useEffect(() => {
-    // Skip if page just became visible and we already have data
-    if (justBecameVisible && requests.length > 0) {
-      return
-    }
+    console.log('🎯 useEffect[data fetch]: Triggered by state changes', {
+      debouncedSearchQuery,
+      filters: JSON.stringify(filters),
+      currentPage,
+      sortBy
+    })
+    
     fetchRequests()
-  }, [fetchRequests, justBecameVisible, requests.length])
+  }, [fetchRequests])
 
   useEffect(() => {
-    // Skip if page just became visible and we already have filter options
-    if (justBecameVisible && Object.keys(filterOptions).length > 0) {
-      return
-    }
+    console.log('🎯 useEffect[filter options]: Triggered')
     fetchFilterOptions()
-  }, [fetchFilterOptions, justBecameVisible, filterOptions])
+  }, [fetchFilterOptions])
 
   // Sync URL parameters with state
   useEffect(() => {

@@ -36,6 +36,14 @@ export default function EnhancedSearchBar({
   onFiltersChange,
   router
 }) {
+  console.log('🔍 EnhancedSearchBar: Rendering with props', {
+    searchQuery,
+    sortBy,
+    isJobSupportMode,
+    isApplyingFilters,
+    filtersCount: Object.keys(filters || {}).length
+  })
+  
   const hasActiveFilters = searchQuery || activeQuickFilters.length > 0 || Object.values(filters).some(val => 
     Array.isArray(val) ? val.length > 0 : (val > 0 && val < 10000)
   )

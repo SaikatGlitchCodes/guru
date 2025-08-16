@@ -4,9 +4,6 @@ import { useRouter } from "next/navigation"
 import { 
   MapPin, 
   Calendar, 
-  DollarSign, 
-  Users, 
-  Eye,
   Clock,
   CheckCircle,
   AlertTriangle,
@@ -52,6 +49,14 @@ export default function RequestBrowser({
   isLoading = false,
   onPageChange 
 }) {
+  console.log('🎨 RequestBrowser: Rendering with props', {
+    requestsLength: requests.length,
+    totalItems,
+    currentPage,
+    itemsPerPage,
+    isLoading
+  })
+  
   const router = useRouter()
 
   const totalPages = Math.ceil(totalItems / itemsPerPage)
