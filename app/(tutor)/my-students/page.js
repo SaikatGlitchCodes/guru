@@ -210,14 +210,6 @@ export default function MyStudentsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <ThemedHero>
-          <div className="container mx-auto px-4">
-            <div className="text-center text-white">
-              <h1 className="text-4xl font-bold mb-4">My Students</h1>
-              <p className="text-xl text-gray-300">Students you&apos;ve contacted</p>
-            </div>
-          </div>
-        </ThemedHero>
         
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -248,63 +240,6 @@ export default function MyStudentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ThemedHero>
-        <div className="container mx-auto px-4">
-          <div className="text-center text-white mb-8">
-            <h1 className="text-4xl font-bold mb-4">My Students</h1>
-            <p className="text-xl text-gray-300">
-              Students you&apos;ve connected with ({allStudents.length})
-            </p>
-          </div>
-
-          {/* Search and Filters */}
-          {!loading && allStudents.length > 0 && (
-            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl p-6 border border-gray-200">
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="md:col-span-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                    <Input
-                      placeholder="Search by name, subject, or request..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 h-12 border-gray-300 focus:border-black focus:ring-black"
-                    />
-                  </div>
-                </div>
-
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    {availableStatuses.map(status => (
-                      <SelectItem key={status} value={status}>
-                        {status.replace('_', ' ').toUpperCase()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="h-12 border-gray-300 focus:border-black focus:ring-black">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Recently Contacted</SelectItem>
-                    <SelectItem value="oldest">First Contacted</SelectItem>
-                    <SelectItem value="name">Student Name</SelectItem>
-                    <SelectItem value="price-high">Highest Price</SelectItem>
-                    <SelectItem value="price-low">Lowest Price</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
-        </div>
-      </ThemedHero>
-
       <div className="container mx-auto px-4 py-8">
         {error && (
           <Alert variant="destructive" className="mb-6">

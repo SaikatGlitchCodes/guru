@@ -2,13 +2,10 @@ import { useState, useEffect, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { getOpenRequests, getRequestFilterOptions } from "@/lib/supabaseAPI"
 import { useDebounce } from "@/lib/hooks/useDebounce"
-import { useOptimizedRequests } from "@/lib/hooks/useOptimizedRequests"
-import { usePageVisibility } from "@/lib/hooks/usePageVisibility"
 
 export function useTutorJobsLogic() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { isVisible, justBecameVisible } = usePageVisibility()
   
   // State management
   const [requests, setRequests] = useState([])
@@ -348,23 +345,6 @@ export function useTutorJobsLogic() {
     keys.forEach(key => localStorage.removeItem(key))
     fetchRequests()
   }, [fetchRequests])
-
-  // Effects
-  useEffect(() => {
-    // Skip if page just became visible and we already have data
-    if (justBecameVisible && requests.length > 0) {
-      return
-    }
-    fetchRequests()
-  }, [fetchRequests, justBecameVisible, requests.length])
-
-  useEffect(() => {
-    // Skip if page just became visible and we already have filter options
-    if (justBecameVisible && Object.keys(filterOptions).length > 0) {
-      return
-    }
-    fetchFilterOptions()
-  }, [fetchFilterOptions, justBecameVisible, filterOptions])
 
   // Sync URL parameters with state
   useEffect(() => {

@@ -22,6 +22,7 @@ export default function BrowseRequestsPage() {
 }
 
 function BrowseRequestsContent() {
+  
   const router = useRouter()
   
   // Use our custom hook for all the logic

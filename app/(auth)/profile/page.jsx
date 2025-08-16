@@ -300,7 +300,7 @@ export default function ProfilePage() {
       loadSubjects()
       loadUserSubjects()
     }
-  }, [profile, form])
+  }, [profile])
 
   // Check for payment success/failure on page load
   useEffect(() => {
