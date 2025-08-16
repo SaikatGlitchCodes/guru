@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

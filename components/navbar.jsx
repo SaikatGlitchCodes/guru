@@ -61,7 +61,8 @@ export default function Navbar() {
 
   const Logo = () => (
     <Link href="/" className="flex items-center space-x-2">
-      <img className="w-15" src="/logo.png" alt="MentorHub Logo" />
+      <img className="w-12" src="/logo.png" alt="Toptutor Logo" />
+      <span className="hidden text-lg font-medium md:block">Toptutor</span>
     </Link>
   )
 

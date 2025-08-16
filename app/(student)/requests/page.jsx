@@ -33,6 +33,9 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
+
 export default function StudentRequestsPage() {
   const { user, profile, loading: userLoading } = useUser()
   const { justBecameVisible } = usePageVisibility()

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seo-audit": "./scripts/seo-audit.sh",
+    "analyze": "ANALYZE=true npm run build",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",

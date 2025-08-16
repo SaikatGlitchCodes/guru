@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
+
 import { useState, useEffect, Suspense, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { CheckCircle2 } from "lucide-react"

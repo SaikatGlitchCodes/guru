@@ -27,6 +27,9 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
+
 const JobSupportPage = () => {
   const { user, profile } = useUser()
   const [jobSupportRequests, setJobSupportRequests] = useState([])

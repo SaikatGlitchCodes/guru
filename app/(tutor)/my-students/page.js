@@ -29,6 +29,9 @@ import {
   Filter,
   PiggyBank
 } from "lucide-react"
+
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import ThemedHero from "@/components/ThemedHero"
 import Link from "next/link"

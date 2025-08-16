@@ -1,10 +1,14 @@
 "use client"
 
+import { Suspense } from "react"
 import Link from "next/link"
 import { useUser } from "@/contexts/UserContext"
 import EasterEgg from "@/components/easter-egg"
 
-export default function NotFound() {
+// Force dynamic rendering to fix useSearchParams issue
+export const dynamic = 'force-dynamic'
+
+function NotFoundContent() {
   const { user, profile } = useUser()
   const userRole = profile?.role || "guest"
 
@@ -25,5 +29,13 @@ export default function NotFound() {
       </div>
         <EasterEgg className="mt-8" />
     </div>
+  )
+}
+
+export default function NotFound() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[70vh]"><div>Loading...</div></div>}>
+      <NotFoundContent />
+    </Suspense>
   )
 }
