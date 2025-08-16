@@ -5,6 +5,7 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
 import * as yup from "yup"
 import { Camera, Loader2, Star, MapPin, Locate, Search, X, Plus, Coins, Clock, DollarSign, Award, Languages, Calendar, Shield, CheckCircle, AlertTriangle } from "lucide-react"
+import { usePageVisibility } from "@/lib/hooks/usePageVisibility"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -208,6 +209,7 @@ export default function ProfilePage() {
   const [newCertification, setNewCertification] = useState("")
   
   const { profile, loading, uploadAvatarToSupabase, user, refreshUserData } = useUser()
+  const { justBecameVisible } = usePageVisibility()
   const debounceRef = useRef(null)
 
   // Get current role from profile

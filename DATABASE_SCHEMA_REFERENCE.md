@@ -376,9 +376,10 @@
 #### `contact_activities` (Tutor contact tracking)
 ```sql
 - id: uuid (PK, gen_random_uuid())
-- tutor_email: text (NOT NULL)
-- request_id: uuid (FK → requests.id, NOT NULL)
-- coin_cost: integer (NOT NULL)
+- user_id: uuid (FK → users.id, NOT NULL) -- User who purchased contact access
+- tutor_email: text (NOT NULL) -- Email of the tutor contacted
+- request_id: uuid (FK → requests.id, nullable) -- Related request (null for direct contact purchases)
+- coin_cost: integer (NOT NULL) -- Coins spent for contact access
 - contacted_at: timestamp with time zone (default: now())
 - created_at: timestamp with time zone (default: now())
 ```

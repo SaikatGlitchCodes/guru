@@ -57,45 +57,51 @@ export function UserProvider({ children }) {
   useEffect(() => {
     refreshUserData()
     localStorage.getItem("pendingTutorRequest") && setPendingRequest(true)
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_, session) => {
-        if (session?.user) {
-          setUser(session.user)
+      async (event, session) => {
+        // Only process actual auth changes, not just session checks
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_OUT') {
+          if (session?.user) {
+            setUser(session.user)
 
-          try {
-            const profileResult = await getUserProfile(session.user.email)
-            
-            if (profileResult.data) {
-              console.log('Profile updated from auth change:', profileResult.data)
-              console.log('Address from auth change:', profileResult.data.address)
-              setProfile(profileResult.data)
-            } else {
-              console.log('No profile found in auth change, creating basic profile')
-              // Create a basic profile structure if none exists
-              getOrCreateUser(session.user)
-              setProfile({
-                email: session.user.email,
-                name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-                role: 'student',
-                status: 'active',
-                coin_balance: 0,
-                rating: 0,
-                total_reviews: 0,
-                profile_completion_percentage: 0
-              })
+            try {
+              const profileResult = await getUserProfile(session.user.email)
+              
+              if (profileResult.data) {
+                console.log('Profile updated from auth change:', profileResult.data)
+                console.log('Address from auth change:', profileResult.data.address)
+                setProfile(profileResult.data)
+              } else {
+                console.log('No profile found in auth change, creating basic profile')
+                // Create a basic profile structure if none exists
+                getOrCreateUser(session.user)
+                setProfile({
+                  email: session.user.email,
+                  name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+                  role: 'student',
+                  status: 'active',
+                  coin_balance: 0,
+                  rating: 0,
+                  total_reviews: 0,
+                  profile_completion_percentage: 0
+                })
+              }
+            } catch (error) {
+              console.error("Error fetching profile in auth change:", error)
+              setProfile(null)
             }
-          } catch (error) {
-            console.error("Error fetching profile in auth change:", error)
+
+            // Check for pending requests in localStorage after authentication
+            if (event === 'SIGNED_IN') {
+              setTimeout(() => {
+                createRequestInLocalStorage(session.user.email)
+              }, 1000) // Small delay to ensure profile is loaded
+            }
+          } else {
+            setUser(null)
             setProfile(null)
           }
-
-          // Check for pending requests in localStorage after authentication
-          setTimeout(() => {
-            createRequestInLocalStorage(session.user.email)
-          }, 1000) // Small delay to ensure profile is loaded
-        } else {
-          setUser(null)
-          setProfile(null)
         }
       }
     )
