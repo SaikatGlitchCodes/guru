@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Menu, X, User, LogOut, Settings, Coins, Loader2 } from "lucide-react"
+import { useState } from "react"
+import { Menu, User, LogOut, Settings } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -254,8 +254,8 @@ export default function Navbar() {
   )
 
   // Use signOut when user clicks logout
-  const handleLogout = async () => {
-    await signOut()
+  const handleLogout =() => {
+    signOut()
   }
 
   // Handle successful coin purchase

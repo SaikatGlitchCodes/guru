@@ -73,18 +73,18 @@ export default function HomePage() {
               <div>
                 {/* Title with overlapping avatars */}
                 <div className="relative">
-                  <div className="flex items-start gap-2 mb-4">
+                  {<div className="flex items-start gap-2 mb-4">
                     {/* Overlapping profile avatars */}
                     <div className="flex -space-x-3 mr-4">
-                      {topTutors.map((profile) => (
-                        <div key={profile.id} onClick={() => (console.log(profile.name))} className="w-11 h-11">
+                      {(topTutors.length > 0 ? topTutors : [1, 2, 3]).map((profile) => (
+                        <div key={profile.id || Math.random()} onClick={() => (console.log(profile.name))} className="w-11 h-11">
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={profile.avatar || ""} alt="Profile" />
-                            <AvatarFallback className="bg-black text-white">
+                            <AvatarFallback className="bg-green-500 text-white">
                               {profile?.name
                                 ?.split(" ")
                                 .map((n) => n[0])
-                                .join("") || "U"}
+                                .join("") || ""}
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -94,7 +94,7 @@ export default function HomePage() {
                         <ArrowRight className="w-5 h-5 text-green-400 transform rotate-12" />
                       </div>
                     </div>
-                  </div>
+                  </div>}
 
                   <h1 className="text-2xl lg:text-5xl font-bold leading-tight">
                     <span className="text-black">Find your</span>{" "}
@@ -479,11 +479,11 @@ export default function HomePage() {
                   <GraduationCap className="w-7 h-7 text-white" />
                 </div>
                 <span className="text-3xl font-bold bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
-                  Guru
+                  TopTutor.Pro
                 </span>
               </div>
               <p className="text-gray-400 mb-8 max-w-sm leading-relaxed text-lg">
-                Find your perfect guru and unlock your learning potential with personalized guidance.
+                Find your perfect tutor and unlock your learning potential with personalized guidance.
               </p>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
@@ -604,7 +604,7 @@ export default function HomePage() {
               {/* Copyright */}
               <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-6">
                 <p className="text-sm text-gray-400">
-                  © 2025 Guru. All rights reserved.
+                  © 2025 TopTutor.Pro. All rights reserved.
                 </p>
                 <div className="flex space-x-6 text-sm">
                   <Link href="/privacy" className="text-gray-400 hover:text-green-400 transition-colors">
