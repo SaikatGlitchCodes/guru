@@ -2,7 +2,6 @@
 
 import { useParams, notFound } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
 import { Search, Star, MapPin, Clock, Book, Users, Award, CheckCircle, ArrowRight, MessageCircle, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -123,12 +122,12 @@ export default function SubjectTutorsPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Service",
-    "name": `${subjectInfo.title} - FindGuru`,
+    "name": `${subjectInfo.title} - TopTutor`,
     "description": subjectInfo.description,
     "provider": {
       "@type": "Organization",
-      "name": "FindGuru",
-      "url": "https://findguru.com"
+      "name": "TopTutor",
+      "url": "https://toptutor.com"
     },
     "serviceType": "Online Tutoring",
     "areaServed": "India",

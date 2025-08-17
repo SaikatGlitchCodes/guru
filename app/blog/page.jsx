@@ -55,7 +55,7 @@ export default function BlogPage() {
       id: 4,
       title: "How to Choose the Right Online Tutor",
       excerpt: "A complete guide to finding the perfect online tutor. What to look for, questions to ask, and red flags to avoid.",
-      author: "FindGuru Team",
+      author: "TopTutor Team",
       date: "2025-01-05",
       category: "Online Learning",
       image: "/blog/choose-online-tutor.jpg",
@@ -108,8 +108,8 @@ export default function BlogPage() {
         "name": post.author
       },
       "datePublished": post.date,
-      "url": `https://findguru.com/blog/${post.slug}`,
-      "image": `https://findguru.com${post.image}`
+      "url": `https://toptutor.com/blog/${post.slug}`,
+      "image": `https://toptutor.com${post.image}`
     }))
   }
 

@@ -334,80 +334,9 @@ export default function AuthModal({ defaultRole = "", triggerText = "Sign In / U
                         </TabsList>
 
                         <TabsContent value="signin" className="space-y-4 mt-6">
-                            <form action={handleSignIn} className="space-y-4">
-                                <div className="space-y-2">
-                                    {signInErrors.email && (
-                                        <div className="flex items-center gap-2 text-sm text-red-600">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <span>{signInErrors.email}</span>
-                                        </div>
-                                    )}
-                                    <Label htmlFor="signin-email">Email</Label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="signin-email"
-                                            name="email"
-                                            type="email"
-                                            className={`pl-10 ${signInErrors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                            required
-                                        />
-                                    </div>
-                                    
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="signin-password">Password</Label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                        <Input
-                                            id="signin-password"
-                                            name="password"
-                                            type={showPassword ? "text" : "password"}
-                                            className={`pl-10 pr-10 ${signInErrors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
-                                            required
-                                        />
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                        >
-                                            {showPassword ? (
-                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                            ) : (
-                                                <Eye className="h-4 w-4 text-muted-foreground" />
-                                            )}
-                                            <span className="sr-only">
-                                                {showPassword ? "Hide password" : "Show password"}
-                                            </span>
-                                        </Button>
-                                    </div>
-                                    {signInErrors.password && (
-                                        <div className="flex items-center gap-2 text-sm text-red-600">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <span>{signInErrors.password}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <Button
-                                        type="button"
-                                        variant="link"
-                                        className="px-0 text-sm text-muted-foreground hover:text-primary"
-                                        onClick={() => setShowForgotPassword(true)}
-                                    >
-                                        Forgot password?
-                                    </Button>
-                                </div>
-
-                                <Button type="submit" className="w-full" disabled={isLoading}>
-                                    {isLoading ? "Signing in..." : "Sign In"}
-                                </Button>
                                 <GoogleAuthButton />
-                            </form>
+                                <p className="text-sm text-muted-foreground">Promoting hassle-free signing in, with social login.</p>
+                                <p className="text-sm text-muted-foreground">Users can directly create student account here, inorder to create tutor profile sign-up using gmail.</p>
                         </TabsContent>
 
                         <TabsContent value="signup" className="space-y-4 mt-6">

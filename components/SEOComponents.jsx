@@ -97,7 +97,7 @@ export function SEOBreadcrumbs({ items = [] }) {
       "@type": "ListItem",
       "position": index + 1,
       "name": item.name,
-      "item": item.href ? `https://findguru.com${item.href}` : undefined
+      "item": item.href ? `https://toptutor.com${item.href}` : undefined
     }))
   }
 
@@ -207,10 +207,10 @@ export function SEOArticle({
     "keywords": tags.join(", "),
     "publisher": {
       "@type": "Organization",
-      "name": "FindGuru",
+      "name": "TopTutor",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://findguru.com/logo.png"
+        "url": "https://toptutor.com/logo.png"
       }
     }
   }

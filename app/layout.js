@@ -133,8 +133,8 @@ export const metadata = {
   other: {
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
-    'apple-mobile-web-app-title': 'FindGuru',
-    'application-name': 'FindGuru',
+    'apple-mobile-web-app-title': 'TopTutor',
+    'application-name': 'TopTutor',
     'mobile-web-app-capable': 'yes',
     'msapplication-TileColor': '#2563eb',
     'msapplication-config': '/browserconfig.xml',
