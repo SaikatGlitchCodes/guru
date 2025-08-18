@@ -168,13 +168,13 @@ function RequestTutorContent() {
   useEffect(() => {
     if (user && currentStep === 0) {
       setCurrentStep(1);
-      setInitialValue(2);
+      setInitialValue(1);
     }
-    if (user && profile && currentStep === 1 && profile.address.formatted) {
+    if (user && profile && currentStep === 1 && profile?.address?.formatted) {
       setCurrentStep(2);
       // setInitialValue(2);
     }
-    if (user && profile && currentStep === 2 && profile.phone_number) {
+    if (user && profile && currentStep === 2 && profile?.phone_number) {
       setCurrentStep(3);
       // setInitialValue(3);
     }
