@@ -499,7 +499,7 @@ export default function HomePage() {
                   <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
                     <Globe className="w-3 h-3 text-green-400" />
                   </div>
-                  <p className="text-gray-300">hello@findyourguru.com</p>
+                  <p className="text-gray-300">hello@toptutor.pro</p>
                 </div>
               </div>
             </div>

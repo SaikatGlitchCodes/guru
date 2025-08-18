@@ -82,35 +82,6 @@ export default function FilterSidebar({
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Subjects */}
-        <div>
-          <label className="text-sm font-medium mb-3 block">Subjects</label>
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center space-x-2">
-                  <div className="w-4 h-4 bg-gray-200 rounded animate-pulse"></div>
-                  <div className="h-4 bg-gray-200 rounded animate-pulse w-24"></div>
-                </div>
-              ))}
-            </div>
-          ) : filterOptions?.subjects?.length > 0 ? (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {filterOptions.subjects.map(subject => (
-                <div key={subject} className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={(filters.subjects || []).includes(subject)}
-                    onCheckedChange={(checked) => handleSubjectChange(subject, checked)}
-                  />
-                  <span className="text-sm">{subject}</span>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">No subjects available</p>
-          )}
-        </div>
-
         {/* Locations */}
         <div>
           <label className="text-sm font-medium mb-3 block">Locations</label>
