@@ -1,15 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { loadStripe } from "@stripe/stripe-js"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Coins } from "lucide-react"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_live_51JuieFSBsceWQO10NrIXjHlkSt0IGLHgALhWXfZouPSrSTEw6uls0TPU7uCJhDiTIIZJyQ8lS0Inx8VFhTZTpofg00KXIYgAOo")
 
 const coinPackages = [
   { coins: 50, price: 80, popular: false }, // ₹80
@@ -38,136 +35,11 @@ const coinPackagesWithSavings = coinPackages.map(pkg => {
 
 export function WalletModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedPackage, setSelectedPackage] = useState(null)
   const [selectedCoinPackage, setSelectedCoinPackage] = useState("")
-  const { user } = useUser()
-
-  const handlePurchase = async (packageData) => {
-    setIsLoading(true)
-    setSelectedPackage(packageData)
-
-    try {
-      // Create payment intent on the server
-      const response = await fetch('/api/create-payment-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: packageData.price * 100, // Convert to cents
-          currency: 'usd',
-          coins: packageData.coins,
-          description: `Purchase ${packageData.coins} coins`,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent')
-      }
-
-      const { clientSecret } = await response.json()
-
-      // Get Stripe instance
-      const stripe = await stripePromise
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize')
-      }
-
-      // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: {
-            // This would typically use Stripe Elements
-            // For now, we'll redirect to Stripe Checkout
-          }
-        }
-      })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      if (paymentIntent.status === 'succeeded') {
-        toast.success(`Successfully purchased ${packageData.coins} coins!`)
-        onSuccess?.(packageData.coins)
-        onClose()
-      }
-
-    } catch (error) {
-      console.error('Payment error:', error)
-      toast.error(`Payment failed: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-      setSelectedPackage(null)
-    }
-  }
+  const { user } = useUser();
 
   const handleCheckout = async (packageData) => {
-    console.log(`Starting checkout for ${packageData.coins} coins at ₹${packageData.price}`)
-    if (!user?.email) {
-      toast.error("Please sign in to purchase coins")
-      return
-    }
-
-    setIsLoading(true)
-    setSelectedPackage(packageData)
-
-    try {
-      // Create Stripe Checkout session
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(packageData.price * 100), // INR in paise (100 paise = 1 INR)
-          coins: packageData.coins,
-          currency: 'inr',
-          userEmail: user.email,
-        }),
-      })
-
-      // Handle non-OK responses
-      if (!response.ok) {
-        let errorMessage = 'Failed to create checkout session'
-        try {
-          // Clone response to avoid "body stream already read" error
-          const responseClone = response.clone()
-          const errorData = await responseClone.json()
-          errorMessage = errorData.error || errorMessage
-          if (errorData.details) {
-            console.error('API Error Details:', errorData.details)
-          }
-        } catch (jsonError) {
-          // If we can't parse as JSON, try as text
-          try {
-            const textResponse = await response.text()
-            console.error('Non-JSON error response:', textResponse)
-            errorMessage = `Server error (${response.status}): Please check your configuration`
-          } catch (textError) {
-            console.error('Failed to read error response:', textError)
-            errorMessage = `Server error (${response.status}): Unable to read error details`
-          }
-        }
-        throw new Error(errorMessage)
-      }
-
-      const { url } = await response.json()
-      
-      if (url) {
-        // Redirect to Stripe Checkout
-        console.log('Redirecting to Stripe checkout:', url)
-        window.location.href = url
-      } else {
-        throw new Error('No checkout URL received from server')
-      }
-
-    } catch (error) {
-      console.error('Checkout error:', error)
-      toast.error(`Checkout failed: ${error.message}`)
-      setIsLoading(false)
-      setSelectedPackage(null)
-    }
+    console.log("Selected package for checkout:", packageData)
   }
 
   const handleDropdownCheckout = async () => {
@@ -241,7 +113,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <h4 className="font-semibold mb-2">Payment Information</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Secure payment processing via Stripe</li>
+            <li>• Secure payment processing via Razorpay</li>
             <li>• <strong>Multiple payment options:</strong> Credit/Debit Cards, UPI, Net Banking, and more</li>
             <li>• Local payment methods automatically available based on your location</li>
             <li>• Coins are added to your account immediately after payment</li>
