@@ -100,12 +100,6 @@ const FormNavigationButton = ({
           <GoogleAuthButton btn={true} />
         </div>
       )}
-      {currentStep === REQUEST_STEPS.length - 1 && !user && (
-        <div className="w-full mt-3" onClick={(e) => e.stopPropagation()}>
-          <p className="text-sm text-gray-600 mb-2">Sign in to submit your request:</p>
-          <GoogleAuthButton btn={false} />
-        </div>
-      )}
     </div>
   );
 };

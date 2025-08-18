@@ -71,9 +71,14 @@ function AuthCallbackContent() {
             
             // Check for pending request or custom redirect
             const redirectUrl = localStorage.getItem('redirectAfterAuth')
-            if (redirectUrl && redirectUrl.includes('/request-tutor')) {
+            if (redirectUrl) {
               localStorage.removeItem('redirectAfterAuth')
-              router.push(redirectUrl)
+              // Ensure it's a relative path to prevent open redirect vulnerabilities
+              if (redirectUrl.startsWith('/')) {
+                router.push(redirectUrl)
+              } else {
+                router.push('/')
+              }
             } else {
               router.push('/')
             }
