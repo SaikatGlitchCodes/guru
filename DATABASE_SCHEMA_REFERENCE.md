@@ -21,7 +21,7 @@
 | `sessions` | Tutoring sessions | ? | ✅ Active |
 | `reviews` | Rating and feedback system | ? | ✅ Active |
 | `payments` | Payment records | ? | ✅ Active |
-| `payment_transactions` | Stripe/payment processing | 0 | ✅ Active |
+| `payment_transactions` | Razorpay/payment processing | 0 | ✅ Active |
 | `transactions` | Coin/credit transactions | ? | ✅ Active |
 | `notifications` | User notifications | ? | ✅ Active |
 | `file_uploads` | File management | ? | ✅ Active |
@@ -270,15 +270,15 @@
 - updated_at: timestamp with time zone (default: now())
 ```
 
-#### `payment_transactions` (Stripe integration)
+#### `payment_transactions` (Razorpay integration)
 ```sql
 - id: uuid (PK, gen_random_uuid())
-- session_id: text (NOT NULL) -- Stripe session ID
+- order_id: text (NOT NULL) -- Razorpay order ID
 - user_email: text (NOT NULL)
 - amount: integer (NOT NULL) -- Amount in cents
 - coins: integer (NOT NULL) -- Coins purchased
 - status: text (NOT NULL) -- 'pending', 'completed', 'failed'
-- payment_method: text (default: 'stripe')
+- payment_method: text (default: 'razorpay')
 - metadata: jsonb (default: '{}')
 - created_at: timestamp with time zone (default: now())
 - updated_at: timestamp with time zone (default: now())

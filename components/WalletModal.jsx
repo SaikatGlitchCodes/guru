@@ -1,15 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { loadStripe } from "@stripe/stripe-js"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, Coins } from "lucide-react"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_live_51JuieFSBsceWQO10NrIXjHlkSt0IGLHgALhWXfZouPSrSTEw6uls0TPU7uCJhDiTIIZJyQ8lS0Inx8VFhTZTpofg00KXIYgAOo")
+import { createPaymentTransaction } from "@/lib/supabaseAPI"
 
 const coinPackages = [
   { coins: 50, price: 80, popular: false }, // ₹80
@@ -36,138 +34,115 @@ const coinPackagesWithSavings = coinPackages.map(pkg => {
   }
 })
 
+
+
 export function WalletModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedPackage, setSelectedPackage] = useState(null)
-  const [selectedCoinPackage, setSelectedCoinPackage] = useState("")
-  const { user } = useUser()
+  const [selectedCoinPackage, setSelectedCoinPackage] = useState(coinPackagesWithSavings[2]) // Default to 150 coins
+  const { profile, setProfile } = useUser();
+  console.log("profile in WalletModal:", profile);
 
-  const handlePurchase = async (packageData) => {
-    setIsLoading(true)
-    setSelectedPackage(packageData)
-
+  const createOrderId = async () => {
+    onClose();
     try {
-      // Create payment intent on the server
-      const response = await fetch('/api/create-payment-intent', {
+      const response = await fetch('/api/order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          amount: packageData.price * 100, // Convert to cents
-          currency: 'usd',
-          coins: packageData.coins,
-          description: `Purchase ${packageData.coins} coins`,
-        }),
-      })
+          amount: parseFloat(selectedCoinPackage.price) * 100,
+          currency: 'INR',
+        })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to create payment intent')
+        throw new Error('Network response was not ok');
       }
 
-      const { clientSecret } = await response.json()
-
-      // Get Stripe instance
-      const stripe = await stripePromise
-      if (!stripe) {
-        throw new Error('Stripe failed to initialize')
-      }
-
-      // Confirm payment
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: {
-            // This would typically use Stripe Elements
-            // For now, we'll redirect to Stripe Checkout
-          }
-        }
-      })
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      if (paymentIntent.status === 'succeeded') {
-        toast.success(`Successfully purchased ${packageData.coins} coins!`)
-        onSuccess?.(packageData.coins)
-        onClose()
-      }
-
+      const data = await response.json();
+      return data.orderId;
     } catch (error) {
-      console.error('Payment error:', error)
-      toast.error(`Payment failed: ${error.message}`)
-    } finally {
-      setIsLoading(false)
-      setSelectedPackage(null)
+      console.error('There was a problem with your fetch operation:', error);
     }
-  }
+  };
 
-  const handleCheckout = async (packageData) => {
-    console.log(`Starting checkout for ${packageData.coins} coins at ₹${packageData.price}`)
-    if (!user?.email) {
-      toast.error("Please sign in to purchase coins")
+  const processPayment = async () => {
+    try {
+      const orderId = await createOrderId();
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: parseFloat(selectedCoinPackage.price) * 100,
+        currency: 'INR',
+        name: 'TopTutor',
+        description: 'Purchase Coins',
+        order_id: orderId,
+        handler: async function (response) {
+          const data = {
+            orderCreationId: orderId,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpaySignature: response.razorpay_signature,
+          };
+
+          const result = await fetch('/api/verify', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+          });
+          const res = await result.json();
+          if (res.isOk) {
+            setProfile(prevProfile => ({
+              ...prevProfile,
+              coin_balance: prevProfile.coin_balance + selectedCoinPackage.coins
+            })); // Update profile with new coin balance
+          }
+          await createPaymentTransaction({
+            user_email: profile.email,
+            amount: selectedCoinPackage.price,
+            coins: selectedCoinPackage.coins,
+            session_id: data.razorpayPaymentId,
+            metadata: {
+              orderCreationId: data.orderCreationId,
+              razorpayPaymentId: data.razorpayPaymentId,
+              razorpayOrderId: data.razorpayOrderId,
+              razorpaySignature: data.razorpaySignature,
+            },
+            payment_method: 'razorpay',
+            status: res.isOk ? 'succeeded' : 'failed',
+            created_at: new Date().toISOString(),
+          }, profile);
+          res.isOk ? toast.success("payment succeed") : toast.error("payment failed");
+        },
+        prefill: {
+          name: profile.name,
+          email: profile.email,
+        },
+        theme: {
+          color: '#FFFFFF',
+        },
+      };
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on('payment.failed', function (response) {
+        toast.error(response.error.description);
+      });
+      paymentObject.open();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!profile?.email) {
+      toast.error("Please login to continue")
       return
     }
-
-    setIsLoading(true)
-    setSelectedPackage(packageData)
-
-    try {
-      // Create Stripe Checkout session
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(packageData.price * 100), // INR in paise (100 paise = 1 INR)
-          coins: packageData.coins,
-          currency: 'inr',
-          userEmail: user.email,
-        }),
-      })
-
-      // Handle non-OK responses
-      if (!response.ok) {
-        let errorMessage = 'Failed to create checkout session'
-        try {
-          // Clone response to avoid "body stream already read" error
-          const responseClone = response.clone()
-          const errorData = await responseClone.json()
-          errorMessage = errorData.error || errorMessage
-          if (errorData.details) {
-            console.error('API Error Details:', errorData.details)
-          }
-        } catch (jsonError) {
-          // If we can't parse as JSON, try as text
-          try {
-            const textResponse = await response.text()
-            console.error('Non-JSON error response:', textResponse)
-            errorMessage = `Server error (${response.status}): Please check your configuration`
-          } catch (textError) {
-            console.error('Failed to read error response:', textError)
-            errorMessage = `Server error (${response.status}): Unable to read error details`
-          }
-        }
-        throw new Error(errorMessage)
-      }
-
-      const { url } = await response.json()
-      
-      if (url) {
-        // Redirect to Stripe Checkout
-        console.log('Redirecting to Stripe checkout:', url)
-        window.location.href = url
-      } else {
-        throw new Error('No checkout URL received from server')
-      }
-
-    } catch (error) {
-      console.error('Checkout error:', error)
-      toast.error(`Checkout failed: ${error.message}`)
-      setIsLoading(false)
-      setSelectedPackage(null)
+    if (!selectedCoinPackage.coins) {
+      toast.error("Please select a coin package")
+      return
     }
+    console.log("Selected package for checkout:", selectedCoinPackage.coins);
+    processPayment()
   }
 
   const handleDropdownCheckout = async () => {
@@ -176,7 +151,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
       return
     }
 
-    const packageData = coinPackagesWithSavings.find(pkg => pkg.coins.toString() === selectedCoinPackage)
+    const packageData = coinPackagesWithSavings.find(pkg => pkg === selectedCoinPackage)
     if (packageData) {
       await handleCheckout(packageData)
     }
@@ -209,7 +184,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
                 </SelectTrigger>
                 <SelectContent>
                   {coinPackagesWithSavings.map((pkg) => (
-                    <SelectItem key={pkg.coins} value={pkg.coins.toString()}>
+                    <SelectItem key={pkg.coins} value={pkg}>
                       <div className="flex justify-between items-center w-full min-w-[150px]">
                         <span>{pkg.coins} coins</span>
                         <span className="font-semibold text-green-600">₹{pkg.price}</span>
@@ -222,7 +197,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
                 </SelectContent>
               </Select>
             </div>
-            <Button 
+            <Button
               onClick={handleDropdownCheckout}
               disabled={isLoading || !selectedCoinPackage}
               className="px-8 py-2 sm:flex-shrink-0"
@@ -235,13 +210,14 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
               ) : (
                 "Buy Now"
               )}
+
             </Button>
           </div>
         </div>
         <div className="mt-6 p-4 bg-muted rounded-lg">
           <h4 className="font-semibold mb-2">Payment Information</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Secure payment processing via Stripe</li>
+            <li>• Secure payment processing via Razorpay</li>
             <li>• <strong>Multiple payment options:</strong> Credit/Debit Cards, UPI, Net Banking, and more</li>
             <li>• Local payment methods automatically available based on your location</li>
             <li>• Coins are added to your account immediately after payment</li>

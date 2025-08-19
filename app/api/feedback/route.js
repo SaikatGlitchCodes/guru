@@ -20,68 +20,131 @@ export async function POST(request) {
     const subject = `${type} - Mentoring Platform Feedback`;
 
     // Construct HTML email body
-    const htmlBody = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">New Feedback Received</h1>
-        </div>
-        
-        <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
-          <div style="margin-bottom: 25px;">
-            <h2 style="color: #495057; margin: 0 0 15px 0; font-size: 18px; border-bottom: 2px solid #007bff; padding-bottom: 10px;">
-              ${type}
-            </h2>
-          </div>
-
-          <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007bff;">
-            <h3 style="color: #343a40; margin: 0 0 10px 0; font-size: 16px;">Message:</h3>
-            <p style="color: #6c757d; line-height: 1.6; margin: 0; white-space: pre-wrap;">${message}</p>
-          </div>
-
-          ${requestId ? `
-          <div style="background: #fff3cd; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #ffeaa7;">
-            <h4 style="color: #856404; margin: 0 0 5px 0; font-size: 14px;">Request ID:</h4>
-            <p style="color: #856404; margin: 0; font-family: 'Courier New', monospace; font-weight: bold;">${requestId}</p>
-          </div>
-          ` : ''}
-
-          <div style="border-top: 1px solid #dee2e6; padding-top: 20px; margin-top: 20px;">
-            <h4 style="color: #495057; margin: 0 0 15px 0; font-size: 16px;">Submission Details:</h4>
-            
-            <table style="width: 100%; border-collapse: collapse;">
-              <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #495057; width: 120px;">Timestamp:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #6c757d;">${timestamp}</td>
-              </tr>
-              <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #495057;">Page:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
-                  <a href="${currentPage}" style="color: #007bff; text-decoration: none;">${currentPage}</a>
-                </td>
-              </tr>
-              ${userEmail ? `
-              <tr>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #495057;">User Email:</td>
-                <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
-                  <a href="mailto:${userEmail}" style="color: #007bff; text-decoration: none;">${userEmail}</a>
-                </td>
-              </tr>
-              ` : ''}
-              <tr>
-                <td style="padding: 8px 0; font-weight: bold; color: #495057;">User Agent:</td>
-                <td style="padding: 8px 0; color: #6c757d; font-size: 12px;">${userAgent}</td>
-              </tr>
-            </table>
-          </div>
-
-          <div style="margin-top: 30px; padding: 15px; background: #e3f2fd; border-radius: 6px; border-left: 4px solid #2196f3;">
-            <p style="margin: 0; color: #1565c0; font-size: 12px;">
-              📧 This feedback was submitted via the floating feedback widget on the mentoring platform.
+    const htmlBody = `    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <!-- Header -->
+        <div style="background-color: #1a365d; padding: 32px 40px; text-align: center;">
+            <div style="background-color: #2d5a87; width: 48px; height: 48px; border-radius: 12px; margin: 0 auto 16px; display: inline-flex; align-items: center; justify-content: center;">
+                <span style="color: #ffffff; font-size: 24px;">💬</span>
+            </div>
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">
+                New Feedback Received
+            </h1>
+            <p style="color: #a0aec0; margin: 8px 0 0 0; font-size: 14px;">
+                Someone shared their thoughts on your platform
             </p>
-          </div>
         </div>
-      </div>
-    `;
+
+        <!-- Content -->
+        <div style="padding: 40px;">
+            <!-- Feedback Type Badge -->
+            <div style="margin-bottom: 32px;">
+                <span style="display: inline-block; background-color: #edf2f7; color: #2d3748; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; text-transform: capitalize;">
+                    ${type}
+                </span>
+            </div>
+
+            <!-- Message Card -->
+            <div style="background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+                <h2 style="color: #2d3748; margin: 0 0 16px 0; font-size: 16px; font-weight: 600;">
+                    Message
+                </h2>
+                <div style="color: #4a5568; line-height: 1.6; font-size: 15px; margin: 0;">
+                    ${message}
+                </div>
+            </div>
+
+            ${
+              requestId
+                ? `
+            <div style="background-color: #fffbeb; border: 1px solid #fed7aa; border-radius: 8px; padding: 16px; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <span style="color: #d97706; font-size: 16px; margin-right: 8px;">🔍</span>
+                    <h3 style="color: #92400e; margin: 0; font-size: 14px; font-weight: 600;">Request ID</h3>
+                </div>
+                <code style="color: #92400e; font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace; font-size: 13px; background-color: #fef3c7; padding: 4px 8px; border-radius: 4px;">
+                    ${requestId}
+                </code>
+            </div>
+            `
+                : ""
+            }
+
+            <!-- Details Section -->
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 32px;">
+                <h3 style="color: #2d3748; margin: 0 0 20px 0; font-size: 16px; font-weight: 600;">
+                    Submission Details
+                </h3>
+                
+                <div>
+                    <div style="display: flex; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                        <div style="width: 120px; flex-shrink: 0;">
+                            <span style="color: #64748b; font-size: 14px; font-weight: 500;">Timestamp</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <span style="color: #334155; font-size: 14px;">${timestamp}</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                        <div style="width: 120px; flex-shrink: 0;">
+                            <span style="color: #64748b; font-size: 14px; font-weight: 500;">Page</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <a href="${currentPage}" style="color: #3b82f6; text-decoration: none; font-size: 14px; word-break: break-all;">
+                                ${currentPage}
+                            </a>
+                        </div>
+                    </div>
+
+                    ${
+                      userEmail
+                        ? `
+                    <div style="display: flex; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                        <div style="width: 120px; flex-shrink: 0;">
+                            <span style="color: #64748b; font-size: 14px; font-weight: 500;">User Email</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <a href="mailto:${userEmail}" style="color: #3b82f6; text-decoration: none; font-size: 14px;">
+                                ${userEmail}
+                            </a>
+                        </div>
+                    </div>
+                    `
+                        : ""
+                    }
+
+                    <div style="display: flex; padding: 12px 0;">
+                        <div style="width: 120px; flex-shrink: 0;">
+                            <span style="color: #64748b; font-size: 14px; font-weight: 500;">User Agent</span>
+                        </div>
+                        <div style="flex: 1;">
+                            <span style="color: #64748b; font-size: 12px; line-height: 1.4; word-break: break-all;">
+                                ${userAgent}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Note -->
+            <div style="margin-top: 32px; padding: 16px; background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;">
+                <div style="display: flex; align-items: start;">
+                    <span style="color: #0284c7; font-size: 16px; margin-right: 8px; margin-top: 1px;">ℹ️</span>
+                    <p style="margin: 0; color: #0369a1; font-size: 13px; line-height: 1.5;">
+                        This feedback was submitted via the floating feedback widget on your mentoring platform. 
+                        Consider following up with the user if contact information was provided.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Footer -->
+        <div style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+            <p style="margin: 0; color: #64748b; font-size: 12px;">
+                Sent from your mentoring platform feedback system
+            </p>
+        </div>
+    </div>`;
 
     // Send email using Resend
     const { data, error } = await resend.emails.send({

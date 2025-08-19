@@ -6,6 +6,7 @@ import AuthProvider from "@/components/AuthProvider";
 import DebugAuth from "@/components/DebugAuth";
 import FloatingFeedback from "@/components/FloatingFeedback";
 import { GoogleAnalytics, MicrosoftClarity } from "@/components/Analytics";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -212,38 +213,38 @@ export default function RootLayout({ children }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        
+
         {/* Shortcut icon for older browsers */}
         <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
-        
+
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
-        
+
         {/* DNS Prefetch for better performance */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//www.google-analytics.com" />
         <link rel="dns-prefetch" href="//cdn.jsdelivr.net" />
-        
+
         {/* Favicon and app icons */}
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link rel="icon" href="/favicon-16x16.png" sizes="16x16" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <link rel="manifest" href="/manifest.json" />
-        
+
         {/* Additional PWA icons */}
         <link rel="icon" href="/icon-192x192.png" sizes="192x192" type="image/png" />
         <link rel="icon" href="/icon-512x512.png" sizes="512x512" type="image/png" />
-        
+
         {/* Structured Data */}
-        <script 
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-        
-        
+
+
         {/* Critical CSS for above-the-fold content */}
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -256,12 +257,12 @@ export default function RootLayout({ children }) {
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        itemScope 
+        itemScope
         itemType="https://schema.org/WebPage"
       >
         <GoogleAnalytics GA_MEASUREMENT_ID={process.env.NEXT_PUBLIC_GA_ID} />
         <MicrosoftClarity CLARITY_PROJECT_ID={process.env.NEXT_PUBLIC_CLARITY_ID} />
-        
+
         <AuthProvider requireAuth={false}>
           <Navbar />
           <main role="main" id="main-content">
@@ -270,6 +271,10 @@ export default function RootLayout({ children }) {
           <Toaster />
           <DebugAuth />
           <FloatingFeedback />
+          <Script
+            id="razorpay-checkout-js"
+            src="https://checkout.razorpay.com/v1/checkout.js"
+          />
         </AuthProvider>
       </body>
     </html>
