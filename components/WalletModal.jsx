@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, Coins } from "lucide-react"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
+import { createPaymentTransaction } from "@/lib/supabaseAPI"
 
 const coinPackages = [
   { coins: 50, price: 80, popular: false }, // ₹80
@@ -33,13 +34,115 @@ const coinPackagesWithSavings = coinPackages.map(pkg => {
   }
 })
 
+
+
 export function WalletModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedCoinPackage, setSelectedCoinPackage] = useState("")
-  const { user } = useUser();
+  const [selectedCoinPackage, setSelectedCoinPackage] = useState(coinPackagesWithSavings[2]) // Default to 150 coins
+  const { profile, setProfile } = useUser();
+  console.log("profile in WalletModal:", profile);
 
-  const handleCheckout = async (packageData) => {
-    console.log("Selected package for checkout:", packageData)
+  const createOrderId = async () => {
+    onClose();
+    try {
+      const response = await fetch('/api/order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: parseFloat(selectedCoinPackage.price) * 100,
+          currency: 'INR',
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
+      return data.orderId;
+    } catch (error) {
+      console.error('There was a problem with your fetch operation:', error);
+    }
+  };
+
+  const processPayment = async () => {
+    try {
+      const orderId = await createOrderId();
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: parseFloat(selectedCoinPackage.price) * 100,
+        currency: 'INR',
+        name: 'TopTutor',
+        description: 'Purchase Coins',
+        order_id: orderId,
+        handler: async function (response) {
+          const data = {
+            orderCreationId: orderId,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id,
+            razorpaySignature: response.razorpay_signature,
+          };
+
+          const result = await fetch('/api/verify', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+          });
+          const res = await result.json();
+          if (res.isOk) {
+            setProfile(prevProfile => ({
+              ...prevProfile,
+              coin_balance: prevProfile.coin_balance + selectedCoinPackage.coins
+            })); // Update profile with new coin balance
+          }
+          await createPaymentTransaction({
+            user_email: profile.email,
+            amount: selectedCoinPackage.price,
+            coins: selectedCoinPackage.coins,
+            session_id: data.razorpayPaymentId,
+            metadata: {
+              orderCreationId: data.orderCreationId,
+              razorpayPaymentId: data.razorpayPaymentId,
+              razorpayOrderId: data.razorpayOrderId,
+              razorpaySignature: data.razorpaySignature,
+            },
+            payment_method: 'razorpay',
+            status: res.isOk ? 'succeeded' : 'failed',
+            created_at: new Date().toISOString(),
+          }, profile);
+          res.isOk ? toast.success("payment succeed") : toast.error("payment failed");
+        },
+        prefill: {
+          name: profile.name,
+          email: profile.email,
+        },
+        theme: {
+          color: '#FFFFFF',
+        },
+      };
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.on('payment.failed', function (response) {
+        toast.error(response.error.description);
+      });
+      paymentObject.open();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (!profile?.email) {
+      toast.error("Please login to continue")
+      return
+    }
+    if (!selectedCoinPackage.coins) {
+      toast.error("Please select a coin package")
+      return
+    }
+    console.log("Selected package for checkout:", selectedCoinPackage.coins);
+    processPayment()
   }
 
   const handleDropdownCheckout = async () => {
@@ -48,7 +151,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
       return
     }
 
-    const packageData = coinPackagesWithSavings.find(pkg => pkg.coins.toString() === selectedCoinPackage)
+    const packageData = coinPackagesWithSavings.find(pkg => pkg === selectedCoinPackage)
     if (packageData) {
       await handleCheckout(packageData)
     }
@@ -81,7 +184,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
                 </SelectTrigger>
                 <SelectContent>
                   {coinPackagesWithSavings.map((pkg) => (
-                    <SelectItem key={pkg.coins} value={pkg.coins.toString()}>
+                    <SelectItem key={pkg.coins} value={pkg}>
                       <div className="flex justify-between items-center w-full min-w-[150px]">
                         <span>{pkg.coins} coins</span>
                         <span className="font-semibold text-green-600">₹{pkg.price}</span>
@@ -94,7 +197,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
                 </SelectContent>
               </Select>
             </div>
-            <Button 
+            <Button
               onClick={handleDropdownCheckout}
               disabled={isLoading || !selectedCoinPackage}
               className="px-8 py-2 sm:flex-shrink-0"
@@ -107,6 +210,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
               ) : (
                 "Buy Now"
               )}
+
             </Button>
           </div>
         </div>

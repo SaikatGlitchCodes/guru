@@ -223,6 +223,7 @@ export function UserProvider({ children }) {
       value={{
         user,
         profile,
+        setProfile,
         loading,
         signOut,
         signInWithMagicLink,
