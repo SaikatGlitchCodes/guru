@@ -23,10 +23,20 @@ export default function AuthGuard({ children }) {
   const router = useRouter()
   const pathname = usePathname()
   const [authorized, setAuthorized] = useState(false)
+  const [authTimeout, setAuthTimeout] = useState(false)
 
   useEffect(() => {
-    const checkAuth = () => {
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
       if (loading) {
+        console.warn('Auth loading timeout - allowing access')
+        setAuthTimeout(true)
+        setAuthorized(true)
+      }
+    }, 10000) // 10 second timeout
+
+    const checkAuth = () => {
+      if (loading && !authTimeout) {
         return;
       }
 
@@ -52,7 +62,7 @@ export default function AuthGuard({ children }) {
       const userRole = profile?.role || 'guest'
       
       // Give some time for profile to load before rejecting access
-      if (!profile && user) {
+      if (!profile && user && !authTimeout) {
         // Allow temporary access while profile loads
         setAuthorized(true)
         return
@@ -67,7 +77,9 @@ export default function AuthGuard({ children }) {
     }
 
     checkAuth()
-  }, [user, profile, loading, pathname, router])
+
+    return () => clearTimeout(timeout)
+  }, [user, profile, loading, pathname, router, authTimeout])
 
   // Helper function to find route config
   function findRouteConfig(path) {
@@ -98,10 +110,13 @@ export default function AuthGuard({ children }) {
     return null
   }
 
-  if (loading) {
+  if (loading && !authTimeout) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
       </div>
     )
   }

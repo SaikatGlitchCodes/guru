@@ -14,13 +14,19 @@ export function UserProvider({ children }) {
 
   const refreshUserData = async () => {
     try {
+      setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session?.user) {
         setUser(session.user)
 
-        // Try to fetch profile from database
-        const profileResult = await getUserProfile(session.user.email)
+        // Try to fetch profile from database with timeout
+        const profileResult = await Promise.race([
+          getUserProfile(session.user.email),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+          )
+        ])
         
         if (profileResult.data) {
           console.log('Profile loaded in refreshUserData:', profileResult.data)
@@ -28,7 +34,8 @@ export function UserProvider({ children }) {
           setProfile(profileResult.data)
         } else {
           console.log('No profile found, creating basic profile', session.user);
-          getOrCreateUser(session.user)
+          // Don't await this to prevent blocking
+          getOrCreateUser(session.user).catch(console.error)
           // Create a basic profile structure if none exists
           setProfile({
             email: session.user.email,
@@ -60,13 +67,20 @@ export function UserProvider({ children }) {
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email)
         // Only process actual auth changes, not just session checks
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_OUT') {
           if (session?.user) {
             setUser(session.user)
 
             try {
-              const profileResult = await getUserProfile(session.user.email)
+              // Add timeout for profile fetch
+              const profileResult = await Promise.race([
+                getUserProfile(session.user.email),
+                new Promise((_, reject) => 
+                  setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
+                )
+              ])
               
               if (profileResult.data) {
                 console.log('Profile updated from auth change:', profileResult.data)
@@ -74,8 +88,8 @@ export function UserProvider({ children }) {
                 setProfile(profileResult.data)
               } else {
                 console.log('No profile found in auth change, creating basic profile')
-                // Create a basic profile structure if none exists
-                getOrCreateUser(session.user)
+                // Don't await this to prevent blocking
+                getOrCreateUser(session.user).catch(console.error)
                 setProfile({
                   email: session.user.email,
                   name: session.user.user_metadata?.name || session.user.email.split('@')[0],
@@ -89,7 +103,17 @@ export function UserProvider({ children }) {
               }
             } catch (error) {
               console.error("Error fetching profile in auth change:", error)
-              setProfile(null)
+              // Set a fallback profile instead of null
+              setProfile({
+                email: session.user.email,
+                name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+                role: 'student',
+                status: 'active',
+                coin_balance: 0,
+                rating: 0,
+                total_reviews: 0,
+                profile_completion_percentage: 0
+              })
             }
 
             // Check for pending requests in localStorage after authentication

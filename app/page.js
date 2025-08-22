@@ -28,21 +28,82 @@ export default function HomePage() {
   const [expandPlayer, setExpandPlayer] = useState(false)
   const [filteredSuggestions, setFilteredSuggestions] = useState([])
   const [showPlayer, setShowPlayer] = useState(false)
+  const [dataFetchTimeout, setDataFetchTimeout] = useState(false)
+  const [forceLoad, setForceLoad] = useState(false)
+
+  // Check if we should force load content
+  useEffect(() => {
+    if (window.location.hash === '#force-load') {
+      setForceLoad(true)
+      setLoading(false)
+      // Clear the hash
+      window.history.replaceState(null, null, window.location.pathname)
+    }
+  }, [])
+
+  // Emergency timeout to show content regardless
+  useEffect(() => {
+    const emergencyTimeout = setTimeout(() => {
+      console.warn('Emergency timeout - forcing content display')
+      setLoading(false)
+      setForceLoad(true)
+    }, 15000) // 15 second emergency timeout
+
+    return () => clearTimeout(emergencyTimeout)
+  }, [])
 
   // Fetch top tutors and subjects from database
   useEffect(() => {
+    // Skip data fetching if forced to load
+    if (forceLoad) {
+      setLoading(false)
+      return
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true)
 
-        // Fetch tutors and subjects in parallel
-        const [tutorsResult, subjectsResult] = await Promise.all([
-          getTopTutorsByRole(4),
-          getAllSubjects()
+        // Set a timeout to prevent infinite loading
+        const timeout = setTimeout(() => {
+          console.warn('Data fetch timeout - using fallback data')
+          setDataFetchTimeout(true)
+          setLoading(false)
+        }, 10000) // 10 second timeout
+
+        // Add timeout to prevent infinite loading
+        const fetchWithTimeout = (promise, timeout = 8000) => {
+          return Promise.race([
+            promise,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Request timeout')), timeout)
+            )
+          ])
+        }
+
+        // Fetch tutors and subjects in parallel with timeout
+        const [tutorsResult, subjectsResult] = await Promise.allSettled([
+          fetchWithTimeout(getTopTutorsByRole(4)),
+          fetchWithTimeout(getAllSubjects())
         ])
 
-        setTopTutors(tutorsResult.data || [])
-        setSubjects(subjectsResult.data || [])
+        clearTimeout(timeout)
+
+        // Handle tutors result
+        if (tutorsResult.status === 'fulfilled' && tutorsResult.value?.data) {
+          setTopTutors(tutorsResult.value.data)
+        } else {
+          console.error('Failed to fetch tutors:', tutorsResult.reason)
+          setTopTutors([])
+        }
+
+        // Handle subjects result
+        if (subjectsResult.status === 'fulfilled' && subjectsResult.value?.data) {
+          setSubjects(subjectsResult.value.data)
+        } else {
+          console.error('Failed to fetch subjects:', subjectsResult.reason)
+          setSubjects([])
+        }
 
       } catch (err) {
         console.error('Error in fetchData:', err)
@@ -54,14 +115,30 @@ export default function HomePage() {
     }
 
     fetchData()
-  }, [])
+  }, [forceLoad])
 
   // Show profile dashboard only for tutors and admins, students see regular homepage
   if (user && !userLoading && profile && profile.role !== 'student') {
     return <ProfileDashboard />
   }
 
-  // Show regular homepage for non-authenticated users or while loading
+  // Show loading spinner with timeout protection - but only if we're actually loading data
+  if ((loading && !dataFetchTimeout && !forceLoad) || (userLoading && user === null && !forceLoad)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading content...</p>
+          <button 
+            onClick={() => setForceLoad(true)}
+            className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
+          >
+            Skip Loading
+          </button>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Hero Section */}
@@ -76,15 +153,15 @@ export default function HomePage() {
                   {<div className="flex items-start gap-2 mb-4">
                     {/* Overlapping profile avatars */}
                     <div className="flex -space-x-3 mr-4">
-                      {(topTutors.length > 0 ? topTutors : [1, 2, 3]).map((profile) => (
-                        <div key={profile.id || Math.random()} onClick={() => (console.log(profile.name))} className="w-11 h-11">
+                      {(topTutors.length > 0 ? topTutors.slice(0, 3) : [{id: 1}, {id: 2}, {id: 3}]).map((profile, index) => (
+                        <div key={profile.id || index} onClick={() => (console.log(profile.name))} className="w-11 h-11">
                           <Avatar className="h-10 w-10">
                             <AvatarImage src={profile.avatar || ""} alt="Profile" />
                             <AvatarFallback className="bg-green-500 text-white">
                               {profile?.name
                                 ?.split(" ")
                                 .map((n) => n[0])
-                                .join("") || ""}
+                                .join("") || (index + 1).toString()}
                             </AvatarFallback>
                           </Avatar>
                         </div>

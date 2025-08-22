@@ -336,7 +336,7 @@ export default function AuthModal({ defaultRole = "", triggerText = "Sign In / U
                         <TabsContent value="signin" className="space-y-4 mt-6">
                                 <GoogleAuthButton />
                                 <p className="text-sm text-muted-foreground">Promoting hassle-free signing in, with social login.</p>
-                                <p className="text-sm text-muted-foreground">Users can directly create student account here, inorder to create tutor profile sign-up using gmail.</p>
+                                <p className="text-sm text-muted-foreground">Users can directly create student account here, <span className="font-semibold text-black"> inorder to create tutor profile sign-up using gmail.</span></p>
                         </TabsContent>
 
                         <TabsContent value="signup" className="space-y-4 mt-6">
