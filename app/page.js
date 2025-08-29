@@ -129,12 +129,6 @@ export default function HomePage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading content...</p>
-          <button 
-            onClick={() => setForceLoad(true)}
-            className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm"
-          >
-            Skip Loading
-          </button>
         </div>
       </div>
     )
@@ -161,7 +155,7 @@ export default function HomePage() {
                               {profile?.name
                                 ?.split(" ")
                                 .map((n) => n[0])
-                                .join("") || (index + 1).toString()}
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
                         </div>

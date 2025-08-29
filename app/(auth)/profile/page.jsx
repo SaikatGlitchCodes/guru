@@ -769,19 +769,6 @@ export default function ProfilePage() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {process.env.NODE_ENV === 'development' && (
-            <div className="bg-gray-100 p-4 rounded text-sm">
-              <p><strong>Debug Info:</strong></p>
-              <p>Profile loaded: {!!profile ? 'Yes' : 'No'}</p>
-              <p>Form is valid: {form.formState.isValid ? 'Yes' : 'No'}</p>
-              <p>Is saving: {isSaving ? 'Yes' : 'No'}</p>
-              <p>Form dirty: {form.formState.isDirty ? 'Yes' : 'No'}</p>
-              <p>Current role: {currentRole}</p>
-              {Object.keys(form.formState.errors).length > 0 && (
-                <p style={{color: 'red'}}>Errors: {JSON.stringify(form.formState.errors)}</p>
-              )}
-            </div>
-          )}
           
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Personal Information Column */}
@@ -879,27 +866,6 @@ export default function ProfilePage() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="student">Student</SelectItem>
-                            <SelectItem value="tutor">Tutor</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
 
                   <FormField
                     control={form.control}

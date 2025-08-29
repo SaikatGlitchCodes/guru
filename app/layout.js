@@ -6,7 +6,6 @@ import AuthProvider from "@/components/AuthProvider";
 import DebugAuth from "@/components/DebugAuth";
 import FloatingFeedback from "@/components/FloatingFeedback";
 import { GoogleAnalytics, MicrosoftClarity } from "@/components/Analytics";
-import LoadingDebugger from "@/components/LoadingDebugger";
 import Script from "next/script";
 
 const geistSans = Geist({
@@ -265,7 +264,6 @@ export default function RootLayout({ children }) {
         <MicrosoftClarity CLARITY_PROJECT_ID={process.env.NEXT_PUBLIC_CLARITY_ID} />
 
         <AuthProvider requireAuth={false}>
-          <LoadingDebugger />
           <Navbar />
           <main role="main" id="main-content">
             {children}
