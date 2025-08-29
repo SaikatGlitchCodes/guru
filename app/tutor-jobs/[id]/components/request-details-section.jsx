@@ -26,7 +26,7 @@ export default function RequestDetailsSection({ request }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed line-clamp-3 overflow-hidden word-break">
+          <p className="text-gray-700">
             {request.description || "Detailed learning objectives will be shared after you contact the student."}
           </p>
         </CardContent>
