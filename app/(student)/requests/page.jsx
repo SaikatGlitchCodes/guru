@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useUser } from "@/contexts/UserContext"
 import { getUserRequests, updateRequestStatus } from "@/lib/supabaseAPI"
-import { usePageVisibility } from "@/lib/hooks/usePageVisibility"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -38,7 +37,6 @@ export const dynamic = 'force-dynamic'
 
 export default function StudentRequestsPage() {
   const { user, profile, loading: userLoading } = useUser()
-  const { justBecameVisible } = usePageVisibility()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [closingRequest, setClosingRequest] = useState(null)
@@ -52,18 +50,13 @@ export default function StudentRequestsPage() {
   }, [user, profile, userLoading])
 
   useEffect(() => {
-    // Skip if page just became visible and we already have requests
-    if (justBecameVisible && requests.length > 0) {
-      return
-    }
-    
     // Wait for user loading to complete and user to be available
     if (!userLoading && user?.email) {
       fetchRequests()
     } else if (!userLoading && !user) {
       setLoading(false)
     }
-  }, [user, userLoading, justBecameVisible, requests.length])
+  }, [user, userLoading, requests.length])
 
   const fetchRequests = async () => {
     if (!user?.email) {

@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { getUserProfile, uploadAvatar, createRequest, getOrCreateUser } from "@/lib/supabaseAPI"
+import { uploadAvatar, createRequest, getOrCreateUser } from "@/lib/supabaseAPI"
 
 const UserContext = createContext(null)
 
@@ -11,42 +11,22 @@ export function UserProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [pendingRequest, setPendingRequest] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
 
   const refreshUserData = async () => {
     try {
       setLoading(true)
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (session?.user) {
         setUser(session.user)
+        // Don't await this to prevent blocking
+        const profileResult = await getOrCreateUser(session.user);
 
-        // Try to fetch profile from database with timeout
-        const profileResult = await Promise.race([
-          getUserProfile(session.user.email),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-          )
-        ])
-        
         if (profileResult.data) {
           console.log('Profile loaded in refreshUserData:', profileResult.data)
           console.log('Address data in refreshUserData:', profileResult.data.address)
           setProfile(profileResult.data)
-        } else {
-          console.log('No profile found, creating basic profile', session.user);
-          // Don't await this to prevent blocking
-          getOrCreateUser(session.user).catch(console.error)
-          // Create a basic profile structure if none exists
-          setProfile({
-            email: session.user.email,
-            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-            role: 'student',
-            status: 'active',
-            coin_balance: 0,
-            rating: 0,
-            total_reviews: 0,
-            profile_completion_percentage: 0
-          })
         }
       } else {
         setUser(null)
@@ -64,68 +44,15 @@ export function UserProvider({ children }) {
   useEffect(() => {
     refreshUserData()
     localStorage.getItem("pendingTutorRequest") && setPendingRequest(true)
-    
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state change:', event, session?.user?.email)
-        // Only process actual auth changes, not just session checks
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_OUT') {
-          if (session?.user) {
-            setUser(session.user)
-
-            try {
-              // Add timeout for profile fetch
-              const profileResult = await Promise.race([
-                getUserProfile(session.user.email),
-                new Promise((_, reject) => 
-                  setTimeout(() => reject(new Error('Profile fetch timeout')), 10000)
-                )
-              ])
-              
-              if (profileResult.data) {
-                console.log('Profile updated from auth change:', profileResult.data)
-                console.log('Address from auth change:', profileResult.data.address)
-                setProfile(profileResult.data)
-              } else {
-                console.log('No profile found in auth change, creating basic profile')
-                // Don't await this to prevent blocking
-                getOrCreateUser(session.user).catch(console.error)
-                setProfile({
-                  email: session.user.email,
-                  name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-                  role: 'student',
-                  status: 'active',
-                  coin_balance: 0,
-                  rating: 0,
-                  total_reviews: 0,
-                  profile_completion_percentage: 0
-                })
-              }
-            } catch (error) {
-              console.error("Error fetching profile in auth change:", error)
-              // Set a fallback profile instead of null
-              setProfile({
-                email: session.user.email,
-                name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-                role: 'student',
-                status: 'active',
-                coin_balance: 0,
-                rating: 0,
-                total_reviews: 0,
-                profile_completion_percentage: 0
-              })
-            }
-
-            // Check for pending requests in localStorage after authentication
-            if (event === 'SIGNED_IN') {
-              setTimeout(() => {
-                createRequestInLocalStorage(session.user.email)
-              }, 1000) // Small delay to ensure profile is loaded
-            }
-          } else {
-            setUser(null)
-            setProfile(null)
-          }
+        // Check for pending requests in localStorage after authentication
+        if (event === 'SIGNED_IN') {
+          setTimeout(() => {
+            createRequestInLocalStorage(session.user.email)
+          }, 1000);
         }
       }
     )
@@ -144,39 +71,6 @@ export function UserProvider({ children }) {
       console.error("Error signing out:", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const uploadAvatarToSupabase = async (file, userEmail) => {
-    if (!file || !userEmail) {
-      return { error: 'File and user email are required' }
-    }
-
-    try {
-      const result = await uploadAvatar(file, userEmail)
-      
-      if (result.error) {
-        return { error: result.error.message || 'Upload failed' }
-      }
-
-      // Update user profile with the avatar URL
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ avatar_url: result.data })
-        .eq('email', userEmail)
-
-      if (updateError) {
-        console.error('Error updating user profile:', updateError)
-        return { error: updateError.message }
-      }
-
-      // Update the local profile state
-      setProfile(prev => prev ? { ...prev, avatar_url: result.data } : prev)
-
-      return result.data
-    } catch (error) {
-      console.error('Upload error:', error)
-      return { error: error.message || 'Upload failed' }
     }
   }
 
@@ -252,8 +146,9 @@ export function UserProvider({ children }) {
         signOut,
         signInWithMagicLink,
         refreshUserData,
-        uploadAvatarToSupabase,
         createRequestInLocalStorage,
+        isWalletModalOpen,
+        setIsWalletModalOpen,
         isRequestInLocalStorage: pendingRequest
       }}
     >

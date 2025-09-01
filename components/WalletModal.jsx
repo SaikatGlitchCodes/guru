@@ -40,7 +40,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCoinPackage, setSelectedCoinPackage] = useState(coinPackagesWithSavings[2]) // Default to 150 coins
   const { profile, setProfile } = useUser();
-  console.log("profile in WalletModal:", profile);
+  // console.log("profile in WalletModal:", profile);
 
   const createOrderId = async () => {
     onClose();

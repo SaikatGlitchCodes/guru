@@ -90,7 +90,7 @@ export default function Navbar() {
       <span className="inner"
       >
         <svg
-          className="icon"
+          className="icon hidden md:inline"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -105,7 +105,7 @@ export default function Navbar() {
           </polyline>
         </svg>
 
-        {coinBalance} Coins
+        {coinBalance} <span className="hidden md:inline">Coins</span> 
       </span>
     </button>)
   }

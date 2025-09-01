@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { supabase } from "@/lib/supabaseClient";
 import { BookOpen, Users, ClipboardList } from "lucide-react"
+import { createSubject, getAllSubjects } from "@/lib/supabaseAPI";
 
 
 const requestTypes = [
@@ -50,10 +51,7 @@ export function SubjectMeetingStep({ form }) {
     setLoading(true)
     setError(null)
     try {
-      const response = await supabase
-        .from('subjects')
-        .select('id, name')
-      
+      const response = await getAllSubjects()
       if (response.error) {
         throw new Error(response.error.message)
       }
@@ -73,26 +71,18 @@ export function SubjectMeetingStep({ form }) {
 
   const handleCreateSubject = async (newSubject) => {
     setLoading(true);
-    supabase
-      .from('subjects')
-      .insert({ name: newSubject, created_at: new Date(), updated_at: new Date() })
-      .select('id, name')
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Error creating subject:', error);
-          return;
-        }
-        const newOption = { value: data.name, label: data.name, id: data.id };
-        setSubjects((prev) => [...prev, newOption]);
-        setSelectedSubject((prev) => [...prev, newOption]);
-        form.setValue('subject', [...form.getValues('subject') || [], newOption]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    const { data, error } = await createSubject(newSubject);
+    if (error) {
+      console.error('Error creating subject:', error);
+      setError(error.message || 'Failed to create subject');
+    } else {
+      const newOption = { value: data.name, label: data.name, id: data.id };
+      setSubjects((prev) => [...prev, newOption]);
+      setSelectedSubject((prev) => [...prev, newOption]);
+      form.setValue('subject', [...form.getValues('subject') || [], newOption]);
+    }
+    setLoading(false);
   }
-
 
   return (
     <div className="space-y-6 border-t-2 md:pt-12 pt-5">
