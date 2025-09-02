@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { useUser } from "@/contexts/UserContext"
 import ProfileDashboard from "@/components/ProfileDashboard"
 import ThemedHero from "@/components/ThemedHero"
@@ -30,7 +31,7 @@ export default function HomePage() {
   const [showPlayer, setShowPlayer] = useState(false)
   const [dataFetchTimeout, setDataFetchTimeout] = useState(false)
   const [forceLoad, setForceLoad] = useState(false)
-
+  console.log('topTutors', topTutors)
   // Check if we should force load content
   useEffect(() => {
     if (window.location.hash === '#force-load') {
@@ -90,7 +91,7 @@ export default function HomePage() {
         clearTimeout(timeout)
 
         // Handle tutors result
-        if (tutorsResult.status === 'fulfilled' && tutorsResult.value?.data) {
+        if (true) {
           setTopTutors(tutorsResult.value.data)
         } else {
           console.error('Failed to fetch tutors:', tutorsResult.reason)
@@ -146,25 +147,78 @@ export default function HomePage() {
                 <div className="relative">
                   {<div className="flex items-start gap-2 mb-4">
                     {/* Overlapping profile avatars */}
-                    <div className="flex -space-x-3 mr-4">
-                      {(topTutors.length > 0 ? topTutors.slice(0, 3) : [{id: 1}, {id: 2}, {id: 3}]).map((profile, index) => (
-                        <div key={profile.id || index} onClick={() => (console.log(profile.name))} className="w-11 h-11">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={profile.avatar || ""} alt="Profile" />
-                            <AvatarFallback className="bg-green-500 text-white">
-                              {profile?.name
-                                ?.split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
+                    <TooltipProvider>
+                      <div className="flex -space-x-3 mr-4">
+                        {(topTutors.length > 0 ? topTutors.slice(0, 3) : [{id: 1}, {id: 2}, {id: 3}]).map((profile, index) => (
+                          <Tooltip key={profile.id || index} delayDuration={300}>
+                            <TooltipTrigger asChild>
+                              <div 
+                                onClick={() => {
+                                  if (profile.id) {
+                                    router.push(`/find-tutors/${profile.id}`)
+                                  }
+                                }} 
+                                className="w-11 h-11 cursor-pointer hover:scale-110 hover:z-10 transition-all duration-200"
+                              >
+                                <Avatar className="h-10 w-10 ring-2 ring-white hover:ring-green-400 transition-all duration-200">
+                                  <AvatarImage src={profile.avatar || ""} alt={profile.name || "Profile"} />
+                                  <AvatarFallback className="bg-green-500 text-white">
+                                    {profile?.name
+                                      ?.split(" ")
+                                      .map((n) => n[0])
+                                      .join("") || "T"}
+                                  </AvatarFallback>
+                                </Avatar>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent 
+                              side="bottom" 
+                              className="bg-white text-gray-800 border border-gray-200 shadow-lg p-4 max-w-xs"
+                              sideOffset={8}
+                            >
+                              <div className="space-y-2">
+                                <div className="font-semibold text-lg text-green-600">
+                                  {profile.name || "Top Tutor"}
+                                </div>
+                                {profile.subject && (
+                                  <div className="text-sm text-gray-600">
+                                    <span className="font-medium">Specializes in:</span> {profile.subject}
+                                  </div>
+                                )}
+                                {profile.rating && (
+                                  <div className="flex items-center gap-1 text-sm">
+                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                    <span className="font-medium">{profile.rating}</span>
+                                    <span className="text-gray-500">
+                                      ({profile.reviews || 0} reviews)
+                                    </span>
+                                  </div>
+                                )}
+                                {profile.experience && (
+                                  <div className="text-sm text-gray-600">
+                                    <span className="font-medium">Experience:</span> {profile.experience}
+                                  </div>
+                                )}
+                                {profile.hourlyRate && (
+                                  <div className="text-sm text-gray-600">
+                                    <span className="font-medium">Rate:</span> ₹{profile.hourlyRate}/hour
+                                  </div>
+                                )}
+                                <div className="pt-2 border-t border-gray-100">
+                                  <div className="text-xs text-green-600 font-medium">
+                                    Click to view full profile →
+                                  </div>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                        {/* Playful arrow */}
+                        <div className="ml-2 mt-2">
+                          <ArrowRight className="w-5 h-5 text-green-400 transform rotate-12" />
                         </div>
-                      ))}
-                      {/* Playful arrow */}
-                      <div className="ml-2 mt-2">
-                        <ArrowRight className="w-5 h-5 text-green-400 transform rotate-12" />
                       </div>
-                    </div>
+                    </TooltipProvider>
                   </div>}
 
                   <h1 className="text-2xl lg:text-5xl font-bold leading-tight">
@@ -495,7 +549,7 @@ export default function HomePage() {
                     },
                     {
                       question: "What's the cost?",
-                      answer: "Rates range from $15-100+ per hour based on subject and tutor experience."
+                      answer: "Rates range from ₹15-100+ per hour based on subject and tutor experience."
                     },
                     {
                       question: "Online or in-person?",
@@ -705,7 +759,7 @@ export default function HomePage() {
                     <TrendingUp className="w-3 h-3 text-green-400" />
                   </div>
                   <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-400 hover:bg-green-500/10 px-3 py-2 rounded-lg transition-all">
-                    USD ($)
+                    INR (₹)
                   </Button>
                 </div>
               </div>

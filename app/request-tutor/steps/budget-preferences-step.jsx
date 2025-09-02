@@ -8,50 +8,22 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, languages } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/UserContext"
 import { getCurrencyByCountry } from "@/lib/countryToCurrency"
 
-const languages = [
-  { value: "english", label: "English" },
-  { value: "spanish", label: "Spanish" },
-  { value: "french", label: "French" },
-  { value: "german", label: "German" },
-  { value: "chinese", label: "Chinese" },
-  { value: "japanese", label: "Japanese" },
-  { value: "arabic", label: "Arabic" },
-  { value: "russian", label: "Russian" },
-  { value: "portuguese", label: "Portuguese" },
-  { value: "hindi", label: "Hindi" },
-  { value: "bengali", label: "Bengali" },
-  { value: "urdu", label: "Urdu" },
-  { value: "turkish", label: "Turkish" },
-  { value: "korean", label: "Korean" },
-  { value: "italian", label: "Italian" },
-  { value: "tamil", label: "Tamil" },
-  { value: "telugu", label: "Telugu" },
-  { value: "marathi", label: "Marathi" },
-  { value: "gujarati", label: "Gujarati" },
-  { value: "malayalam", label: "Malayalam" },
-  { value: "punjabi", label: "Punjabi" },
-  { value: "bhojpuri", label: "Bhojpuri" },
-  { value: "swahili", label: "Swahili" },
-  { value: "vietnamese", label: "Vietnamese" },
-  { value: "thai", label: "Thai" },
-]
-
 const currencies = [
-  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
   { code: "GBP", symbol: "£", name: "British Pound" },
   { code: "JPY", symbol: "¥", name: "Japanese Yen" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar" },
   { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
   { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
   { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
   { code: "SEK", symbol: "kr", name: "Swedish Krona" },
@@ -70,9 +42,8 @@ export function BudgetPreferencesStep({ form }) {
   const [open, setOpen] = useState(false)
   const { profile } = useUser()
 
-  console.log('User Profile:', form.getValues())
-  const suggestedCurrency = getCurrencyByCountry(form.getValues('country') || profile?.address?.country);
-  const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "$";
+  const suggestedCurrency = getCurrencyByCountry(form.watch('country') || profile?.address?.country);
+  const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "₹";
 
 
   console.log('Suggested currency:', suggestedCurrency, 'currencySymbol:', suggestedSymbol)
@@ -80,8 +51,8 @@ export function BudgetPreferencesStep({ form }) {
 
   // Restore currency from localStorage if form gets reset
   useEffect(() => {
-    form.setValue("price_currency", suggestedCurrency || "USD")
-    form.setValue("price_currency_symbol", suggestedSymbol || "$")
+    form.setValue("price_currency", suggestedCurrency || "INR")
+    form.setValue("price_currency_symbol", suggestedSymbol || "₹")
 
   }, [])
 

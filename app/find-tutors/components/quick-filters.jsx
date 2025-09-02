@@ -36,7 +36,7 @@ export default function QuickFilters({ onFilterSelect, activeFilters = [] }) {
     },
     {
       id: 'budget-friendly',
-      label: 'Under $30/hr',
+      label: 'Under ₹30/hr',
       icon: DollarSign,
       color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
       filter: { maxPrice: 30 }

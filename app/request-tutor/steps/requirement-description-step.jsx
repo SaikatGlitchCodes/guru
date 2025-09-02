@@ -23,7 +23,7 @@ export function RequirementDescriptionStep({ form }) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Textarea
-                      placeholder="Example: I am looking for someone with experience in teaching IGCSE Maths online to young kids. My daughter is available from 4.30 pm EST to 8.30 pm EST on weekdays and flexible on Weekends. You should have a digital pen and good internet connection. My budget is a maximum of $35 per hour."
+                      placeholder="Example: I am looking for someone with experience in teaching IGCSE Maths online to young kids. My daughter is available from 4.30 pm EST to 8.30 pm EST on weekdays and flexible on Weekends. You should have a digital pen and good internet connection. My budget is a maximum of ₹35 per hour."
                       className="min-h-[200px] text-sm"
                       {...field}
                     />

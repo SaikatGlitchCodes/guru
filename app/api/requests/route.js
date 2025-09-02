@@ -124,7 +124,7 @@ export async function GET(request) {
         request.offline_meeting && 'Offline', 
         request.travel_meeting && 'Travel'
       ].filter(Boolean),
-      formatted_price: `${request.price_currency_symbol || '$'}${request.price_amount} ${request.price_option}`,
+      formatted_price: `${request.price_currency_symbol || '₹'}${request.price_amount} ${request.price_option}`,
       location: request.address ? 
         `${request.address.city || ''}, ${request.address.state || ''}`.replace(/^,\s*|,\s*$/, '') : 
         'Location not specified'

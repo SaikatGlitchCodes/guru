@@ -114,12 +114,12 @@ export default function FilterSidebar({
         {/* Price Range */}
         <div>
           <label className="text-sm font-medium mb-3 block">
-            Hourly Rate: ${filters.minPrice || 0} - ${filters.maxPrice || 100}
+            Hourly Rate: ${filters.minPrice || 0} - ${filters.maxPrice || 1000}
           </label>
           <Slider
-            value={[filters.minPrice || 0, filters.maxPrice || 100]}
+            value={[filters.minPrice || 0, filters.maxPrice || 1000]}
             onValueChange={handlePriceRangeChange}
-            max={100}
+            max={1000}
             step={5}
             className="w-full"
           />

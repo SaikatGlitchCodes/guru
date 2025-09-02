@@ -127,32 +127,6 @@ export default function AuthModal({ defaultRole = "", triggerText = "Sign In / U
         return true
     }
 
-    const handleSignIn = async (formData) => {
-        if (!validateSignIn(formData)) return
-
-        setIsLoading(true)
-        try {
-            const email = formData.get("email")
-            const password = formData.get("password")
-            
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            })
-            
-            if (error) throw error;
-
-            await refreshUserData()
-            
-            setIsOpen(false)
-            setSignInErrors({})
-        } catch (error) {
-            setSignInErrors({ email: "Invalid email or password" })
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
     const handleSignUp = async (formData) => {
         if (!validateSignUp(formData)) return
 

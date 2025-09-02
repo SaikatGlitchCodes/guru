@@ -137,7 +137,7 @@ const JobSupportPage = () => {
                   Why Tutors Choose Job Support:
                 </h4>
                 <ul className="space-y-2 text-sm text-gray-600">
-                  <li>• Higher hourly rates (typically $60-150/hr)</li>
+                  <li>• Higher hourly rates (typically ₹60-150/hr)</li>
                   <li>• Professional networking opportunities</li>
                   <li>• Flexible session scheduling</li>
                   <li>• Help others advance their careers</li>
@@ -219,7 +219,7 @@ const JobSupportPage = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">Budget:</span>
                       <span className="font-semibold text-green-600">
-                        {request.price_currency_symbol || '$'}{request.price_amount}/hr
+                        {request.price_currency_symbol || '₹'}{request.price_amount}/hr
                       </span>
                     </div>
                     

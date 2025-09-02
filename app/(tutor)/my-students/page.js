@@ -180,7 +180,7 @@ export default function MyStudentsPage() {
     })
   }
 
-  const formatCurrency = (amount, currency = 'USD', symbol = '$') => {
+  const formatCurrency = (amount, currency = 'INR', symbol = '₹') => {
     return `${symbol}${amount?.toFixed(2) || '0.00'}`
   }
 

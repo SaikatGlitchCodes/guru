@@ -21,7 +21,7 @@ const coinPackages = [
 ]
 
 // Calculate base price per coin (using smallest package as baseline)
-const basePricePerCoin = coinPackages[0].price / coinPackages[0].coins // $0.1 per coin
+const basePricePerCoin = coinPackages[0].price / coinPackages[0].coins // ₹0.1 per coin
 
 // Add savings percentage to each package
 const coinPackagesWithSavings = coinPackages.map(pkg => {
@@ -40,7 +40,7 @@ export function WalletModal({ isOpen, onClose, onSuccess }) {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedCoinPackage, setSelectedCoinPackage] = useState(coinPackagesWithSavings[2]) // Default to 150 coins
   const { profile, setProfile } = useUser();
-  console.log("profile in WalletModal:", profile);
+  // console.log("profile in WalletModal:", profile);
 
   const createOrderId = async () => {
     onClose();

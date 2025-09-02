@@ -55,7 +55,7 @@ export default function StudentProfileCard({
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold">
-                {request.price_currency_symbol || '€'}{request.price_amount || '0'}
+                {request.price_currency_symbol || '₹'}{request.price_amount || '0'}
               </div>
               <div className="text-blue-100 text-sm">per hour</div>
             </div>

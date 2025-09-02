@@ -220,12 +220,11 @@ export default function TutorProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
+      <div className="bg-white shadow-sm">
+        <div className="container mx-auto px-4 py-2">
           <Button 
             variant="ghost" 
             onClick={() => router.back()}
-            className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Search

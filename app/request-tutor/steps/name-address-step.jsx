@@ -14,7 +14,7 @@ export function NameAddressStep({ form }) {
   const [addressSearchValue, setAddressSearchValue] = useState("")
   const debounceRef = useRef(null);
 
-  console.log('address', form.getValues('address.street'))
+  console.log('address', form.watch('address.street'))
 
   const searchAddresses = async (query) => {
     if (!GEOAPIFY_API_KEY || !query || query.length < 3) {
@@ -164,7 +164,7 @@ export function NameAddressStep({ form }) {
                   <Input
                     {...field}
                     placeholder="Start typing your address..."
-                    value={ form.getValues('address.street') ||addressSearchValue || ''}
+                    value={ form.watch('address.street') ||addressSearchValue || ''}
                     onChange={(e) => {
                       field.onChange(e.target.value)
                       handleAddressSearchChange(e.target.value)
