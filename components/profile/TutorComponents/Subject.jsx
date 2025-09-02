@@ -202,7 +202,7 @@ export default function Subject({ form }) {
                     )}
                     {tutorSubject.hourly_rate_override && (
                       <span className="ml-2">
-                        ${tutorSubject.hourly_rate_override}/hour
+                        ₹{tutorSubject.hourly_rate_override}/hour
                       </span>
                     )}
                   </div>

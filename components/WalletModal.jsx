@@ -21,7 +21,7 @@ const coinPackages = [
 ]
 
 // Calculate base price per coin (using smallest package as baseline)
-const basePricePerCoin = coinPackages[0].price / coinPackages[0].coins // $0.1 per coin
+const basePricePerCoin = coinPackages[0].price / coinPackages[0].coins // ₹0.1 per coin
 
 // Add savings percentage to each package
 const coinPackagesWithSavings = coinPackages.map(pkg => {

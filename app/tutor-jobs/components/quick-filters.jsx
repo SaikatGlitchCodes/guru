@@ -22,7 +22,7 @@ export default function QuickFilters({ onFilterSelect, activeFilters = [] }) {
     },
     {
       id: 'high-pay',
-      label: '$50+ /hour',
+      label: '₹50+ /hour',
       icon: DollarSign,
       color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
       filter: { minPrice: 50 }

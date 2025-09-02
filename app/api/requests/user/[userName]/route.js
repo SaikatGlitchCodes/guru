@@ -160,7 +160,7 @@ export async function GET(request, { params }) {
           request.offline_meeting && 'Offline', 
           request.travel_meeting && 'Travel'
         ].filter(Boolean),
-        formatted_price: `${request.price_currency_symbol || '$'}${request.price_amount} ${request.price_option}`,
+        formatted_price: `${request.price_currency_symbol || '₹'}${request.price_amount} ${request.price_option}`,
         days_since_created: Math.floor((new Date() - new Date(request.created_at)) / (1000 * 60 * 60 * 24)),
         is_recent: (new Date() - new Date(request.created_at)) < (7 * 24 * 60 * 60 * 1000) // Less than 7 days
       }

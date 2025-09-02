@@ -88,7 +88,7 @@ export const tutorSchema = {
     hourly_rate: yup
       .number()
       .transform((value) => (isNaN(value) || value === 0) ? undefined : value)
-      .min(1, "Please set your hourly rate (minimum $1)")
+      .min(1, "Please set your hourly rate (minimum ₹1)")
       .optional(),
     experience_years: yup
       .number()

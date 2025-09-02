@@ -170,7 +170,7 @@ export default function RequestBrowser({
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Budget</p>
                 <div className="flex items-center gap-1 text-green-600 font-semibold">
-                  {request.price_currency_symbol || '$'}
+                  {request.price_currency_symbol || '₹'}
                   <span className="break-all">{request.price_amount} / {request.price_option}</span>
                 </div>
               </div>

@@ -321,7 +321,7 @@ export function SubjectSelector({
                         Hourly Rate
                       </FormLabel>
                       <span className="text-sm font-medium text-green-800">
-                        ${field.value || 0}/hour
+                        ₹{field.value || 0}/hour
                       </span>
                     </div>
                     <FormControl>
@@ -334,9 +334,9 @@ export function SubjectSelector({
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-green-600">
-                      <span>$0</span>
-                      <span>$100</span>
-                      <span>$200+</span>
+                      <span>₹0</span>
+                      <span>₹100</span>
+                      <span>₹200+</span>
                     </div>
                   </div>
                   <FormMessage />

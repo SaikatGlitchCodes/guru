@@ -201,7 +201,7 @@ export default function HomePage() {
                                 )}
                                 {profile.hourlyRate && (
                                   <div className="text-sm text-gray-600">
-                                    <span className="font-medium">Rate:</span> ${profile.hourlyRate}/hour
+                                    <span className="font-medium">Rate:</span> ₹{profile.hourlyRate}/hour
                                   </div>
                                 )}
                                 <div className="pt-2 border-t border-gray-100">
@@ -549,7 +549,7 @@ export default function HomePage() {
                     },
                     {
                       question: "What's the cost?",
-                      answer: "Rates range from $15-100+ per hour based on subject and tutor experience."
+                      answer: "Rates range from ₹15-100+ per hour based on subject and tutor experience."
                     },
                     {
                       question: "Online or in-person?",
@@ -759,7 +759,7 @@ export default function HomePage() {
                     <TrendingUp className="w-3 h-3 text-green-400" />
                   </div>
                   <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-400 hover:bg-green-500/10 px-3 py-2 rounded-lg transition-all">
-                    USD ($)
+                    INR (₹)
                   </Button>
                 </div>
               </div>

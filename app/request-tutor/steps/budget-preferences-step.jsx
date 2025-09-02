@@ -15,15 +15,15 @@ import { useUser } from "@/contexts/UserContext"
 import { getCurrencyByCountry } from "@/lib/countryToCurrency"
 
 const currencies = [
-  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
   { code: "GBP", symbol: "£", name: "British Pound" },
   { code: "JPY", symbol: "¥", name: "Japanese Yen" },
   { code: "CAD", symbol: "C$", name: "Canadian Dollar" },
   { code: "AUD", symbol: "A$", name: "Australian Dollar" },
   { code: "CHF", symbol: "CHF", name: "Swiss Franc" },
   { code: "CNY", symbol: "¥", name: "Chinese Yuan" },
-  { code: "INR", symbol: "₹", name: "Indian Rupee" },
   { code: "SGD", symbol: "S$", name: "Singapore Dollar" },
   { code: "HKD", symbol: "HK$", name: "Hong Kong Dollar" },
   { code: "SEK", symbol: "kr", name: "Swedish Krona" },
@@ -43,7 +43,7 @@ export function BudgetPreferencesStep({ form }) {
   const { profile } = useUser()
 
   const suggestedCurrency = getCurrencyByCountry(form.watch('country') || profile?.address?.country);
-  const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "$";
+  const suggestedSymbol = currencies.find(c => c.code === suggestedCurrency)?.symbol || "₹";
 
 
   console.log('Suggested currency:', suggestedCurrency, 'currencySymbol:', suggestedSymbol)
@@ -51,8 +51,8 @@ export function BudgetPreferencesStep({ form }) {
 
   // Restore currency from localStorage if form gets reset
   useEffect(() => {
-    form.setValue("price_currency", suggestedCurrency || "USD")
-    form.setValue("price_currency_symbol", suggestedSymbol || "$")
+    form.setValue("price_currency", suggestedCurrency || "INR")
+    form.setValue("price_currency_symbol", suggestedSymbol || "₹")
 
   }, [])
 
