@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
-import { uploadAvatar, createRequest, getOrCreateUser } from "@/lib/supabaseAPI"
+import { createRequest, getOrCreateUser } from "@/lib/supabaseAPI"
 
 const UserContext = createContext(null)
 

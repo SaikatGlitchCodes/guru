@@ -34,7 +34,7 @@ export function useFindTutorsLogic() {
     subjects: searchParams.get('subjects') ? searchParams.get('subjects').split(',') : [],
     locations: searchParams.get('locations') ? searchParams.get('locations').split(',') : [],
     minPrice: parseInt(searchParams.get('minPrice')) || 0,
-    maxPrice: parseInt(searchParams.get('maxPrice')) || 100,
+    maxPrice: parseInt(searchParams.get('maxPrice')) || 1000,
     minRating: parseFloat(searchParams.get('minRating')) || 0,
     availabilityStatus: searchParams.get('availability') || '',
     verified: searchParams.get('verified') === 'true' || undefined,
@@ -63,7 +63,7 @@ export function useFindTutorsLogic() {
       params.set('locations', newFilters.locations.join(','))
     }
     if (newFilters.minPrice > 0) params.set('minPrice', newFilters.minPrice.toString())
-    if (newFilters.maxPrice < 100) params.set('maxPrice', newFilters.maxPrice.toString())
+    if (newFilters.maxPrice < 1000) params.set('maxPrice', newFilters.maxPrice.toString())
     if (newFilters.minRating > 0) params.set('minRating', newFilters.minRating.toString())
     if (newFilters.availabilityStatus) params.set('availability', newFilters.availabilityStatus)
     if (newFilters.verified) params.set('verified', 'true')
@@ -95,6 +95,7 @@ export function useFindTutorsLogic() {
 
   // Load tutors
   const loadTutors = useCallback(async () => {
+    console.log('Loading tutors...')
     setIsLoading(true)
     setIsApplyingFilters(true)
     setError(null)
@@ -188,7 +189,7 @@ export function useFindTutorsLogic() {
       subjects: [],
       locations: [],
       minPrice: 0,
-      maxPrice: 100,
+      maxPrice: 1000,
       minRating: 0,
       availabilityStatus: '',
       verified: undefined,

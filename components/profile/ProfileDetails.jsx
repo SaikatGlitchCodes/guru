@@ -6,18 +6,18 @@ import { Input } from '../ui/input';
 
 export default function ProfileDetails({form}) {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Profile Details</CardTitle>
+        <Card className="border-0 shadow-none">
+            <CardHeader className="pb-4">
+                <CardTitle className="text-xl">Profile Details</CardTitle>
                 <CardDescription>Share information about yourself with the community</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
                 <FormField
                     control={form.control}
                     name="bio"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Bio</FormLabel>
+                            <FormLabel>Bio *</FormLabel>
                             <FormControl>
                                 <Textarea
                                     placeholder={form.watch('role') === 'tutor'

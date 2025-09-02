@@ -100,11 +100,11 @@ export default function AddressInfo({ form }) {
         form.setValue('address', {});
     }, [form]);
     return (
-        <Card>
-            <CardHeader>
+        <Card className="border-0 shadow-none">
+            <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <CardTitle>Address Information</CardTitle>
+                        <CardTitle className="text-xl">Address Information</CardTitle>
                         <CardDescription>Update your address details</CardDescription>
                     </div>
                     <Button
@@ -124,7 +124,7 @@ export default function AddressInfo({ form }) {
                     </Button>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
                 {/* Address Search with Autocomplete */}
                 <div className="space-y-2">
                     <FormLabel>Search Address</FormLabel>
@@ -198,7 +198,7 @@ export default function AddressInfo({ form }) {
                         name="address.city"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>City</FormLabel>
+                                <FormLabel>City *</FormLabel>
                                 <FormControl>
                                     <Input placeholder="City" {...field} />
                                 </FormControl>
@@ -222,19 +222,35 @@ export default function AddressInfo({ form }) {
                     />
                 </div>
 
-                <FormField
-                    control={form.control}
-                    name="address.zip"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>ZIP Code</FormLabel>
-                            <FormControl>
-                                <Input placeholder="ZIP Code" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="address.country"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Country *</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Country" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="address.zip"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>ZIP Code</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="ZIP Code" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
 
                 {/* Hidden fields for coordinates and other address data */}
                 <FormField

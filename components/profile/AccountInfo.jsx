@@ -16,12 +16,12 @@ export default function AccountInfo({ form }) {
     }
     return (
         <>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Account Information</CardTitle>
+            <Card className="border-0 shadow-none">
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-xl">Account Information</CardTitle>
                     <CardDescription>View your account status and balance</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">

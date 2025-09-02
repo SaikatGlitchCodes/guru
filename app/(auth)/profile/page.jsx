@@ -3,23 +3,20 @@
 import { useState, useEffect } from "react"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { useForm } from "react-hook-form"
-import * as yup from "yup"
 import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button"
 import { Form } from "@/components/ui/form"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { useUser } from "@/contexts/UserContext"
 import { updateProfile } from "@/lib/supabaseAPI"
-import CommonProfileComponents from "@/components/profile/CommonProfileComponents"
-import Subject from "@/components/profile/TutorComponents/Subject"
-import RequestMatching from "@/components/profile/TutorComponents/RequestMatching"
 import { createProfileSchema, formData } from "@/components/profile/profileUtils"
+import { getStepsForRole, getLayoutArrangement } from "./constants"
+import ProfileFormNavigationButton from "./ProfileFormNavigation"
 // Create dynamic schema based on role
 
 
 export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
   const { profile, loading, user } = useUser()
   const currentRole = profile?.role || 'student'
 
@@ -28,6 +25,46 @@ export default function ProfilePage() {
     defaultValues: formData(profile, user),
     mode: "onChange",
   })
+
+  // Auto-advance to next step if current step is already completed
+  useEffect(() => {
+    const steps = getStepsForRole(currentRole);
+    
+    // Check if we should auto-advance
+    const checkAndAdvanceStep = () => {
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const isStepComplete = step.fields.every(field => {
+          const value = form.getValues(field);
+          
+          // Handle nested field errors (like address.street)
+          const fieldParts = field.split('.');
+          let hasError;
+          
+          if (fieldParts.length > 1) {
+            hasError = form.formState.errors[fieldParts[0]]?.[fieldParts[1]];
+          } else {
+            hasError = form.formState.errors[field];
+          }
+          
+          const hasValue = value && value !== '' && value !== 0;
+          return hasValue && !hasError;
+        });
+        
+        if (!isStepComplete) {
+          setCurrentStep(i);
+          return;
+        }
+      }
+      // If all steps are complete, go to last step
+      setCurrentStep(steps.length - 1);
+    };
+
+    if (profile && user) {
+      // Small delay to ensure form is properly initialized
+      setTimeout(checkAndAdvanceStep, 100);
+    }
+  }, [profile, user, currentRole, form.formState.errors])
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -47,12 +84,15 @@ export default function ProfilePage() {
     )
   }
 
+  const steps = getStepsForRole(currentRole)
+  const layoutSteps = getLayoutArrangement(steps, currentStep)
+
   async function onSubmit(data) {
     console.log('Form submission started with data:', data)
     setIsSaving(true)
 
     try {
-      // Validate the form first
+      // Validate the entire form
       const isValid = await form.trigger();
       console.log('Form validation result:', isValid)
 
@@ -82,6 +122,9 @@ export default function ProfilePage() {
         throw new Error(result.error.message || result.error);
       }
 
+      // Reset form dirty state after successful save
+      form.reset(data, { keepValues: true });
+
       toast.success("Your profile has been updated successfully!")
 
     } catch (error) {
@@ -100,47 +143,42 @@ export default function ProfilePage() {
     }
   }
   return (
-    <div className="container py-10 mx-auto px-3 lg:px-0">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {currentRole === 'tutor' ? 'Tutor Profile' : 'Student Profile'}
-            </h1>
-            <p className="text-muted-foreground">
-              {currentRole === 'tutor'
-                ? 'Manage your teaching profile and professional information'
-                : 'Manage your learning profile and account information'
-              }
-            </p>
-          </div>
-          <Badge variant={currentRole === 'tutor' ? 'default' : 'secondary'} className="text-sm">
-            {currentRole === 'tutor' ? 'Tutor' : 'Student'}
-          </Badge>
-        </div>
-      </div>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <CommonProfileComponents form={form} />
-          {form.watch('role') === 'tutor' && (
-            <>
-              <Subject form={form} />
-              <RequestMatching form={form} />
-            </>
-          )}
-          <div className="mt-8 flex justify-end">
-            <Button
-              type="submit"
-              size="lg"
-              disabled={isSaving}
-              onClick={() => console.log('Save button clicked, form values:', form.getValues())}
-            >
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </Form>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="container mx-auto px-4 max-w-6xl">
 
-    </div>)
+        {/* Form Section - 2 Column Grid Layout */}
+        <Form {...form}>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 items-start">
+              {layoutSteps.map((step, index) => {
+                const { Component, layout, title } = step;
+                return (
+                  <div 
+                    key={`${title}-${index}`}
+                    className="profile-step-container"
+                  >
+                    <div className="bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                      <Component form={form} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Navigation Section - Full Width */}
+            <div className="w-full">
+              <ProfileFormNavigationButton
+                currentStep={currentStep}
+                setCurrentStep={setCurrentStep}
+                form={form}
+                isSaving={isSaving}
+                onSubmit={onSubmit}
+                role={currentRole}
+              />
+            </div>
+          </form>
+        </Form>
+      </div>
+    </div>
+  )
 }

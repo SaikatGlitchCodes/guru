@@ -29,23 +29,23 @@ export default function PersonalInformation({ form }) {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
+        <Card className="border-0 shadow-none bg-transparent">
+            <CardHeader className="pb-4">
+                <CardTitle className="text-xl">Personal Information</CardTitle>
                 <CardDescription>Update your personal details and contact information</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="flex flex-col items-center space-y-4">
+            <CardContent className="space-y-4">
+                <div className="flex flex-col items-center space-y-3 mb-6">
                     <div className="relative">
-                        <Avatar className="h-24 w-24">
+                        <Avatar className="h-20 w-20">
                             {form.watch("isUploadingProfileImage") ? (
                                 <div className="flex h-full w-full items-center justify-center bg-muted">
-                                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                 </div>
                             ) : (
                                 <>
-                                    <AvatarImage className='rounded-full h-24 w-24' src={form.getValues("avatar") || ""} alt="Profile" />
-                                    <AvatarFallback className="bg-black text-white h-24 w-24">
+                                    <AvatarImage className='rounded-full h-20 w-20' src={form.getValues("avatar") || ""} alt="Profile" />
+                                    <AvatarFallback className="bg-black text-white h-20 w-20">
                                         {form.getValues("name")
                                             ?.split(" ")
                                             .map((n) => n[0])
@@ -57,9 +57,9 @@ export default function PersonalInformation({ form }) {
 
                         <label
                             htmlFor="avatar-upload"
-                            className="absolute bottom-0 right-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
+                            className="absolute bottom-0 right-0 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
                         >
-                            <Camera className="h-4 w-4" />
+                            <Camera className="h-3 w-3" />
                             <span className="sr-only">Upload avatar</span>
                         </label>
                         <input
@@ -101,6 +101,7 @@ export default function PersonalInformation({ form }) {
                     name="name"
                     render={({ field }) => (
                         <FormItem>
+                            <FormLabel>Full Name *</FormLabel>
                             <FormControl>
                                 <Input placeholder="Enter your full name" {...field} />
                             </FormControl>
@@ -115,6 +116,7 @@ export default function PersonalInformation({ form }) {
                     name="phone_number"
                     render={({ field }) => (
                         <FormItem>
+                            <FormLabel>Phone Number *</FormLabel>
                             <FormControl>
                                 <PhoneInput
                                     {...field}
@@ -152,7 +154,7 @@ export default function PersonalInformation({ form }) {
                         name="gender"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Gender</FormLabel>
+                                <FormLabel>Gender *</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl>
                                         <SelectTrigger>
@@ -190,7 +192,11 @@ export default function PersonalInformation({ form }) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Preferred Language</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <Select 
+                                    onValueChange={field.onChange} 
+                                    value={field.value || undefined}
+                                    defaultValue={field.value}
+                                >
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Choose language" />

@@ -156,14 +156,14 @@ export default function Subject({ form }) {
   }
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Subjects</CardTitle>
+      <Card className="border-0 shadow-none">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl">Your Subjects</CardTitle>
           <CardDescription>
             Manage subjects you can teach with expertise levels and rates
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
           {/* Add new subject */}
           <CreatableSelect
             isMulti

@@ -14,7 +14,7 @@ export default function BadgingProfiles({ rating }) {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <div className={`flex items-center space-x-2 px-3 py-1.5 rounded-full ${badgeInfo.color} shadow-lg cursor-help transition-transform hover:scale-105`}>
-                                        <IconComponent className="h-4 w-4" />
+                                        <IconComponent className="h-4 w-4" color="#fcd303"/>
                                         <span className="text-sm font-semibold">{badgeInfo.title}</span>
                                     </div>
                                 </TooltipTrigger>

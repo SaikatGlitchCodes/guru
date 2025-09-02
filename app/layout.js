@@ -269,7 +269,6 @@ export default function RootLayout({ children }) {
             {children}
           </main>
           <Toaster />
-          <DebugAuth />
           <FloatingFeedback />
           <Script
             id="razorpay-checkout-js"

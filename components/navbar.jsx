@@ -18,7 +18,7 @@ import AuthModal from "./auth-modal"
 import { WalletModal } from "./WalletModal"
 import { useUser } from "@/contexts/UserContext"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertDescription, AlertTitle } from "./ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert"
 
 export default function Navbar() {
   const { user, profile, loading, isRequestInLocalStorage, signOut } = useUser()
@@ -29,6 +29,24 @@ export default function Navbar() {
   const userRole = isLoggedIn ? (profile?.role || "guest") : "guest"
   const userName = profile?.name || user?.email?.split('@')[0] || "User"
   const coinBalance = profile?.coin_balance || 0
+
+  // Check if tutor profile is incomplete
+  const isTutorProfileIncomplete = () => {
+    if (userRole !== 'tutor' || !profile) return false
+    
+    const requiredFields = [
+      profile.name,
+      profile.phone_number,
+      profile.gender,
+      profile.bio,
+      profile.address?.street,
+      profile.address?.city,
+      profile.address?.country,
+      profile.tutor?.hourly_rate
+    ]
+    
+    return requiredFields.some(field => !field || field === '')
+  }
 
   const getNavigationLinks = () => {
     switch (userRole) {
@@ -115,7 +133,7 @@ export default function Navbar() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-            <AvatarImage src={profile?.avatar_url || ""} alt={userName} />
+            <AvatarImage src={profile?.avatar_url || user.user_metadata?.picture || user.user_metadata?.avatar_url} alt={userName} />
             <AvatarFallback className="bg-black text-white">
               {userName
                 .split(" ")
@@ -346,6 +364,21 @@ export default function Navbar() {
           </AlertDescription>
         </div>
         <AuthModal title="Login!" />
+      </div>}
+
+      {/* Tutor Profile Incomplete Alert */}
+      {isTutorProfileIncomplete() && <div className="container mx-auto p-2 flex items-center gap-x-4 border-b pb-4 justify-center">
+        <div>
+          <AlertTitle>Complete your profile to list yourself as a tutor with us!</AlertTitle>
+          <AlertDescription>
+            Fill in all required fields including rates, contact info, and location to start receiving student requests.
+          </AlertDescription>
+        </div>
+        <Link href="/profile">
+          <Button variant="outline" size="sm" className="  hover:bg-black hover:text-white cursor-pointer">
+            Complete Profile
+          </Button>
+        </Link>
       </div>}
 
       {/* Wallet Modal */}

@@ -17,15 +17,15 @@ export const baseUserSchema = {
     .required("Please select your role"),
   phone_number: yup
     .string()
-    .optional()
-    .transform(value => value === '' ? undefined : value),
+    .min(10, "Please enter a valid phone number")
+    .required("Phone number is required for communication"),
   gender: yup
     .string()
-    .optional(),
+    .required("Please select your gender"),
   bio: yup
     .string()
-    .optional()
-    .transform(value => value === '' ? undefined : value),
+    .min(10, "Please write at least 10 characters about yourself")
+    .required("Bio is required to help others know you better"),
   years_of_experience: yup
     .number()
     .transform((value) => (isNaN(value) ? undefined : value))
@@ -68,18 +68,18 @@ export const baseUserSchema = {
     .optional(),
   address: yup.object({
     id: yup.string().nullable().optional(),
-    street: yup.string().optional(),
-    city: yup.string().optional(),
+    street: yup.string().required("Street address is required"),
+    city: yup.string().required("City is required"),
     state: yup.string().optional(),
     zip: yup.string().optional(),
-    country: yup.string().optional(),
+    country: yup.string().required("Country is required"),
     country_code: yup.string().optional(),
     lat: yup.number().nullable().optional(),
     lon: yup.number().nullable().optional(),
     address_line_1: yup.string().nullable().optional(),
     address_line_2: yup.string().nullable().optional(),
     formatted: yup.string().optional(),
-  }).optional(),
+  }).required("Address information is required"),
 }
 
 export const tutorSchema = {
@@ -87,9 +87,9 @@ export const tutorSchema = {
   tutor: yup.object({
     hourly_rate: yup
       .number()
-      .transform((value) => (isNaN(value) ? 0 : value))
-      .min(0, "Hourly rate cannot be negative")
-      .required("Please enter your hourly rate"),
+      .transform((value) => (isNaN(value) || value === 0) ? undefined : value)
+      .min(1, "Please set your hourly rate (minimum $1)")
+      .optional(),
     experience_years: yup
       .number()
       .transform((value) => (isNaN(value) ? 0 : value))
@@ -150,7 +150,7 @@ export const tutorSchema = {
     instant_booking: yup
       .boolean()
       .optional(),
-  }).optional(),
+  }).required("Please complete your tutor information"),
 }
 
 export const createProfileSchema = (role) =>  yup.object(role === 'tutor' ? tutorSchema : baseUserSchema).required("Please complete the form");
@@ -200,7 +200,7 @@ export const formData = (profile, user) => {
   if (profile.role == 'tutor') {
     initialData.tutor = {
       id: profile.tutor?.id || null,
-      hourly_rate: profile.tutor?.hourly_rate || 0,
+      hourly_rate: profile.tutor?.hourly_rate || undefined,
       experience_years: profile.tutor?.experience_years || 0,
       education: profile.tutor?.education || "",
       certifications: profile.tutor?.certifications || [],
@@ -266,11 +266,11 @@ export const getBadgeInfo = (rating) => {
     };
   } else {
     return {
-      title: "New Tutor",
+      title: "Budding Tutor",
       icon: Award,
-      color: "bg-gradient-to-r from-slate-500 to-slate-600 text-white",
+      color: "bg-gradient-to-r from-black to-black text-white",
       description: "Starting journey",
-      tooltip: "New Tutors are just beginning their journey with us. They may have limited reviews but are eager to help students learn and grow."
+      tooltip: "Budding Tutors are just beginning their journey with us. They may have limited reviews but are eager to help students learn and grow."
     };
   }
 };

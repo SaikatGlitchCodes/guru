@@ -8,7 +8,7 @@ export default function DebugAuth() {
   const pathname = usePathname()
 
   // Only show in development
-  if (process.env.NODE_ENV !== 's') {
+  if (process.env.NODE_ENV !== 'DEVELOPMENT') {
     return null
   }
 

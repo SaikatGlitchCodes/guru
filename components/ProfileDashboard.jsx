@@ -28,7 +28,7 @@ export default function ProfileDashboard() {
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-3xl font-bold">Welcome back, {profile.name}!</h1>
+            <h1 className="text-3xl font-bold">Welcome back, {profile.name}! 🎉</h1>
             <p className="text-muted-foreground">
               {profile.role === 'student' ? 'Ready to learn something new?' : 
                profile.role === 'tutor' ? 'Ready to share your knowledge?' : 
