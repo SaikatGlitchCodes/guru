@@ -1,10 +1,26 @@
 import { Resend } from 'resend'
 import { NextResponse } from 'next/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend only if API key is available
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request) {
   try {
+    // Check if Resend is configured
+    if (!resend) {
+      console.warn('RESEND_API_KEY is not configured. Email functionality is disabled.')
+      return NextResponse.json(
+        { 
+          error: 'Email service is currently unavailable. Please contact us directly at toptutorcontact@gmail.com or +91 88840 58512',
+          fallback: {
+            email: 'toptutorcontact@gmail.com',
+            phone: '+91 88840 58512'
+          }
+        },
+        { status: 503 }
+      )
+    }
+
     const body = await request.json()
     const { name, email, phone, subject, message, type } = body
 
