@@ -44,9 +44,9 @@ export default function PersonalInformation({ form }) {
                                 </div>
                             ) : (
                                 <>
-                                    <AvatarImage className='rounded-full h-20 w-20' src={form.getValues("avatar") || ""} alt="Profile" />
+                                    <AvatarImage className='rounded-full h-20 w-20' src={form.watch("avatar") || ""} alt="Profile" />
                                     <AvatarFallback className="bg-black text-white h-20 w-20">
-                                        {form.getValues("name")
+                                        {form.watch("name")
                                             ?.split(" ")
                                             .map((n) => n[0])
                                             .join("") || "U"}

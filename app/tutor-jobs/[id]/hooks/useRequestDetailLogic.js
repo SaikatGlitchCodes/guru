@@ -113,6 +113,15 @@ export function useRequestDetailLogic() {
       // Refresh user data and update UI
       await refreshUserData()
       
+      console.log('🎯 Contact successful, redirecting to messages with student ID:', result.contactInfo?.id)
+      
+      // Redirect to messages page with the student's user ID
+      if (result.contactInfo?.id) {
+        router.push(`/messages/${result.contactInfo.id}`)
+      } else {
+        console.error('❌ No student ID returned from contactStudent function')
+        toast.error('Contact successful but unable to start conversation')
+      }
       // Update request with contact info
       setRequest(prev => ({
         ...prev,
@@ -138,7 +147,7 @@ export function useRequestDetailLogic() {
     } finally {
       setContacting(false)
     }
-  }, [id, user, profile, request, refreshUserData])
+  }, [id, user, profile, request, refreshUserData, router])
 
   // Utility functions
   const handleCopyToClipboard = useCallback((text, type) => {

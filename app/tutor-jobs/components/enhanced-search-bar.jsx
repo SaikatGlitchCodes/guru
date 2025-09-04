@@ -8,7 +8,7 @@ import {
   Briefcase, 
   Clock, 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   TrendingUp, 
   Zap, 
   Star, 
@@ -139,7 +139,7 @@ export default function EnhancedSearchBar({
                   </SelectItem>
                   <SelectItem value="price-low">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
+                      <IndianRupee className="w-4 h-4" />
                       Lowest Pay
                     </div>
                   </SelectItem>
@@ -269,8 +269,8 @@ export default function EnhancedSearchBar({
 
                 {(filters.minPrice > 0 || filters.maxPrice < 10000) && (
                   <Badge variant="outline" className="flex items-center gap-1">
-                    <DollarSign className="w-3 h-3" />
-                    ${filters.minPrice} - ${filters.maxPrice}/hr
+                    <IndianRupee className="w-3 h-3" />
+                    ₹{filters.minPrice} - ₹{filters.maxPrice}/hr
                     <button
                       onClick={() => onFiltersChange({
                         ...filters,

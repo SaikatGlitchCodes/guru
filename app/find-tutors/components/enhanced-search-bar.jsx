@@ -6,13 +6,13 @@ import {
   Search, 
   X, 
   Star, 
-  DollarSign, 
+  IndianRupee, 
   TrendingUp, 
   Clock, 
   Award, 
   BookOpen, 
   MapPin,
-  SlidersHorizontal
+  SlidersHorizontal,
 } from "lucide-react"
 
 export default function EnhancedSearchBar({
@@ -86,7 +86,7 @@ export default function EnhancedSearchBar({
                   </SelectItem>
                   <SelectItem value="price-low">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4" />
+                      <IndianRupee className="w-4 h-4" />
                       Price: Low to High
                     </div>
                   </SelectItem>
@@ -194,7 +194,7 @@ export default function EnhancedSearchBar({
 
                 {(filters.minPrice > 0 || filters.maxPrice < 100) && (
                   <Badge variant="outline" className="flex items-center gap-1">
-                    <DollarSign className="w-3 h-3" />
+                    <IndianRupee className="w-3 h-3" />
                     ${filters.minPrice} - ${filters.maxPrice}/hr
                     <button
                       onClick={() => onFiltersChange({

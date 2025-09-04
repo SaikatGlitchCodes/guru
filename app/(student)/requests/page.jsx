@@ -19,7 +19,7 @@ import {
 import { 
   MapPin, 
   Calendar, 
-  DollarSign, 
+  IndianRupee, 
   Users, 
   Eye,
   X,

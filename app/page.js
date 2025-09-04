@@ -32,26 +32,18 @@ export default function HomePage() {
   const [dataFetchTimeout, setDataFetchTimeout] = useState(false)
   const [forceLoad, setForceLoad] = useState(false)
   console.log('topTutors', topTutors)
-  // Check if we should force load content
+
+  // if Google Auth is present take user to /request-tutor
   useEffect(() => {
-    if (window.location.hash === '#force-load') {
-      setForceLoad(true)
-      setLoading(false)
-      // Clear the hash
-      window.history.replaceState(null, null, window.location.pathname)
+    // Check for Google Auth redirect
+    if (typeof window !== 'undefined') {
+      const googleAuthClicked = localStorage.getItem("googleAuthClicked")
+      if (googleAuthClicked === 'true') {
+        router.push('/request-tutor')
+        localStorage.removeItem("googleAuthClicked")
+      }
     }
-  }, [])
-
-  // Emergency timeout to show content regardless
-  useEffect(() => {
-    const emergencyTimeout = setTimeout(() => {
-      console.warn('Emergency timeout - forcing content display')
-      setLoading(false)
-      setForceLoad(true)
-    }, 15000) // 15 second emergency timeout
-
-    return () => clearTimeout(emergencyTimeout)
-  }, [])
+  }, [router])
 
   // Fetch top tutors and subjects from database
   useEffect(() => {
@@ -76,7 +68,7 @@ export default function HomePage() {
         const fetchWithTimeout = (promise, timeout = 8000) => {
           return Promise.race([
             promise,
-            new Promise((_, reject) => 
+            new Promise((_, reject) =>
               setTimeout(() => reject(new Error('Request timeout')), timeout)
             )
           ])
@@ -149,15 +141,15 @@ export default function HomePage() {
                     {/* Overlapping profile avatars */}
                     <TooltipProvider>
                       <div className="flex -space-x-3 mr-4">
-                        {(topTutors.length > 0 ? topTutors.slice(0, 3) : [{id: 1}, {id: 2}, {id: 3}]).map((profile, index) => (
+                        {(topTutors.length > 0 ? topTutors.slice(0, 3) : [{ id: 1 }, { id: 2 }, { id: 3 }]).map((profile, index) => (
                           <Tooltip key={profile.id || index} delayDuration={300}>
                             <TooltipTrigger asChild>
-                              <div 
+                              <div
                                 onClick={() => {
                                   if (profile.id) {
-                                    router.push(`/find-tutors/${profile.id}`)
+                                    topTutors.length > 0 ? router.push(`/find-tutors/${profile.id}`) : null
                                   }
-                                }} 
+                                }}
                                 className="w-11 h-11 cursor-pointer hover:scale-110 hover:z-10 transition-all duration-200"
                               >
                                 <Avatar className="h-10 w-10 ring-2 ring-white hover:ring-green-400 transition-all duration-200">
@@ -171,8 +163,8 @@ export default function HomePage() {
                                 </Avatar>
                               </div>
                             </TooltipTrigger>
-                            <TooltipContent 
-                              side="bottom" 
+                            <TooltipContent
+                              side="bottom"
                               className="bg-white text-gray-800 border border-gray-200 shadow-lg p-4 max-w-xs"
                               sideOffset={8}
                             >
@@ -371,8 +363,8 @@ export default function HomePage() {
               {/* How It Works Video Circle */}
               <div className={`relative mx-auto w-fit ${!expandPlayer && !showPlayer ? 'animate-spin-slow' : 'animate-none'}`}>
                 <div className={`bg-gradient-to-r from-green-400 to-emerald-400 flex items-center justify-center cursor-pointer group hover:scale-105 transition-all duration-300 shadow-2xl hover:animate-none ${showPlayer
-                    ? 'md:w-[600px] h-96 rounded-2xl'
-                    : 'w-48 h-48 rounded-full hover:rounded-2xl hover:h-96 hover:w-[600px]'
+                  ? 'md:w-[600px] h-96 rounded-2xl'
+                  : 'w-48 h-48 rounded-full hover:rounded-2xl hover:h-96 hover:w-[600px]'
                   }`}>
                   {!showPlayer && (
                     <div onClick={() => setShowPlayer(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center group-hover:scale-110 transition-all duration-300">

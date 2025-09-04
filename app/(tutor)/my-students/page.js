@@ -8,13 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { 
   Calendar,
   MapPin,
   GraduationCap,
-  DollarSign,
+  IndianRupee,
   MessageCircle,
   Phone,
   Mail,
@@ -33,8 +31,6 @@ import {
 // Force dynamic rendering to fix useSearchParams issue
 export const dynamic = 'force-dynamic'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import ThemedHero from "@/components/ThemedHero"
-import Link from "next/link"
 
 export default function MyStudentsPage() {
   const { user, profile } = useUser()
@@ -131,16 +127,6 @@ export default function MyStudentsPage() {
 
     return filtered
   }, [allStudents, searchQuery, statusFilter, sortBy])
-
-  // Get unique statuses with proper handling
-  const availableStatuses = useMemo(() => {
-    const statuses = [...new Set(
-      allStudents
-        .map(s => s.status || 'open')
-        .filter(Boolean)
-    )]
-    return statuses.sort()
-  }, [allStudents])
 
   const handleStartConversation = async (student) => {
     if (!user?.id || !student.user_id) return;

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { 
+import {
   ArrowLeft,
   Send,
   User,
@@ -66,29 +66,29 @@ export default function MessageThreadPage() {
 
   const fetchConversation = async () => {
     if (!profile?.id) return
-    
+
     setLoading(true)
     setError(null)
-    
+
     try {
       // Get messages directly for this conversation
       const messagesResult = await getConversationMessages(profile.id, otherUserId)
-      
+
       if (messagesResult.error) {
         throw new Error(messagesResult.error.message || 'Failed to fetch conversation')
       }
 
       const conversationMessages = messagesResult.data || []
-      
+
       // Get user info from first message if available, or create a placeholder
       let otherUserInfo = { id: otherUserId, name: 'User', avatar_url: null, email: null, phone: null }
-      
+
       if (conversationMessages.length > 0) {
         const firstMessage = conversationMessages[0]
-        const otherUser = firstMessage.sender_id === profile.id 
-          ? firstMessage.recipient 
+        const otherUser = firstMessage.sender_id === profile.id
+          ? firstMessage.recipient
           : firstMessage.sender
-        
+
         otherUserInfo = {
           id: otherUser?.id || otherUserId,
           name: otherUser?.name || 'User',
@@ -105,9 +105,9 @@ export default function MessageThreadPage() {
         lastMessage: conversationMessages[conversationMessages.length - 1] || null,
         unreadCount: conversationMessages.filter(msg => !msg.read && msg.recipient_id === profile.id).length
       })
-      
+
       setMessages(conversationMessages)
-      
+
       // Get related request if any message has a request_id
       const messageWithRequest = conversationMessages.find(msg => msg.request_id)
       if (messageWithRequest) {
@@ -120,7 +120,7 @@ export default function MessageThreadPage() {
             `)
             .eq('id', messageWithRequest.request_id)
             .single()
-          
+
           if (!requestError && requestData) {
             setRelatedRequest(requestData)
           }
@@ -128,9 +128,10 @@ export default function MessageThreadPage() {
           console.error('Error fetching related request:', err)
         }
       }
-      
+
       console.log('Conversation messages loaded:', {
         count: conversationMessages.length,
+        otherUserInfo,
         messages: conversationMessages.map(m => ({
           id: m.id,
           sender_id: m.sender_id,
@@ -139,7 +140,7 @@ export default function MessageThreadPage() {
         })),
         currentUserId: profile.id
       })
-      
+
       // Mark messages as read
       await markMessagesAsRead(conversationMessages)
     } catch (err) {
@@ -152,11 +153,11 @@ export default function MessageThreadPage() {
 
   const markMessagesAsRead = async (messages) => {
     if (!messages || !profile?.id) return
-    
-    const unreadMessages = messages.filter(msg => 
+
+    const unreadMessages = messages.filter(msg =>
       !msg.read && msg.recipient_id === profile.id
     )
-    
+
     for (const message of unreadMessages) {
       try {
         await supabase
@@ -183,7 +184,7 @@ export default function MessageThreadPage() {
         filter: `or(and(sender_id.eq.${profile.id},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${profile.id}))`
       }, (payload) => {
         console.log('Realtime event received:', payload)
-        
+
         if (payload.eventType === 'INSERT') {
           // Add new message at the end (chronological order)
           const newMessage = payload.new
@@ -200,7 +201,7 @@ export default function MessageThreadPage() {
           })
         } else if (payload.eventType === 'UPDATE') {
           console.log('Updating message:', payload.new)
-          setMessages(prev => prev.map(msg => 
+          setMessages(prev => prev.map(msg =>
             msg.id === payload.new.id ? payload.new : msg
           ))
         }
@@ -217,28 +218,28 @@ export default function MessageThreadPage() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault()
-    
+
     if (!newMessage.trim() || sending || !profile?.id) return
-    
+
     setSending(true)
-    
+
     try {
       const messageData = {
         sender_id: profile.id,
         recipient_id: otherUserId,
         content: newMessage.trim()
       }
-      
+
       console.log('Sending message:', messageData)
-      
+
       const result = await sendMessage(messageData)
-      
+
       if (result.error) {
         throw new Error(result.error.message || 'Failed to send message')
       }
-      
+
       console.log('Message sent successfully:', result.data)
-      
+
       // Add the message optimistically to the UI
       if (result.data) {
         setMessages(prev => {
@@ -250,7 +251,7 @@ export default function MessageThreadPage() {
           return prev
         })
       }
-      
+
       setNewMessage("")
       // The message will also be added via the realtime subscription
     } catch (err) {
@@ -301,6 +302,11 @@ export default function MessageThreadPage() {
     })
   }
 
+  const handleProfileClick = () => {
+    // First try to navigate to tutor profile
+    router.push(`/find-tutors/${conversation.user.id}`)
+  }
+
   const formatMessageDate = (dateString) => {
     const date = new Date(dateString)
     const today = new Date()
@@ -312,8 +318,8 @@ export default function MessageThreadPage() {
     } else if (date.toDateString() === yesterday.toDateString()) {
       return 'Yesterday'
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
         day: 'numeric',
         year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
       })
@@ -340,9 +346,8 @@ export default function MessageThreadPage() {
           <div className="max-w-4xl mx-auto space-y-4">
             {[...Array(6)].map((_, i) => (
               <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs p-3 rounded-lg animate-pulse ${
-                  i % 2 === 0 ? 'bg-gray-200' : 'bg-gray-100'
-                }`}>
+                <div className={`max-w-xs p-3 rounded-lg animate-pulse ${i % 2 === 0 ? 'bg-gray-200' : 'bg-gray-100'
+                  }`}>
                   <div className="w-32 h-4 bg-gray-300 rounded mb-1"></div>
                   <div className="w-16 h-3 bg-gray-300 rounded"></div>
                 </div>
@@ -400,12 +405,18 @@ export default function MessageThreadPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
 
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={conversation.user.avatar_url} />
-              <AvatarFallback>
-                <User className="h-6 w-6" />
-              </AvatarFallback>
-            </Avatar>
+            <div
+              className="cursor-pointer"
+              onClick={handleProfileClick}
+              title="View profile"
+            >
+              <Avatar className="w-12 h-12 hover:ring-2 hover:ring-blue-500 transition-all">
+                <AvatarImage src={conversation.user.avatar_url} />
+                <AvatarFallback>
+                  <User className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
             <div className="flex-1">
               <h1 className="font-semibold text-gray-900 text-lg">
@@ -425,67 +436,26 @@ export default function MessageThreadPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="hidden sm:flex"
                 onClick={() => setShowContactModal(true)}
               >
                 <User className="h-4 w-4 mr-1" />
                 View Contact
               </Button>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
+              <Link
+                href={`/tutor-jobs/${relatedRequest.id}`}
+                className="ml-4"
+              >
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  View Request
+                </Button>
+              </Link>
             </div>
           </div>
-
-          {/* Request Information Panel */}
-          {relatedRequest && (
-            <div className="border-t border-gray-100 bg-gray-50 p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <BookOpen className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-gray-900">Related Request</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {relatedRequest.status}
-                    </Badge>
-                  </div>
-                  <h3 className="font-medium text-gray-900 mb-1">
-                    {relatedRequest.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                    {relatedRequest.description}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-3 w-3" />
-                      <span>{relatedRequest.subjects?.map(s => s.subject.name).join(', ') || 'No subjects'}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{relatedRequest.price_currency_symbol}{relatedRequest.price_amount}</span>
-                      <span>/ {relatedRequest.price_option}</span>
-                    </div>
-                    {relatedRequest.type && (
-                      <Badge variant="outline" className="text-xs">
-                        {relatedRequest.type}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <Link 
-                  href={`/tutor-jobs/${relatedRequest.id}`}
-                  className="ml-4"
-                >
-                  <Button variant="outline" size="sm">
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    View Request
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -495,10 +465,10 @@ export default function MessageThreadPage() {
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
             {error}
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={fetchConversation} 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchConversation}
               className="ml-2"
             >
               <RefreshCw className="w-4 h-4 mr-1" />
@@ -520,7 +490,7 @@ export default function MessageThreadPage() {
                 Start the conversation
               </h3>
               <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-                {relatedRequest ? 
+                {relatedRequest ?
                   `Send a message about "${relatedRequest.title}" to get started.` :
                   "No messages yet. Send a message to start chatting!"
                 }
@@ -553,44 +523,47 @@ export default function MessageThreadPage() {
                     {dayMessages.map((message, index) => {
                       const isCurrentUser = message.sender_id === profile?.id
                       const showAvatar = index === 0 || dayMessages[index - 1].sender_id !== message.sender_id
-                      const showTime = index === dayMessages.length - 1 || 
+                      const showTime = index === dayMessages.length - 1 ||
                         dayMessages[index + 1].sender_id !== message.sender_id ||
                         new Date(dayMessages[index + 1].created_at) - new Date(message.created_at) > 300000 // 5 minutes
-                      
+
                       return (
-                        <div key={message.id} className={`flex items-end gap-2 ${
-                          isCurrentUser ? 'justify-end' : 'justify-start'
-                        }`}>
+                        <div key={message.id} className={`flex items-end gap-2 ${isCurrentUser ? 'justify-end' : 'justify-start'
+                          }`}>
                           {!isCurrentUser && (
                             <div className="w-7 h-7 mb-1">
                               {showAvatar && (
-                                <Avatar className="w-7 h-7">
-                                  <AvatarImage src={conversation.user.avatar_url} />
-                                  <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
-                                    {conversation.user.name?.charAt(0) || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <div
+                                  className="cursor-pointer"
+                                  onClick={handleProfileClick}
+                                  title="View profile"
+                                >
+                                  <Avatar className="w-7 h-7 hover:ring-2 hover:ring-blue-500 transition-all">
+                                    <AvatarImage src={conversation.user.avatar_url} />
+                                    <AvatarFallback className="text-xs bg-blue-100 text-blue-600">
+                                      {conversation.user.name?.charAt(0) || 'U'}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
                               )}
                             </div>
                           )}
-                          
-                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
-                            isCurrentUser 
-                              ? 'bg-blue-600 text-white rounded-br-md' 
+
+                          <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${isCurrentUser
+                              ? 'bg-blue-600 text-white rounded-br-md'
                               : 'bg-white text-gray-900 border border-gray-200 rounded-bl-md shadow-sm'
-                          }`}>
+                            }`}>
                             <p className="text-sm whitespace-pre-wrap break-words">
                               {message.content}
                             </p>
                             {showTime && (
-                              <div className={`text-xs mt-1 ${
-                                isCurrentUser ? 'text-blue-100' : 'text-gray-500'
-                              }`}>
+                              <div className={`text-xs mt-1 ${isCurrentUser ? 'text-blue-100' : 'text-gray-500'
+                                }`}>
                                 {formatTime(message.created_at)}
                               </div>
                             )}
                           </div>
-                          
+
                           {isCurrentUser && (
                             <div className="w-7 h-7 mb-1" />
                           )}
@@ -609,22 +582,7 @@ export default function MessageThreadPage() {
       {/* Enhanced Message Input */}
       <div className="bg-white border-t border-gray-200 sticky bottom-0">
         <div className="max-w-4xl mx-auto p-4">
-          {/* Quick Actions Bar (if related request exists) */}
-          {relatedRequest && (
-            <div className="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100">
-              <span className="text-xs text-gray-500">Quick actions:</span>
-              <Button variant="outline" size="sm" className="text-xs h-7">
-                Share contact info
-              </Button>
-              <Button variant="outline" size="sm" className="text-xs h-7">
-                Schedule meeting
-              </Button>
-              <Button variant="outline" size="sm" className="text-xs h-7">
-                Send proposal
-              </Button>
-            </div>
-          )}
-          
+
           <form onSubmit={handleSendMessage} className="flex gap-3 items-end">
             <div className="flex-1 relative">
               <Textarea
@@ -645,15 +603,15 @@ export default function MessageThreadPage() {
                 {newMessage.length}/1000
               </div>
             </div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!newMessage.trim() || sending}
               className="rounded-full w-12 h-12 p-0 bg-blue-600 hover:bg-blue-700"
             >
               <Send className="h-5 w-5" />
             </Button>
           </form>
-          
+
           <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
             <span>Press Enter to send, Shift+Enter for new line</span>
             {sending && (
@@ -678,8 +636,13 @@ export default function MessageThreadPage() {
               Here are the contact details for {conversation?.user?.name || 'this user'}.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
+            {/* Debug info - remove in production */}
+            <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+              <strong>Debug:</strong> Email: {conversation?.user?.email || 'null'}, Phone: {conversation?.user?.phone || 'null'}
+            </div>
+
             {/* User Info */}
             <div className="bg-blue-50 rounded-lg p-4">
               <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">

@@ -1,6 +1,6 @@
 "use client"
 
-import { DollarSign } from "lucide-react";
+import { IndianRupee } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,7 @@ export default function ProfessionalInformation({ form }) {
         <Card className="border-0 shadow-none">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
+                    <IndianRupee className="h-5 w-5" />
                     Professional Information
                 </CardTitle>
                 <CardDescription>Set your rates and professional details</CardDescription>
@@ -23,7 +23,7 @@ export default function ProfessionalInformation({ form }) {
                         name="tutor.hourly_rate"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Hourly Rate ($) *</FormLabel>
+                                <FormLabel>Hourly Rate (₹) *</FormLabel>
                                 <FormControl>
                                     <Input type="number" min="0" step="0.01" {...field} />
                                 </FormControl>

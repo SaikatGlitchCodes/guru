@@ -22,7 +22,7 @@ import {
   Mail,
   AlertCircle,
   MapPin,
-  DollarSign,
+  IndianRupee,
   Plus
 } from "lucide-react"
 import Link from "next/link"
