@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { Search, BookOpen, Users, Star, ArrowRight, Award, Book, Shield, TrendingUp, Target, Globe, GraduationCap, MapPin, Play, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
@@ -309,7 +309,7 @@ export default function HomePage() {
 
                   </div>
                   <p className="md:text-xl text-lg text-gray-600 leading-relaxed max-w-lg mt-4">
-                    We help you find the perfect guru. It&apos;s completely FREE
+                    Post your learning request for FREE and get personalized proposals from expert tutors
                   </p>
                 </div>
 
@@ -335,7 +335,7 @@ export default function HomePage() {
                     <Star className="w-5 h-5 text-yellow-700 fill-current" />
                   </div>
                   <span className="text-gray-800">
-                    Over one million students have given a 5 star review to their tutor →
+                    <strong>FREE to post:</strong> Over 100k students have received quality tutor proposals at no cost →
                   </span>
                 </div>
               </div>
@@ -414,52 +414,124 @@ export default function HomePage() {
         </div>
 
       </ThemedHero>
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gradient-to-b relative">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How it works</h2>
-            <p className="text-xl text-gray-600">Get started in just 3 simple steps</p>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+              How it <span className="text-green-600">works</span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Join thousands of students who have transformed their learning journey in just 3 simple steps
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-12">
-            <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl font-bold group-hover:scale-110 transition-all duration-300 shadow-xl shadow-green-500/20">
-                  1
-                </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse"></div>
+          {/* Enhanced Steps */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {[
+              {
+                step: 1,
+                icon: BookOpen,
+                title: "Create FREE Request",
+                description: "Post your learning needs for FREE! Describe what you want to learn, and let qualified tutors come to you with personalized proposals.",
+                features: ["100% FREE to post", "Multiple tutor proposals", "No upfront payment", "Compare offers easily"],
+                badge: "FREE"
+              },
+              {
+                step: 2,
+                icon: Users,
+                title: "Connect with Tutors",
+                description: "Choose from tutors who responded to your request, or browse profiles and buy contact details to connect instantly.",
+                features: ["Free request responses", "Direct messaging", "Instant connections", "Verified tutor profiles"],
+                badge: null
+              },
+              {
+                step: 3,
+                icon: TrendingUp,
+                title: "Learn & Achieve Goals",
+                description: "Start learning with your chosen tutor through personalized sessions, track progress, and achieve your academic objectives.",
+                features: ["1-on-1 personalized sessions", "Progress tracking", "Flexible scheduling", "Goal achievement"],
+                badge: null
+              }
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="relative group"
+              >
+                {/* Connection line to next step */}
+                {index < 2 && (
+                  <div className="hidden md:block absolute top-16 left-full w-full h-px bg-border z-0">
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-border rounded-full">
+                      <ArrowRight className="w-3 h-3 text-muted-foreground absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Main card */}
+                <Card className="relative transition-all duration-300 hover:shadow-lg hover:border-black bg-white">
+                  {/* Free badge for step 1 */}
+                  {item.badge && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-black text-white px-3 py-1 rounded-full text-sm font-semibold animate-pulse">
+                      {item.badge}
+                    </div>
+                  )}
+
+                  <CardContent className="p-8 text-center">
+                    {/* Step indicator */}
+                    <div className="relative mb-6">
+                      <div className="w-16 h-16 bg-black rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:bg-black transition-colors duration-300">
+                        <item.icon className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-700">
+                        {item.step}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-2xl font-semibold mb-4 text-gray-900 group-hover:text-black transition-colors duration-300">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      {item.description}
+                    </p>
+
+                    {/* Features list */}
+                    <div className="space-y-2">
+                      {item.features.map((feature, featureIndex) => (
+                        <div
+                          key={featureIndex}
+                          className="flex items-center gap-2 text-sm text-gray-700"
+                        >
+                          <div className="w-1.5 h-1.5 bg-black rounded-full"></div>
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-              <h3 className="text-2xl font-semibold mb-4 text-gray-900 group-hover:text-green-600 transition-colors">Find a Tutor</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Browse through verified tutors and find your perfect match based on subject, location, and budget.
-              </p>
+            ))}
+          </div>
+
+          {/* Stats and CTA */}
+          <div className="space-y-12">
+            {/* Success metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              {[
+                { value: "12k+", label: "Expert Tutors", icon: Users },
+                { value: "108k+", label: "Happy Students", icon: GraduationCap },
+                { value: "4.9/5", label: "Average Rating", icon: Star },
+                { value: "210+", label: "Subjects", icon: BookOpen }
+              ].map((stat, index) => (
+                <div key={index} className="text-center group">
+                  <div className="mb-3">
+                    <stat.icon className="w-8 h-8 text-black mx-auto group-hover:scale-110 transition-transform duration-300" />
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>
+                  <div className="text-gray-600 font-medium">{stat.label}</div>
+                </div>
+              ))}
             </div>
 
-            <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl font-bold group-hover:scale-110 transition-all duration-300 shadow-xl shadow-green-500/20">
-                  2
-                </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-              </div>
-              <h3 className="text-2xl font-semibold mb-4 text-gray-900 group-hover:text-green-600 transition-colors">Book a Session</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Choose a convenient time and book your first session. All payments are secure and protected.
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="relative mb-8">
-                <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto text-white text-3xl font-bold group-hover:scale-110 transition-all duration-300 shadow-xl shadow-green-500/20">
-                  3
-                </div>
-                <div className="absolute -top-4 -right-4 w-12 h-12 bg-green-400/20 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-              </div>
-              <h3 className="text-2xl font-semibold mb-4 text-gray-900 group-hover:text-green-600 transition-colors">Start Learning</h3>
-              <p className="text-gray-600 leading-relaxed">
-                Connect with your tutor and start your personalized learning journey to achieve your goals.
-              </p>
-            </div>
           </div>
         </div>
       </section>
@@ -471,33 +543,35 @@ export default function HomePage() {
 
             {/* Left Content - Call to Action */}
             <div className="lg:col-span-2 space-y-8">
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-12 text-white">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                  Ready to start learning?
-                </h2>
-                <p className="text-xl mb-8 text-green-50 leading-relaxed">
-                  Join thousands of students who have achieved their goals with personalized tutoring and expert guidance.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/request-tutor">
-                    <Button size="lg" className="bg-white text-green-600 hover:bg-gray-50 px-8 py-4 rounded-full shadow-lg font-semibold">
-                      <span className="mr-2">GET STARTED</span>
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                  <Link href="/find-tutors">
-                    <Button variant="outline" size="lg" className="bg-white text-green-600 hover:bg-gray-50 px-8 py-4 rounded-full shadow-lg font-semibold">
-                      <Search className="mr-2 h-5 w-5" />
-                      Find Tutors
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              <Card className="bg-gradient-to-br from-green-600 to-emerald-600 text-white border-0">
+                <CardContent className="p-12">
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                    Ready to start learning?
+                  </h2>
+                  <p className="text-xl mb-8 text-green-50">
+                    Join thousands of students who have achieved their goals with personalized tutoring and expert guidance.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Link href="/request-tutor">
+                      <Button size="lg" className="bg-white text-green-600 hover:bg-gray-50">
+                        <span className="mr-2">GET STARTED</span>
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                    <Link href="/find-tutors">
+                      <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white hover:text-green-600">
+                        <Search className="mr-2 h-5 w-5" />
+                        Find Tutors
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Additional Info Cards */}
               <div className="grid md:grid-cols-2 gap-6">
-                <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
-                  <CardContent className="p-0">
+                <Card className="hover:shadow-md transition-shadow hover:border-green-300 bg-white">
+                  <CardContent className="p-6">
                     <div className="flex items-center mb-4">
                       <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
                         <Star className="h-6 w-6 text-green-600" />
@@ -510,8 +584,8 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white border-gray-200 hover:border-green-300 transition-colors p-6">
-                  <CardContent className="p-0">
+                <Card className="hover:shadow-md transition-shadow hover:border-green-300 bg-white">
+                  <CardContent className="p-6">
                     <div className="flex items-center mb-4">
                       <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-4">
                         <GraduationCap className="h-6 w-6 text-green-600" />
@@ -528,58 +602,61 @@ export default function HomePage() {
 
             {/* Right Side - Compact FAQ */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 text-center">
-                  Quick FAQ
-                </h3>
+              <Card className="bg-white">
+                <CardHeader>
+                  <h3 className="text-xl font-bold text-center text-gray-900">
+                    Quick FAQ
+                  </h3>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <Accordion type="single" collapsible className="space-y-3">
+                    {[
+                      {
+                        question: "How do I find a tutor?",
+                        answer: "Browse verified tutors by subject, location, and budget. Filter by ratings and experience."
+                      },
+                      {
+                        question: "What's the cost?",
+                        answer: "Rates range from ₹15-100+ per hour based on subject and tutor experience."
+                      },
+                      {
+                        question: "Online or in-person?",
+                        answer: "Both options available with video platform tools for online sessions."
+                      },
+                      {
+                        question: "Can I reschedule?",
+                        answer: "Yes! Free rescheduling up to 24 hours before your session."
+                      },
+                      {
+                        question: "Money-back guarantee?",
+                        answer: "100% satisfaction guarantee - get refund or new tutor if not happy."
+                      }
+                    ].map((faq, index) => (
+                      <AccordionItem
+                        key={index}
+                        value={`faq-${index}`}
+                        className="border border-gray-100 rounded-lg px-4 hover:shadow-sm hover:border-green-200 transition-all"
+                      >
+                        <AccordionTrigger className="text-left hover:text-green-600 transition-colors py-3 text-sm font-medium">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-gray-600 text-sm pb-3">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
 
-                <Accordion type="single" collapsible className="space-y-3">
-                  {[
-                    {
-                      question: "How do I find a tutor?",
-                      answer: "Browse verified tutors by subject, location, and budget. Filter by ratings and experience."
-                    },
-                    {
-                      question: "What's the cost?",
-                      answer: "Rates range from ₹15-100+ per hour based on subject and tutor experience."
-                    },
-                    {
-                      question: "Online or in-person?",
-                      answer: "Both options available with video platform tools for online sessions."
-                    },
-                    {
-                      question: "Can I reschedule?",
-                      answer: "Yes! Free rescheduling up to 24 hours before your session."
-                    },
-                    {
-                      question: "Money-back guarantee?",
-                      answer: "100% satisfaction guarantee - get refund or new tutor if not happy."
-                    }
-                  ].map((faq, index) => (
-                    <AccordionItem
-                      key={index}
-                      value={`faq-${index}`}
-                      className="border border-gray-100 rounded-lg px-4 hover:border-green-200 transition-colors"
-                    >
-                      <AccordionTrigger className="text-left hover:text-green-600 transition-colors py-3 text-sm font-medium">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-gray-600 text-sm leading-relaxed pb-3">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-
-                <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-                  <p className="text-gray-600 text-sm mb-3">Need more help?</p>
-                  <Link href="/contact">
-                    <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600 text-sm">
-                      Contact Support
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+                  <div className="mt-6 pt-6 border-t border-gray-100 text-center">
+                    <p className="text-gray-600 text-sm mb-3">Need more help?</p>
+                    <Link href="/contact">
+                      <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:border-green-500 hover:text-green-600">
+                        Contact Support
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
