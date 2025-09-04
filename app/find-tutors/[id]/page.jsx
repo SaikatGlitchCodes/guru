@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Star, 
@@ -30,7 +29,8 @@ import {
   AlertCircle,
   Globe,
   Heart,
-  Shield
+  Shield,
+  IndianRupee
 } from "lucide-react"
 import { getTutorProfile, getUserCoins, purchaseContact, startConversation } from '@/lib/supabaseAPI'
 import { useUser } from "@/contexts/UserContext"
@@ -47,7 +47,6 @@ export default function TutorProfilePage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showInsufficientCoinsModal, setShowInsufficientCoinsModal] = useState(false)
   const [processingPayment, setProcessingPayment] = useState(false)
-  const [activeTab, setActiveTab] = useState('overview')
 
   const CONTACT_COST = 5 // Cost in coins to access contact details
 
@@ -311,8 +310,9 @@ export default function TutorProfilePage() {
 
                     {/* Pricing and Actions */}
                     <div className="lg:text-right">
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
-                        ${tutor.hourly_rate}
+                      <div className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-start lg:justify-end">
+                        <IndianRupee className="w-8 h-8 mr-1" />
+                        {tutor.hourly_rate}
                         <span className="text-lg font-normal text-gray-600">/hour</span>
                       </div>
                       
@@ -321,15 +321,6 @@ export default function TutorProfilePage() {
                       </Badge>
                       
                       <div className="space-y-3">
-                        <Button 
-                          size="lg" 
-                          className="w-full lg:w-auto"
-                          onClick={handleBookSession}
-                        >
-                          <Calendar className="w-4 h-4 mr-2" />
-                          Book Session
-                        </Button>
-                        
                         <Button 
                           variant="outline" 
                           size="lg" 
@@ -347,341 +338,357 @@ export default function TutorProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Content Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="experience">Experience</TabsTrigger>
-              <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              <TabsTrigger value="availability">Availability</TabsTrigger>
-              <TabsTrigger value="contact">Contact</TabsTrigger>
-            </TabsList>
+          {/* Content Grid - Similar to Profile Page Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
 
-            <div className="mt-6">
-              <TabsContent value="overview">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Teaching Style */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <GraduationCap className="w-5 h-5" />
-                        Teaching Style
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-700">
-                        {tutor.teaching_style || 'No teaching style information available.'}
+
+            {/* Availability - Also important, keep near top */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Availability
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Current Status:</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      {tutor.availability_status}
+                    </Badge>
+                  </div>
+
+                  {tutor.minimum_session_duration && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm">Minimum Session: {tutor.minimum_session_duration} minutes</span>
+                    </div>
+                  )}
+
+                  {tutor.travel_radius_km && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm">Travel Radius: {tutor.travel_radius_km} km</span>
+                    </div>
+                  )}
+
+                </div>
+              </CardContent>
+            </Card>
+            {/* Contact Information - Moved to top as it's important */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Phone className="w-5 h-5" />
+                  Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {contactPurchased ? (
+                  <div className="space-y-4">
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-800 mb-1">
+                        <CheckCircle className="w-4 h-4" />
+                        <span className="font-medium text-sm">Contact Access Unlocked</span>
+                      </div>
+                      <p className="text-green-700 text-xs">
+                        You can now view contact details and message directly.
                       </p>
-                    </CardContent>
-                  </Card>
+                    </div>
 
-                  {/* Specializations */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Award className="w-5 h-5" />
-                        Specializations
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {tutor.specializations && tutor.specializations.length > 0 ? (
-                        <div className="space-y-2">
-                          {tutor.specializations.map((spec, index) => (
+                    {/* Contact Details */}
+                    <div className="space-y-2">
+                      {tutor.email && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm">{tutor.email}</span>
+                        </div>
+                      )}
+                      {tutor.phone_number && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm">{tutor.phone_number}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <Button 
+                      onClick={handleStartConversation}
+                      className="w-full"
+                      size="sm"
+                    >
+                      <MessageCircle className="w-3 h-3 mr-2" />
+                      Start Conversation
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Lock className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+                    <h4 className="font-medium text-gray-900 mb-2 text-sm">
+                      Contact Details Protected
+                    </h4>
+                    <p className="text-gray-600 mb-3 text-xs">
+                      Requires {CONTACT_COST} coins to protect from spam.
+                    </p>
+                    
+                    <div className="flex items-center justify-center gap-2 mb-4">
+                      <Coins className="w-4 h-4 text-yellow-600" />
+                      <span className="text-sm">Balance: {userCoins} coins</span>
+                    </div>
+
+                    <Button 
+                      onClick={handleContactPurchase}
+                      disabled={!user}
+                      className="w-full"
+                      size="sm"
+                    >
+                      <Coins className="w-3 h-3 mr-2" />
+                      Unlock ({CONTACT_COST} coins)
+                    </Button>
+
+                    {!user && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        Please sign in to contact tutors
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            {/* Teaching Style */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5" />
+                  Teaching Style
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700">
+                  {tutor.teaching_style || 'No teaching style information available.'}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Specializations */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Award className="w-5 h-5" />
+                  Specializations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tutor.specializations && tutor.specializations.length > 0 ? (
+                  <div className="space-y-2">
+                    {tutor.specializations.map((spec, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-600" />
+                        <span>{spec}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No specializations listed.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Meeting Types */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Video className="w-5 h-5" />
+                  Meeting Options
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('online') && (
+                    <div className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-blue-600" />
+                      <span>Online sessions</span>
+                    </div>
+                  )}
+                  {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('in_person') && (
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-green-600" />
+                      <span>In-person sessions</span>
+                    </div>
+                  )}
+                  {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('travel') && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-purple-600" />
+                      <span>Can travel to you</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Stats */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Statistics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total Sessions:</span>
+                    <span className="font-semibold">{tutor.total_sessions || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Success Rate:</span>
+                    <span className="font-semibold">{Number(tutor.success_rate).toFixed(2) || 'N/A'}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Response Rate:</span>
+                    <span className="font-semibold">{Number(tutor.response_rate).toFixed(2) || 'N/A'}%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Instant Booking:</span>
+                    <span className="font-semibold">
+                      {tutor.instant_booking ? (
+                        <CheckCircle className="w-4 h-4 text-green-600 inline" />
+                      ) : (
+                        <XCircle className="w-4 h-4 text-gray-400 inline" />
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Education & Experience */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
+                  Education & Experience
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Education */}
+                  <div>
+                    <h4 className="font-medium mb-2">Education</h4>
+                    <p className="text-gray-700 text-sm">
+                      {tutor.education || 'No education information provided.'}
+                    </p>
+                  </div>
+
+                  <Separator />
+
+                  {/* Experience */}
+                  <div>
+                    <h4 className="font-medium mb-2">Experience</h4>
+                    <p className="text-gray-700 text-sm">
+                      <strong>{tutor.experience_years} years</strong> of tutoring experience
+                    </p>
+                    {tutor.total_sessions > 0 && (
+                      <p className="text-gray-600 text-sm mt-1">
+                        Completed {tutor.total_sessions} sessions on our platform
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Certifications */}
+                  {tutor.certifications && tutor.certifications.length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <h4 className="font-medium mb-2">Certifications</h4>
+                        <div className="space-y-1">
+                          {tutor.certifications.slice(0, 2).map((cert, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                              <span>{spec}</span>
+                              <Award className="w-3 h-3 text-yellow-600" />
+                              <span className="text-sm">{cert}</span>
                             </div>
                           ))}
-                        </div>
-                      ) : (
-                        <p className="text-gray-600">No specializations listed.</p>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Meeting Types */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Video className="w-5 h-5" />
-                        Meeting Options
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('online') && (
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-blue-600" />
-                            <span>Online sessions</span>
-                          </div>
-                        )}
-                        {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('in_person') && (
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-green-600" />
-                            <span>In-person sessions</span>
-                          </div>
-                        )}
-                        {tutor.preferred_meeting_types && tutor.preferred_meeting_types.includes('travel') && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-purple-600" />
-                            <span>Can travel to you</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Stats */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Statistics
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Total Sessions:</span>
-                          <span className="font-semibold">{tutor.total_sessions || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Success Rate:</span>
-                          <span className="font-semibold">{Number(tutor.success_rate).toFixed(2) || 'N/A'}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Response Rate:</span>
-                          <span className="font-semibold">{Number(tutor.response_rate).toFixed(2) || 'N/A'}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Instant Booking:</span>
-                          <span className="font-semibold">
-                            {tutor.instant_booking ? (
-                              <CheckCircle className="w-4 h-4 text-green-600 inline" />
-                            ) : (
-                              <XCircle className="w-4 h-4 text-gray-400 inline" />
-                            )}
-                          </span>
+                          {tutor.certifications.length > 2 && (
+                            <p className="text-xs text-gray-500">
+                              +{tutor.certifications.length - 2} more certifications
+                            </p>
+                          )}
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </>
+                  )}
                 </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
 
-              <TabsContent value="experience">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Education & Experience</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* Education */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Education</h3>
-                        <p className="text-gray-700">
-                          {tutor.education || 'No education information provided.'}
-                        </p>
-                      </div>
+            {/* Availability */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  Availability
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Current Status:</span>
+                    <Badge className="bg-green-100 text-green-800">
+                      {tutor.availability_status}
+                    </Badge>
+                  </div>
 
-                      <Separator />
-
-                      {/* Certifications */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Certifications</h3>
-                        {tutor.certifications && tutor.certifications.length > 0 ? (
-                          <div className="grid gap-2">
-                            {tutor.certifications.map((cert, index) => (
-                              <div key={index} className="flex items-center gap-2">
-                                <Award className="w-4 h-4 text-yellow-600" />
-                                <span>{cert}</span>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-600">No certifications listed.</p>
-                        )}
-                      </div>
-
-                      <Separator />
-
-                      {/* Experience */}
-                      <div>
-                        <h3 className="text-lg font-semibold mb-3">Experience</h3>
-                        <p className="text-gray-700">
-                          <strong>{tutor.experience_years} years</strong> of tutoring experience
-                        </p>
-                        {tutor.total_sessions > 0 && (
-                          <p className="text-gray-600 mt-2">
-                            Has completed {tutor.total_sessions} tutoring sessions on our platform
-                          </p>
-                        )}
-                      </div>
+                  {tutor.minimum_session_duration && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm">Minimum Session: {tutor.minimum_session_duration} minutes</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  )}
 
-              <TabsContent value="reviews">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Student Reviews</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {tutor.total_reviews > 0 ? (
-                      <div className="text-center py-8">
-                        <Star className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">
-                          {tutor.rating} out of 5 stars
-                        </h3>
-                        <p className="text-gray-600">
-                          Based on {tutor.total_reviews} student reviews
-                        </p>
-                        <p className="text-sm text-gray-500 mt-4">
-                          Detailed reviews will be shown here once available
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <Star className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                          No reviews yet
-                        </h3>
-                        <p className="text-gray-500">
-                          This tutor is new to our platform. Be the first to leave a review!
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="availability">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Availability</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-blue-600" />
-                        <span className="font-medium">Current Status:</span>
-                        <Badge className="bg-green-100 text-green-800">
-                          {tutor.availability_status}
-                        </Badge>
-                      </div>
-
-                      {tutor.minimum_session_duration && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-5 h-5 text-blue-600" />
-                          <span className="font-medium">Minimum Session:</span>
-                          <span>{tutor.minimum_session_duration} minutes</span>
-                        </div>
-                      )}
-
-                      {tutor.travel_radius_km && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-blue-600" />
-                          <span className="font-medium">Travel Radius:</span>
-                          <span>{tutor.travel_radius_km} km</span>
-                        </div>
-                      )}
-
-                      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                        <h4 className="font-medium text-blue-900 mb-2">Book a Session</h4>
-                        <p className="text-blue-800 text-sm mb-3">
-                          To see this tutor's detailed availability and book a session, click the button below.
-                        </p>
-                        <Button onClick={handleBookSession} className="w-full">
-                          View Available Times
-                        </Button>
-                      </div>
+                  {tutor.travel_radius_km && (
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm">Travel Radius: {tutor.travel_radius_km} km</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-              <TabsContent value="contact">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Phone className="w-5 h-5" />
-                      Contact Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {contactPurchased ? (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div className="flex items-center gap-2 text-green-800 mb-2">
-                            <CheckCircle className="w-5 h-5" />
-                            <span className="font-medium">Contact Access Unlocked</span>
-                          </div>
-                          <p className="text-green-700 text-sm">
-                            You can now view contact details and message this tutor directly.
-                          </p>
-                        </div>
-
-                        {/* Contact Details - Only shown after payment */}
-                        <div className="space-y-3">
-                          {tutor.email && (
-                            <div className="flex items-center gap-3">
-                              <Mail className="w-5 h-5 text-gray-600" />
-                              <span>{tutor.email}</span>
-                            </div>
-                          )}
-                          {tutor.phone_number && (
-                            <div className="flex items-center gap-3">
-                              <Phone className="w-5 h-5 text-gray-600" />
-                              <span>{tutor.phone_number}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <Button 
-                          onClick={handleStartConversation}
-                          className="w-full"
-                        >
-                          <MessageCircle className="w-4 h-4 mr-2" />
-                          Start Conversation
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <Lock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          Contact Details Protected
-                        </h3>
-                        <p className="text-gray-600 mb-4">
-                          To protect tutors from spam, contact information requires a small payment of {CONTACT_COST} coins.
-                        </p>
-                        
-                        <div className="flex items-center justify-center gap-2 mb-6">
-                          <Coins className="w-5 h-5 text-yellow-600" />
-                          <span className="font-medium">Your Balance: {userCoins} coins</span>
-                        </div>
-
-                        <Button 
-                          onClick={handleContactPurchase}
-                          disabled={!user}
-                          className="w-full"
-                        >
-                          <Coins className="w-4 h-4 mr-2" />
-                          Unlock Contact ({CONTACT_COST} coins)
-                        </Button>
-
-                        {!user && (
-                          <p className="text-sm text-gray-500 mt-3">
-                            Please sign in to contact tutors
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </div>
-          </Tabs>
+            {/* Reviews */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="w-5 h-5" />
+                  Student Reviews
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tutor.total_reviews > 0 ? (
+                  <div className="text-center py-4">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <Star className="w-8 h-8 text-yellow-400 fill-current" />
+                      <span className="text-2xl font-bold">{tutor.rating}</span>
+                      <span className="text-gray-600">/ 5</span>
+                    </div>
+                    <p className="text-gray-600 text-sm">
+                      Based on {tutor.total_reviews} student reviews
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Detailed reviews available on request
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <Star className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-600 text-sm mb-1">No reviews yet</p>
+                    <p className="text-gray-500 text-xs">Be the first to leave a review!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 

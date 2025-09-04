@@ -71,7 +71,7 @@ export function SubjectMeetingStep({ form }) {
 
   const handleCreateSubject = async (newSubject) => {
     setLoading(true);
-    const { data, error } = await createSubject(newSubject);
+    const { data, error } = await createSubject({ name: newSubject });
     if (error) {
       console.error('Error creating subject:', error);
       setError(error.message || 'Failed to create subject');

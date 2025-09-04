@@ -66,7 +66,7 @@ const FormNavigationButton = ({
                 clearSavedData();
               }
               toast.success("Request submitted successfully!");
-              router.push('/tutor-jobs');
+              router.push('/requests');
             }
           } catch (error) {
             console.error("Form submission error:", error);

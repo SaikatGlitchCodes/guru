@@ -19,7 +19,6 @@ export default function ProfilePage() {
   const [currentStep, setCurrentStep] = useState(0);
   const { profile, loading, user } = useUser()
   const currentRole = profile?.role || 'student'
-
   const form = useForm({
     resolver: yupResolver(createProfileSchema(currentRole)),
     defaultValues: formData(profile, user),

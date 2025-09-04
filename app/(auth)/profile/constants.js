@@ -86,7 +86,8 @@ const NEW_PROFILE_STEPS = [
         fields: ["name", "phone_number", "gender"],
         description: "Basic information required for your profile",
         layout: "col-span-1",
-        priority: 1
+        priority: 1,
+        step: 'basic'
     },
     {
         title: "Teaching Subjects",
@@ -94,7 +95,8 @@ const NEW_PROFILE_STEPS = [
         fields: [],
         description: "Subjects you can teach",
         layout: "col-span-1",
-        priority: 3
+        priority: 3,
+        step: 'tutor'
     },
     {
         title: "Profile Details",
@@ -102,7 +104,8 @@ const NEW_PROFILE_STEPS = [
         fields: ["bio"],
         description: "Tell others about yourself",
         layout: "col-span-1",
-        priority: 2
+        priority: 2,
+        step: 'basic'
     },
     {
         title: "Account Info",
@@ -118,7 +121,8 @@ const NEW_PROFILE_STEPS = [
         fields: ["address.street", "address.city", "address.country"],
         description: "Where you're located",
         layout: "col-span-1",
-        priority: 4
+        priority: 4,
+        step: 'basic'
     },
     
     {
@@ -127,7 +131,8 @@ const NEW_PROFILE_STEPS = [
         fields: [],
         description: "Your availability and preferences",
         layout: "col-span-1",
-        priority: 4
+        priority: 4,
+        step: 'tutor'
     },
     {
         title: "Professional Information",
@@ -135,7 +140,8 @@ const NEW_PROFILE_STEPS = [
         fields: [],
         description: "Your rates and professional details",
         layout: "col-span-1",
-        priority: 5
+        priority: 5,
+        step: 'tutor'
     },
     {
         title: "Languages & Skills",
@@ -143,7 +149,8 @@ const NEW_PROFILE_STEPS = [
         fields: [],
         description: "Languages and specializations",
         layout: "col-span-1",
-        priority: 6
+        priority: 6,
+        step: 'tutor'
     }
 ]
 
@@ -166,5 +173,14 @@ export const getStepsForRole = (role) => {
     // if (role === 'tutor') {
     //     return [...baseSteps, ...TUTOR_STEPS]
     // }
-    return NEW_PROFILE_STEPS
+
+    //filter here based on step is basic or tutor and role
+    return NEW_PROFILE_STEPS.filter(step => {
+        if (role === 'tutor') {
+            // For tutors, include all steps (basic and tutor)
+            return step.step === 'basic' || step.step === 'tutor' || !step.step;
+        }
+        // For students, only include basic steps and exclude tutor-specific steps
+        return step.step === 'basic' || !step.step;
+    });
 }

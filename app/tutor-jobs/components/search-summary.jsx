@@ -1,6 +1,6 @@
 "use client"
 
-import { TrendingUp, Clock, DollarSign, MapPin, BookOpen, Filter } from "lucide-react"
+import { TrendingUp, Clock, IndianRupee, MapPin, BookOpen, Filter } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
@@ -82,7 +82,7 @@ export default function SearchSummary({ requests, filters, isLoading = false }) 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="text-center">
             <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mx-auto mb-1">
-              <DollarSign className="w-4 h-4 text-green-600" />
+              <IndianRupee className="w-4 h-4 text-green-600" />
             </div>
             <div className="text-lg font-bold text-gray-900">${stats.averagePrice}</div>
             <div className="text-xs text-gray-600">Avg. Rate</div>

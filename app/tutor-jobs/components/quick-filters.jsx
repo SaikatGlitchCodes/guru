@@ -1,6 +1,6 @@
 "use client"
 
-import { Clock, MapPin, DollarSign, Monitor, Users, Zap } from "lucide-react"
+import { Clock, MapPin, IndianRupee, Monitor, Users, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -23,7 +23,7 @@ export default function QuickFilters({ onFilterSelect, activeFilters = [] }) {
     {
       id: 'high-pay',
       label: '₹50+ /hour',
-      icon: DollarSign,
+      icon: IndianRupee,
       color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
       filter: { minPrice: 50 }
     },

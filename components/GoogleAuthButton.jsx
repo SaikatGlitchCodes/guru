@@ -42,6 +42,7 @@ export default function GoogleAuthButton({btn = false}) {
         e.stopPropagation();
         console.log("Google Auth button clicked!");
         handleGoogleLogin();
+        localStorage.setItem('googleAuthClicked', 'true');
       }}
       className={btn
         ? `flex items-center justify-center gap-3 px-4 py-[5px] border rounded-lg shadow-sm hover:shadow-md transition-all duration-200 text-black font-medium`
